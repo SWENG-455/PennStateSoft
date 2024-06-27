@@ -1,11 +1,16 @@
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PennStateSoft.Components;
 using PennStateSoft.Components.Account;
 using PennStateSoft.Data;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<UserComplaints>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("UserComplaints") ?? throw new InvalidOperationException("Connection string 'UserComplaints' not found.")));
+
+builder.Services.AddQuickGridEntityFrameworkAdapter();;
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

@@ -1,0 +1,62 @@
+﻿@page "/Account/Manage/Complaints/Details"
+@inject PennStateSoft.Data.UserComplaints DB
+@using PennStateSoft
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Complaint Details</PageTitle>
+
+<h1>Complaint Details</h1>
+
+<div>
+    <hr />
+    @if (complaint is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row border border-dark">
+            <p>
+                <dt class="col-sm-1">Username: </dt>
+                <dd class="col-sm-1">@complaint.Username</dd>
+            </p>
+            <p>
+                <dt class="col-sm-1">Subject: </dt>
+                <dd class="col-sm-1">@complaint.Subject</dd>
+            </p>
+            <p>
+                <dt class="col-sm-1">Created: </dt>
+                <dd class="col-sm-3">@complaint.Created</dd>
+            </p>
+
+            <p class="visually-hidden">
+                <dd class="col-sm-10" hidden>Closed: @complaint.Closed</dd>
+            </p>
+
+            <p class="accordion-body border border-bottom-0" >
+                @complaint.Description
+            </p>
+        </dl>
+        <div>
+            <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class="text-decoration-none">Edit</a> |
+            <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    Complaint? complaint;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (complaint is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

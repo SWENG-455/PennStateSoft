@@ -11,7 +11,7 @@
 
 <PageTitle>Profile</PageTitle>
 
-<h3>Profile</h3>
+<h2>Profile</h2>
 <StatusMessage />
 
 <div class="row">
@@ -46,6 +46,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        //await Task.Delay(1000);
+        
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         username = await UserManager.GetUserNameAsync(user);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);

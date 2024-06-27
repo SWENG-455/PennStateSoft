@@ -1,0 +1,133 @@
+﻿@page "/Account/Manage/Complaints/Edit"
+
+@using Microsoft.AspNetCore.Identity
+@using PennStateSoft
+@using Microsoft.EntityFrameworkCore
+@using PennStateSoft.Data
+
+@inject PennStateSoft.Data.UserComplaints DB
+@inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+
+<PageTitle>Edit Complaint</PageTitle>
+
+<h3>Edit Complaint</h3>
+
+<hr />
+@if (Complaint is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Complaint" OnValidSubmit="UpdateComplaint" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Complaint.Id" value="@Complaint.Id" />
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username:</label>
+                    <InputText id="username" @bind-Value="Complaint.Username" class="form-control" disabled/>
+                    <ValidationMessage For="() => Complaint.Username" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="subject" class="form-label">Subject:</label>
+                    <InputText id="subject" @bind-Value="Complaint.Subject" class="form-control" />
+                    <ValidationMessage For="() => Complaint.Subject" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="datecreated" class="form-label">Created:</label>
+                    <InputDate id="datecreated" @bind-Value="Complaint.Created" class="form-control" disabled/>
+                    <ValidationMessage For="() => Complaint.Created" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="dateclosed" class="form-label">Closed:</label>
+                    <InputDate id="dateclosed" @bind-Value="Complaint.Closed" class="form-control" hidden disabled/>
+                    <ValidationMessage For="() => Complaint.Closed" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputTextArea id="description" @bind-Value="Complaint.Description" class="form-control text-wrap" />
+                    <ValidationMessage For="() => Complaint.Description" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/account/manage/complaints" class="text-decoration-none">Back to List</a>
+</div>
+
+@code {
+    private ApplicationUser user = default!;
+    private string? UserName;
+    private string? _subject;
+    private DateTime dateCreated;
+    private DateTime dateClosed;
+    private DateTime expiry;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Complaint? Complaint { get; set; }
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Complaint ??= await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Complaint is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+            Complaint.Username = await UserManager.GetUserNameAsync(user);
+            Complaint.Created = DateTime.UtcNow;
+            expiry = DateTime.UtcNow.AddDays(7);
+            Complaint.Closed = expiry;
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateComplaint()
+    {
+        Complaint.Created = DateTime.UtcNow;
+        expiry = DateTime.UtcNow.AddDays(7);
+        Complaint.Closed = expiry;
+
+        DB.Attach(Complaint!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ComplaintExists(Complaint!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/account/manage/complaints");
+    }
+
+    bool ComplaintExists(int id)
+    {
+        return DB.Complaint.Any(e => e.Id == id);
+    }
+}

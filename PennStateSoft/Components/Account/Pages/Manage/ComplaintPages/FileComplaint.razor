@@ -1,0 +1,116 @@
+﻿@page "/Account/Manage/Complaints/Create"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using PennStateSoft
+@using PennStateSoft.Data
+
+@inject PennStateSoft.Data.UserComplaints DB
+@inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+
+<PageTitle>File a complaint</PageTitle>
+
+<h2>File a new complaint</h2>
+
+<StatusMessage Message="@message" />
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="complaint" OnValidSubmit="OnValidSubmitAsync" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+
+            <div class="mb-3">
+                <label for="username" class="form-label">Username:</label>
+                <InputText id="username" @bind-Value=" complaint.Username" class="form-control" disabled />
+                <ValidationMessage For="() => complaint.Username" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="subject" class="form-label">Subject:</label>
+                <InputText id="title" @bind-Value="complaint.Subject" class="form-control" />
+                <ValidationMessage For="() => complaint.Subject" class="text-danger" />
+            </div>        
+            <div class="mb-3">
+                <label for="datecreated" class="form-label">Created:</label> 
+                <InputDate id="datecreated" @bind-Value="complaint.Created" class="form-control" disabled />
+                <ValidationMessage For="() => complaint.Created" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="dateclosed" class="form-label" hidden>DateClosed:</label> 
+                <InputDate id="dateclosed" @bind-Value="complaint.Closed" class="form-control" hidden disabled />
+                <ValidationMessage For="() => complaint.Closed" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="description" class="form-label">Description:</label> 
+                <InputTextArea id="description" @bind-Value="complaint.Description" class="form-control text-wrap navbar-expand"/>
+                <ValidationMessage For="() => complaint.Description" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/Account/Manage/Complaints" class="text-decoration-none">Back to List</a>
+</div>
+
+@code {
+
+    private string? message;
+    private ApplicationUser user = default!;
+    private string? UserName;
+    private string? _subject;
+    private string? description;
+    private DateTime dateCreated;
+    private DateTime dateClosed;
+    private DateTime expiry;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        complaint.Username = await UserManager.GetUserNameAsync(user);
+        complaint.Created = DateTime.UtcNow;
+        expiry = DateTime.UtcNow.AddDays(7);
+        complaint.Closed = expiry;
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        await Task.Delay(500);
+
+        if (complaint.Subject is null)
+        {
+            message = "Subject is required.";
+            return;
+        }
+        if (complaint.Description is null)
+        {
+            message = "Description is required.";
+            return;
+        }
+
+        await AddComplaint();
+
+        message = "Complaint filed.";
+    }
+
+    [SupplyParameterFromForm]
+    public Complaint complaint { get; set; } = new();
+
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddComplaint()
+    {
+        DB.Complaint.Add(complaint);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/account/manage/complaints");
+    }
+}

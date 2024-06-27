@@ -1,0 +1,26 @@
+﻿@page "/Account/Manage/Complaints"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject PennStateSoft.Data.UserComplaints DB
+@using PennStateSoft
+
+<PageTitle>Complaints</PageTitle>
+
+<h2>Complaints</h2>
+
+<p>
+    <a href="/Account/Manage/Complaints/Create" class="text-decoration-none">New</a>
+</p>
+
+<QuickGrid Class="table" Items="DB.Complaint">
+    <PropertyColumn Property="complaint => complaint.Username" />
+    <PropertyColumn Property="complaint => complaint.Subject" />
+    <PropertyColumn Property="complaint => complaint.Created" />
+    <PropertyColumn Property="complaint => complaint.Closed" />
+    <PropertyColumn Property="complaint => complaint.Description" />
+
+    <TemplateColumn Context="complaint">
+        <a href="@($"account/manage/complaints/edit?id={complaint.Id}")">Edit</a> |
+        <a href="@($"account/manage/complaints/details?id={complaint.Id}")">Details</a> |
+        <a href="@($"account/manage/complaints/delete?id={complaint.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>

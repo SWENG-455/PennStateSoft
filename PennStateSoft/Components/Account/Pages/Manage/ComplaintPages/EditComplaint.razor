@@ -13,6 +13,7 @@
 <PageTitle>Edit Complaint</PageTitle>
 
 <h3>Edit Complaint</h3>
+<StatusMessage Message="@message" />
 
 <hr />
 @if (Complaint is null)
@@ -63,6 +64,7 @@ else
 </div>
 
 @code {
+    private string? message;
     private ApplicationUser user = default!;
     private string? UserName;
     private string? _subject;
@@ -104,6 +106,29 @@ else
         Complaint.Created = DateTime.UtcNow;
         expiry = DateTime.UtcNow.AddDays(7);
         Complaint.Closed = expiry;
+
+        await Task.Delay(500);
+
+        if (Complaint.Subject is null || Complaint.Subject.Length < 1)
+        {
+            message = $"Error: {string.Join(", ", "Subject is required.")}";
+            return;
+        }
+        else if (Complaint.Subject.Length < 3)
+        {
+            message = $"Error: {string.Join(", ", "Subject should be at least 3 characters long.")}";
+            return;
+        }
+        if (Complaint.Description is null || Complaint.Description.Length < 1)
+        {
+            message = $"Error: {string.Join(", ", "Description is required.")}";
+            return;
+        }
+        else if (Complaint.Description.Length < 8)
+        {
+            message = $"Error: {string.Join(", ", "Description is too short.")}";
+            return;
+        }
 
         DB.Attach(Complaint!).State = EntityState.Modified;
 

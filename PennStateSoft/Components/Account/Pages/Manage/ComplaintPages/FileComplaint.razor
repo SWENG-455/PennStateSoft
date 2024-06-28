@@ -64,9 +64,6 @@
 
     private string? message;
     private ApplicationUser user = default!;
-    private string? UserName;
-    private string? _subject;
-    private string? description;
     private DateTime dateCreated;
     private DateTime dateClosed;
     private DateTime expiry;
@@ -87,14 +84,24 @@
     {
         await Task.Delay(500);
 
-        if (complaint.Subject is null)
+        if (complaint.Subject is null || complaint.Subject.Length < 1)
         {
-            message = "Subject is required.";
+            message = $"Error: {string.Join(", ", "Subject is required.")}";
             return;
         }
-        if (complaint.Description is null)
+        else if (complaint.Subject.Length < 3)
         {
-            message = "Description is required.";
+            message = $"Error: {string.Join(", ", "Subject should be at least 3 characters long.")}";
+            return;
+        }
+        if (complaint.Description is null || complaint.Description.Length < 1)
+        {
+            message = $"Error: {string.Join(", ", "Description is required.")}";
+            return;
+        }
+        else if (complaint.Description.Length < 8)
+        {
+            message = $"Error: {string.Join(", ", "Description is too short.")}";
             return;
         }
 

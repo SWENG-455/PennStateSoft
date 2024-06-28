@@ -3,10 +3,12 @@
 @using PennStateSoft
 @inject NavigationManager NavigationManager
 @using Microsoft.EntityFrameworkCore
+@using System.Text
+@using System.Text.Encodings.Web
 
 <PageTitle>Close Complaint</PageTitle>
 
-<h3>Close and delete this complaint?</h3>
+<h3>Mark as resolved?</h3>
 <div>
     <hr />
     @if (complaint is null)
@@ -14,28 +16,34 @@
         <p><em>Loading...</em></p>
     }
     else {
-        <dl class="row">
-            <dt class="col-sm-2">Username</dt>
-            <dd class="col-sm-10">@complaint.Username</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Title</dt>
-            <dd class="col-sm-10">@complaint.Subject</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">DateCreated</dt>
-            <dd class="col-sm-10">@complaint.Created</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2" hidden>DateClosed</dt>
-            <dd class="col-sm-10" hidden>@complaint.Closed</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Description</dt>
-            <dd class="col-sm-10">@complaint.Description</dd>
-        </dl>
+        <div class="forms-control border border-dark border-start-0 border-end-0 border-bottom-0
+                border-top-0" cols="80">
+            <div>
+                <label for="username" class=" form-label m-1"> Username: </label>
+                <label class=" form-label m-2 text-black-50"> @complaint.Username </label>
+            </div>
+            <div>
+                <label for="subject" class="form-label m-2"> Subject: </label>
+                <label class=" form-label m-4 text-black-50"> @complaint.Subject </label>
+            </div>
+            <div>
+                <label for="created" class="form-label m-2"> Created: </label>
+                <label class=" form-label m-4 text-black-50"> @complaint.Created </label>
+            </div>
+            <div hidden>
+                <label for="closed" hidden> Closed: </label>
+                <label hidden> @complaint.Created </label>
+            </div>
+            <div>
+                <textarea class="text-black m-3 text-wrap border-start-0 border-end-0" cols="100"
+                          rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(Description)"
+                          disabled>
+                    @Encoding.ASCII.GetString(complaint.Description!)
+                </textarea>
+            </div>
+        </div>
         <EditForm method="post" Model="complaint" OnValidSubmit="DeleteComplaint" FormName="delete" Enhance>
-            <button type="submit" class="btn btn-danger" disabled="@(complaint is null)">Delete</button> |
+            <button type="submit" class="btn btn-danger" disabled="@(complaint is null)">Resolve</button> |
             <a href="/account/manage/complaints" class="text-decoration-none">Back to List</a>
         </EditForm>
     }
@@ -47,6 +55,8 @@
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
+    protected UIHelper uIHelper = new();
+
     protected override async Task OnInitializedAsync()
     {
         complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
@@ -55,6 +65,7 @@
         {
             NavigationManager.NavigateTo("notfound");
         }
+        uIHelper.CalculateSize(@Encoding.ASCII.GetString(complaint.Description!));
     }
 
     public async Task DeleteComplaint()

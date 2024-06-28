@@ -15,7 +15,7 @@
 
 <PageTitle>File a complaint</PageTitle>
 
-<h2>File a new complaint</h2>
+<h3>File a new complaint</h3>
 
 <StatusMessage Message="@message" />
 
@@ -48,8 +48,9 @@
             </div>        
             <div class="mb-3">
                 <label for="description" class="form-label">Description:</label> 
-                <InputTextArea id="description" @bind-Value="complaint.Description" class="form-control text-wrap navbar-expand"/>
-                <ValidationMessage For="() => complaint.Description" class="text-danger" /> 
+                <InputTextArea id="description" @bind-Value="Description" class="form-control text-wrap navbar-expand"
+                               rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(Description)" />
+                <ValidationMessage For="() => Description" class="text-danger" /> 
             </div>        
             <button type="submit" class="btn btn-primary">Create</button>
         </EditForm>
@@ -61,6 +62,8 @@
 </div>
 
 @code {
+    [SupplyParameterFromForm]
+    private string Description { get; set; } = "";
 
     private string? message;
     private ApplicationUser user = default!;
@@ -71,6 +74,8 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
+    protected UIHelper uIHelper = new();
+
     protected override async Task OnInitializedAsync()
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
@@ -78,6 +83,7 @@
         complaint.Created = DateTime.UtcNow;
         expiry = DateTime.UtcNow.AddDays(7);
         complaint.Closed = expiry;
+        uIHelper.CalculateSize(Description);
     }
 
     private async Task OnValidSubmitAsync()
@@ -94,20 +100,24 @@
             message = $"Error: {string.Join(", ", "Subject should be at least 3 characters long.")}";
             return;
         }
-        if (complaint.Description is null || complaint.Description.Length < 1)
+        if (Description is null || Description.Length < 1)
         {
             message = $"Error: {string.Join(", ", "Description is required.")}";
             return;
         }
-        else if (complaint.Description.Length < 8)
+        else if (Description.Length < 8)
         {
             message = $"Error: {string.Join(", ", "Description is too short.")}";
             return;
         }
 
+        complaint.Description = Encoding.ASCII.GetBytes(Description);
+
         await AddComplaint();
 
-        message = "Complaint filed.";
+        message = $"Success: {string.Join(", ", "Complaint has been logged.")}";
+
+        await Task.Delay(1000);
     }
 
     [SupplyParameterFromForm]

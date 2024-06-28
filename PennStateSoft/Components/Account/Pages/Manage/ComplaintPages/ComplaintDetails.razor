@@ -1,12 +1,17 @@
 ﻿@page "/Account/Manage/Complaints/Details"
-@inject PennStateSoft.Data.UserComplaints DB
+
 @using PennStateSoft
-@inject NavigationManager NavigationManager
 @using Microsoft.EntityFrameworkCore
+@using System.Text
+@using System.Text.Encodings.Web
+@using PennStateSoft.Components.Account.Shared
+
+@inject PennStateSoft.Data.UserComplaints DB
+@inject NavigationManager NavigationManager
 
 <PageTitle>Complaint Details</PageTitle>
 
-<h1>Complaint Details</h1>
+<h3>Complaint Details</h3>
 
 <div>
     <hr />
@@ -15,28 +20,33 @@
         <p><em>Loading...</em></p>
     }
     else {
-        <dl class="row border border-dark">
-            <p>
-                <dt class="col-sm-1">Username: </dt>
-                <dd class="col-sm-1">@complaint.Username</dd>
-            </p>
-            <p>
-                <dt class="col-sm-1">Subject: </dt>
-                <dd class="col-sm-2">@complaint.Subject</dd>
-            </p>
-            <p>
-                <dt class="col-sm-1">Created: </dt>
-                <dd class="col-sm-3">@complaint.Created</dd>
-            </p>
+        <div class="forms-control border border-dark border-start-0 border-end-0 border-bottom-0 
+               border-top-0" cols="80">
+            <div>
+                <label for="username" class=" form-label m-1"> Username: </label>
+                <label class=" form-label m-2 text-black-50"> @complaint.Username </label>
+            </div>
+            <div>
+                <label for="subject" class="form-label m-2"> Subject: </label>
+                <label class=" form-label m-4 text-black-50"> @complaint.Subject </label>
+            </div>
+            <div>
+                <label for="created" class="form-label m-2"> Created: </label>
+                <label class=" form-label m-4 text-black-50"> @complaint.Created </label>
+            </div>
+            <div hidden>
+                <label for="closed" hidden> Closed: </label>
+                <label hidden> @complaint.Created </label>
+            </div>
+            <div>
+                <textarea class="text-black m-3 text-wrap border-start-0 border-end-0" cols="100"
+                          rows="@UIhelper.Rows" oninput="UIhelper.CalculateSize(Description)"
+                          disabled>
+                    @Encoding.ASCII.GetString(complaint.Description!)
+                </textarea>
+            </div>
+        </div>
 
-            <p class="visually-hidden">
-                <dd class="col-sm-10" hidden>Closed: @complaint.Closed</dd>
-            </p>
-
-            <p class="accordion-body border border-bottom-0" >
-                @complaint.Description
-            </p>
-        </dl>
         <div>
             <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class="text-decoration-none">Edit</a> |
             <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back to List</a>
@@ -50,13 +60,26 @@
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
+    public string? Description { get; set; }
+
+    private UIHelper UIhelper = new();
+
     protected override async Task OnInitializedAsync()
     {
         complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
 
+
         if (complaint is null)
         {
             NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            if (complaint.Description is not null)
+            {
+                Description = Encoding.ASCII.GetString(complaint.Description);
+                UIhelper.CalculateSize(Description);
+            }
         }
     }
 }

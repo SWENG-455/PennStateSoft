@@ -10,7 +10,7 @@ namespace PennStateSoft
         public DateTime Created { get; set; }
         public DateTime? Closed { get; set; }
 
-        public string? Description { get; set; }
+        public byte[]? Description { get; set; }
 
     }
 }

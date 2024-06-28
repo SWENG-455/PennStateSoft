@@ -2,25 +2,32 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @inject PennStateSoft.Data.UserComplaints DB
 @using PennStateSoft
+@using System.Text
+@using System.Text.Encodings.Web
+@using PennStateSoft.Migrations
 
 <PageTitle>Complaints</PageTitle>
 
-<h2>Complaints</h2>
+<h3>Complaints</h3>
 
 <p>
     <a href="/Account/Manage/Complaints/Create" class="text-decoration-none">New</a>
 </p>
 
 <QuickGrid Class="table" Items="DB.Complaint">
-    <PropertyColumn Property="complaint => complaint.Username" />
+    <PropertyColumn Property= "complaint => complaint.Username" />
     <PropertyColumn Property="complaint => complaint.Subject" />
     <PropertyColumn Property="complaint => complaint.Created" />
     <PropertyColumn Property="complaint => complaint.Closed" />
     <PropertyColumn Property="complaint => complaint.Description" />
 
     <TemplateColumn Context="complaint">
+        @if (DB.Database.GetType().Equals(@complaint.Description))
+        {
+            @Encoding.ASCII.GetString(@complaint.Description!)
+        }
         <a href="@($"account/manage/complaints/edit?id={complaint.Id}")">Edit</a> |
         <a href="@($"account/manage/complaints/details?id={complaint.Id}")">Details</a> |
-        <a href="@($"account/manage/complaints/delete?id={complaint.Id}")">Delete</a>
+        <a href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a>
     </TemplateColumn>
 </QuickGrid>

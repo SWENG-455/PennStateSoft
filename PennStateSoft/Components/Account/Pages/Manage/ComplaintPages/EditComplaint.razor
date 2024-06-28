@@ -4,6 +4,8 @@
 @using PennStateSoft
 @using Microsoft.EntityFrameworkCore
 @using PennStateSoft.Data
+@using System.Text
+@using System.Text.Encodings.Web
 
 @inject PennStateSoft.Data.UserComplaints DB
 @inject NavigationManager NavigationManager
@@ -50,7 +52,8 @@ else
                 </div>
                 <div class="mb-3">
                     <label for="description" class="form-label">Description:</label>
-                    <InputTextArea id="description" @bind-Value="Complaint.Description" class="form-control text-wrap" />
+                    <InputTextArea id="description" @bind-Value="Description" class="form-control text-wrap"
+                                   rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(Description)" />
                     <ValidationMessage For="() => Complaint.Description" class="text-danger" />
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
@@ -78,8 +81,13 @@ else
     [SupplyParameterFromForm]
     public Complaint? Complaint { get; set; }
 
+    [SupplyParameterFromForm]
+    private string? Description { get; set; } = "";
+
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
+
+    protected UIHelper uIHelper = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,7 +104,12 @@ else
             Complaint.Created = DateTime.UtcNow;
             expiry = DateTime.UtcNow.AddDays(7);
             Complaint.Closed = expiry;
+            if (Complaint.Description is not null)
+            {
+                Description = @Encoding.ASCII.GetString(Complaint.Description);
+            }
         }
+        uIHelper.CalculateSize(Description!);
     }
 
     // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -119,16 +132,18 @@ else
             message = $"Error: {string.Join(", ", "Subject should be at least 3 characters long.")}";
             return;
         }
-        if (Complaint.Description is null || Complaint.Description.Length < 1)
+        if (Description is null || Description.Length < 1)
         {
             message = $"Error: {string.Join(", ", "Description is required.")}";
             return;
         }
-        else if (Complaint.Description.Length < 8)
+        else if (Description.Length < 8)
         {
             message = $"Error: {string.Join(", ", "Description is too short.")}";
             return;
         }
+
+        Complaint.Description = Encoding.ASCII.GetBytes(Description);
 
         DB.Attach(Complaint!).State = EntityState.Modified;
 

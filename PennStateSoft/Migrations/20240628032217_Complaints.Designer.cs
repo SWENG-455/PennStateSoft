@@ -12,7 +12,7 @@ using PennStateSoft.Data;
 namespace PennStateSoft.Migrations
 {
     [DbContext(typeof(UserComplaints))]
-    [Migration("20240627205808_Complaints")]
+    [Migration("20240628032217_Complaints")]
     partial class Complaints
     {
         /// <inheritdoc />
@@ -39,8 +39,8 @@ namespace PennStateSoft.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<byte[]>("Description")
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<string>("Subject")
                         .HasColumnType("nvarchar(max)");

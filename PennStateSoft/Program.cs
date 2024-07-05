@@ -5,6 +5,9 @@ using PennStateSoft.Components;
 using PennStateSoft.Components.Account;
 using PennStateSoft.Data;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using PennStateSoft;
+using BlazorSample.Components.Account;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<UserComplaints>(options =>
@@ -38,8 +41,20 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, EmailSender>();
+builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
+
+//The following code sets the inactivity timeout to 5 days with sliding expiration
+builder.Services.ConfigureApplicationCookie(options => {
+    options.ExpireTimeSpan = TimeSpan.FromDays(5);
+    options.SlidingExpiration = true;
+});
+
+//The following code changes all data protection tokens timeout period to 3 hours
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+    options.TokenLifespan = TimeSpan.FromHours(3));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

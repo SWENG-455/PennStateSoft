@@ -46,7 +46,7 @@ else
                     <ValidationMessage For="() => Complaint.Created" class="text-danger" />
                 </div>
                 <div class="mb-3">
-                    <label for="dateclosed" class="form-label">Closed:</label>
+                    <label for="dateclosed" class="form-label" hidden>Closed:</label>
                     <InputDate id="dateclosed" @bind-Value="Complaint.Closed" class="form-control" hidden disabled/>
                     <ValidationMessage For="() => Complaint.Closed" class="text-danger" />
                 </div>

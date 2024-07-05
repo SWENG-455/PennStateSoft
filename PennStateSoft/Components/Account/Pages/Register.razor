@@ -4,6 +4,7 @@
 @using System.Text
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity.UI.Services
 @using Microsoft.AspNetCore.WebUtilities
 @using PennStateSoft.Data
 
@@ -40,7 +41,15 @@
                 <label for="confirm-password">Confirm Password</label>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+            <div class="checkbox mb-3">
+                <label class="small">
+                    <InputCheckbox @bind-Value="SendVerificationLink" class="darker-border-checkbox form-check-input" />
+                    Email verification link
+                </label>
+            </div>
+            <button type="submit" class="mb-3 w-100 btn btn-lg btn-primary">Register</button>
+ 
+           
         </EditForm>
     </div>
 </div>
@@ -51,8 +60,12 @@
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
+    [SupplyParameterFromForm]
+    private bool SendVerificationLink { get; set; }
+
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
+    private static int userNum { get; set; } = 1000;
 
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
@@ -81,13 +94,18 @@
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
             new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
 
+        if (!SendVerificationLink)
+        {
+            EmailSender = new IdentityNoOpEmailSender();
+        }
+
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
             RedirectManager.RedirectTo(
                 "Account/RegisterConfirmation",
-                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl, ["sendVerificationLink"] = SendVerificationLink });
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);

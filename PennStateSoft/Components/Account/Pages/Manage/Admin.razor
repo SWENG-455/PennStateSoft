@@ -14,8 +14,10 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
     ApplicationUser? user { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
+
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
         if (user.GetRole().Equals("None"))

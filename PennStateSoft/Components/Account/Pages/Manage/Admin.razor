@@ -4,7 +4,6 @@
 @using PennStateSoft.Data
 
 @inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 
@@ -13,7 +12,7 @@
 @code {
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
-    ApplicationUser? user { get; set; } = default!;
+    private ApplicationUser? user { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

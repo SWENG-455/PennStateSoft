@@ -1,7 +1,18 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using PennStateSoft.Data
+@using PennStateSoft.Components.Pages
 
 @inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject IJSRuntime JS
+
+<head>
+    <script>
+        const link = document.getElementById("RegAdmin");
+        link.href = route;
+    </script>
+</head>
 
 <ul class="nav nav-pills flex-lg-row flex-nowrap">
     <li class="nav-item">
@@ -28,13 +39,43 @@
     <li class="nav-item">
         <NavLink class="nav-link text-nowrap" href="Account/Manage/Complaints">Complaints</NavLink>
     </li>
+    <AuthorizeView>
+        <Authorized>
+            <li class="nav-item">
+                <NavLink id="RegAdmin" class="nav-link text-nowrap" @onload="VerifyAdmin"
+                         @ondblclick="VerifyAdmin" @onselect="VerifyAdmin" href="Account/Manage/RegisterAdmin"
+                         onclick="VerifyAdmin">
+                    Create Admin Account
+                </NavLink>
+            </li>
+        </Authorized>
+    </AuthorizeView>
+   
 </ul>
 
 @code {
     private bool hasExternalLogins;
 
+    private string? role { get; set; }
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    private ApplicationUser? user { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
         hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+    }
+    /*
+     * This does not work at the moment
+     */
+    private async Task VerifyAdmin()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+        role = user?.GetRole();
+
+        await JS.InvokeVoidAsync("verifyAdmin.isAdmin(role)");
     }
 }

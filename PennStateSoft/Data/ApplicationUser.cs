@@ -7,28 +7,38 @@ namespace PennStateSoft.Data
     public class ApplicationUser : IdentityUser
     {
         private static List<ApplicationUser>? Admins;
-        private static ApplicationUser Admin;
+        private static ApplicationUser? Admin;
         private IdentityRole? Role;
         private ApplicationUser CreateAdminUser()
         {
             if (Admins == null)
             {
-                try
-                {
-                    Admins = new List<ApplicationUser>();
-
-                    Admins?.Add(Activator.CreateInstance<ApplicationUser>());
-                    Admin = Admins.LastOrDefault();
-                    Admin.Role = new IdentityRole("Administrator");
-                }
-                catch
-                {
-                    throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                        $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
-                } 
+                Admins = []; 
+            }
+            try
+            {
+                Admins?.Add(Activator.CreateInstance<ApplicationUser>());
+                Admin = Admins?.LastOrDefault();
+                Admin.Role = new IdentityRole("Administrator");
+            }
+            catch
+            {
+                throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
             }
 
             return Admin;
+        }
+        public ApplicationUser CreateAdminAccount(ApplicationUser user)
+        {
+            if (GetRole(user).Equals("None"))
+            {
+                throw new InvalidOperationException($"You do not have access to this resource");
+            }
+            else
+            {
+                return CreateAdminUser();
+            } 
         }
 
         //Passes an instance of ApplicationUser as an argument

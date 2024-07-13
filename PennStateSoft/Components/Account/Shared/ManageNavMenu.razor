@@ -3,7 +3,7 @@
 
 @inject SignInManager<ApplicationUser> SignInManager
 
-<ul class="nav nav-pills flex-column">
+<ul class="nav nav-pills flex-lg-row flex-nowrap">
     <li class="nav-item">
         <NavLink class="nav-link" href="Account/Manage" Match="NavLinkMatch.All">Profile</NavLink>
     </li>
@@ -20,13 +20,13 @@
         </li>
     }
     <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
+        <NavLink class="nav-link text-nowrap" href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
     </li>
     <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/PersonalData">Personal data</NavLink>
+        <NavLink class="nav-link text-nowrap" href="Account/Manage/PersonalData">Personal data</NavLink>
     </li>
     <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/Complaints">Complaints</NavLink>
+        <NavLink class="nav-link text-nowrap" href="Account/Manage/Complaints">Complaints</NavLink>
     </li>
 </ul>
 

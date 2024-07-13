@@ -4,6 +4,7 @@ using Mandrill;
 using Mandrill.Model;
 using PennStateSoft.Data;
 using PennStateSoft;
+using FluentEmail;
 
 namespace BlazorSample.Components.Account;
 
@@ -11,7 +12,7 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
     ILogger<EmailSender> logger) : IEmailSender<ApplicationUser>
 {
     private readonly ILogger logger = logger;
-    readonly string layoutImg = "C:\\Users\\brian\\OneDrive\\Documents\\Summer 2024\\SWENG 455\\PennStateSoft\\PennStateSoft\\images\\cover.png";
+    readonly string layoutImg = "logo.png";
 
     public AuthMessageSenderOptions Options { get; } = optionsAccessor.Value;
 
@@ -30,7 +31,7 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
             "</style>" +
             "<body>" +
             "<header style=\"align:left\">" +
-            "<img src=\"https://images.squarespace-cdn.com/content/v1/66868a06965e79243e6029d1/26e76aa5-3518-495f-9722-519d164d8a78/cover.png\"" +
+            "<img src=\"{layoutImg}\"" +
             "style=\"width:200px; height:70px;\">" +
             " </header>" +
             "<footer> Welcome *|UserName|*,</footer>" +
@@ -73,7 +74,6 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
     {
         //MailChimp/Mandrill has suspended this mailclient (tied to my domain).
         //Need to implement a new client.
-
         return;
         
         int index = toEmail.IndexOf('@');

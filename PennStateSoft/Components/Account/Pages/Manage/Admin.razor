@@ -1,0 +1,28 @@
+﻿@page "/Account/Admin"
+
+@using Microsoft.AspNetCore.Identity
+@using PennStateSoft.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+
+<h3>Admin</h3>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+    ApplicationUser? user { get; set; } = default!;
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+        if (user.GetRole().Equals("None"))
+        {
+            await SignInManager.SignOutAsync();
+            RedirectManager.RedirectToWithStatus("Account/AdminLogin", "Please log in with an admin account", HttpContext);
+        }
+
+    }
+}

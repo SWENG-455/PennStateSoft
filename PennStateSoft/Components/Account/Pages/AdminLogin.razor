@@ -1,4 +1,4 @@
-﻿@page "/Account/Login"
+﻿@page "/Account/AdminLogin"
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
@@ -10,15 +10,16 @@
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IdentityUserAccessor UserAccessor
 
 <PageTitle>Sign in</PageTitle>
 
-<h1>Sign in</h1>
+<h1>Sign in as Administrator</h1>
 <div class="row">
     <div class="col-md-4">
         <section>
             <StatusMessage Message="@errorMessage" />
-            <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+            <EditForm Model="Input" method="post" OnValidSubmit="LoginAdminUser" FormName="adminlogin">
                 <DataAnnotationsValidator />
                 <hr />
                 <ValidationSummary class="text-danger" role="alert" />
@@ -44,9 +45,6 @@
                 <div>
                     <p>
                         <a href="Account/ForgotPassword" class="small text-decoration-none">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))" class="small text-decoration-none">Create new account</a>
                     </p>
                 </div>
             </EditForm>
@@ -75,7 +73,7 @@
         }
     }
 
-    public async Task LoginUser()
+    public async Task LoginAdminUser()
     {
         // This doesn't count login failures towards account lockout
         // To enable password failures to trigger account lockout, set lockoutOnFailure: true
@@ -84,8 +82,17 @@
         string UserName = Input.Email.Substring(0, index);
 
         var result = await SignInManager.PasswordSignInAsync(UserName, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
-        if (result.Succeeded)
+        if (user.GetRole().Equals("None"))
+        {
+            await SignInManager.SignOutAsync();
+            //result = await SignInManager.PasswordSignInAsync(UserName, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            errorMessage = "Error: Invalid admin input.";
+            return;
+        }
+
+        else if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
             RedirectManager.RedirectTo(ReturnUrl);
@@ -102,7 +109,7 @@
             RedirectManager.RedirectTo("Account/Lockout");
         }
         else
-    {
+        {
             errorMessage = "Error: Invalid login attempt.";
         }
     }
@@ -120,4 +127,9 @@
         [Display(Name = "Remember me?")]
         public bool RememberMe { get; set; }
     }
+}
+
+
+@code {
+
 }

@@ -48,7 +48,6 @@
                 </label>
             </div>
             <button type="submit" class="mb-3 w-100 btn btn-lg btn-primary">Register</button>
- 
            
         </EditForm>
     </div>
@@ -65,7 +64,6 @@
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
-    private static int userNum { get; set; } = 1000;
 
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
@@ -105,7 +103,7 @@
         {
             RedirectManager.RedirectTo(
                 "Account/RegisterConfirmation",
-                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl, ["sendVerificationLink"] = SendVerificationLink });
+                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl});
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);

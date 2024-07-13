@@ -1,9 +1,5 @@
 ﻿@page "/Account/Manage"
 
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Identity
-@using PennStateSoft.Data
-
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
@@ -11,7 +7,7 @@
 
 <PageTitle>Profile</PageTitle>
 
-<h2>Profile</h2>
+<h4>Profile</h4>
 <StatusMessage />
 
 <div class="row">
@@ -46,12 +42,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //await Task.Delay(1000);
-        
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         username = await UserManager.GetUserNameAsync(user);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);
-
         Input.PhoneNumber ??= phoneNumber;
     }
 
@@ -75,5 +68,6 @@
         [Phone]
         [Display(Name = "Phone number")]
         public string? PhoneNumber { get; set; }
+
     }
 }

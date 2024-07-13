@@ -15,6 +15,25 @@
 <body>
     <Routes @rendermode="RenderModeForPage" />
     <script src="_framework/blazor.web.js"></script>
+    <script>
+        window.canvasInterop = {
+            imgSrc: "",
+            imageLoaded: function (objRef) {
+                window.objRef = objRef;
+
+                if (canvasInterop.imgSrc === '') {
+                    var canvas = document.querySelector('#img-canvas');
+                    var image = document.querySelector('#custom-img');
+                    var context = canvas.getContext('2d');
+                    canvas.width = image.width < image.height ? image.width : image.height;
+                    canvas.height = canvas.width;
+                    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                    document.querySelector('.e-profile').classList.remove('e-hide');
+                }
+                return true;
+            }
+        };
+    </script>
 </body>
 
 </html>

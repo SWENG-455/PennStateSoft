@@ -4,10 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using PennStateSoft.Components;
 using PennStateSoft.Components.Account;
 using PennStateSoft.Data;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using PennStateSoft;
 using BlazorSample.Components.Account;
+using Syncfusion.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<UserComplaints>(options =>
@@ -23,6 +22,8 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddSyncfusionBlazor();
+
 
 builder.Services.AddAuthentication(options =>
     {

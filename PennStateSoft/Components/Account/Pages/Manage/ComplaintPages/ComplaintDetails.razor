@@ -9,6 +9,7 @@
 @inject PennStateSoft.Data.UserComplaints DB
 @inject NavigationManager NavigationManager
 
+
 <PageTitle>Complaint Details</PageTitle>
 
 <h3>Complaint Details</h3>
@@ -64,8 +65,10 @@
 
     private UIHelper UIhelper = new();
 
+
     protected override async Task OnInitializedAsync()
     {
+        
         complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
 
 

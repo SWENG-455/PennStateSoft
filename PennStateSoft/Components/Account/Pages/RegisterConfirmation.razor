@@ -43,9 +43,6 @@ else
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    [CascadingParameter]
-    private bool SendVerificationLink { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
         if (Email is null)

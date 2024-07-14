@@ -17,7 +17,7 @@
 
 <h3>Complaints</h3>
 
-<div class="nav-item px-3">
+<div class="nav-item px-3" style="text-align:right; width:95%">
     <NavLink style="text-decoration:none" href="Account/Manage/Complaints/Create">
         <span class="bi-plus-square-fill-nav-menu" aria-hidden="true"></span> New
     </NavLink>
@@ -27,11 +27,23 @@
 <div class="grid" tabindex="-1">
     <QuickGrid ItemsProvider="@complaintProvider" Class="table">
         <TemplateColumn Context="complaint">
-            <a class="text-nowrap" href="@($"account/manage/complaints/details?id={complaint.Id}")">@(complaint.Subject)</a>
+            <a class="text-nowrap mt-4" href="@($"account/manage/complaints/details?id={complaint.Id}")">@(complaint.Subject)</a>
         </TemplateColumn>
         <PropertyColumn Property="@(complaint => complaint.Closed)" Class="visually-hidden" />
-        <PropertyColumn Property="@(complaint => @Encoding.ASCII.GetString(complaint.Description!))" />
-        <PropertyColumn Property="@(complaint => complaint.Created)" />
+        <TemplateColumn Context="complaint">
+            <div class="mt-4">
+                @Encoding.ASCII.GetString(complaint.Description!)
+            </div>
+        </TemplateColumn>
+        <TemplateColumn Context="complaint">
+            <div style="text-align:right; width:90%">
+                <div style="color:#0070E0">
+                    Posted on
+                </div>
+                @(complaint.Created) 
+            </div> 
+        </TemplateColumn>
+        
     </QuickGrid>
 </div>
 

@@ -12,24 +12,20 @@
 
 <PageTitle>Complaint Details</PageTitle>
 
-<h3>Complaint Details</h3>
 
 <div>
-    <hr />
     @if (complaint is null)
     {
         <p><em>Loading...</em></p>
     }
     else {
+        <h3>@complaint!.Subject</h3>
+        <hr />
         <div class="forms-control border border-dark border-start-0 border-end-0 border-bottom-0 
                border-top-0" cols="80">
             <div>
                 <label for="username" class=" form-label m-1"> Username: </label>
                 <label class=" form-label m-2 text-black-50"> @complaint.Username </label>
-            </div>
-            <div>
-                <label for="subject" class="form-label m-2"> Subject: </label>
-                <label class=" form-label m-4 text-black-50"> @complaint.Subject </label>
             </div>
             <div>
                 <label for="created" class="form-label m-2"> Created: </label>

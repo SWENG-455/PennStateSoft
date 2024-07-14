@@ -49,8 +49,10 @@
         </div>
 
         <div>
-            <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class="text-decoration-none">Edit</a> |
-            <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back to List</a>
+            <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class=" m-2 text-decoration-none">Edit</a> |
+            <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a> |
+            <a class=" m-2 alert-danger text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a>
+            
         </div>
     }
 </div>

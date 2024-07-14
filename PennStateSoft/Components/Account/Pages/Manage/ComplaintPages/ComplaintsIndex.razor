@@ -1,8 +1,10 @@
 ﻿@page "/Account/Manage/Complaints"
+
 @using Microsoft.AspNetCore.Components.QuickGrid
 @inject PennStateSoft.Data.UserComplaints DB
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityUserAccessor UserAccessor
+
 @using PennStateSoft
 @using System.Text
 @using System.Text.Encodings.Web
@@ -10,51 +12,45 @@
 @using Microsoft.AspNetCore.Identity
 @using PennStateSoft.Data
 
+
 <PageTitle>Complaints</PageTitle>
 
 <h3>Complaints</h3>
 
-<p>
-    <a href="/Account/Manage/Complaints/Create" class="text-decoration-none">New</a>
-</p>
-
-<QuickGrid Class="table" Items="DB.Complaint">
-    <PropertyColumn Property= "complaint => complaint.Username" />
-    <PropertyColumn Property="complaint => complaint.Subject" />
-    <PropertyColumn Property="complaint => complaint.Created" />
-    <PropertyColumn Property="complaint => complaint.Closed" />
-    <PropertyColumn Property="complaint => complaint.Description" />
+<div class="nav-item px-3">
+    <NavLink style="text-decoration:none" href="Account/Manage/Complaints/Create">
+        <span class="bi-plus-square-fill-nav-menu" aria-hidden="true"></span> New
+    </NavLink>
+</div>
 
 
-    <TemplateColumn Context="complaint">
-        @if (DB.Database.GetType().Equals(@complaint.Description))
-        {
-            @Encoding.ASCII.GetString(@complaint.Description!)
-        }
-        <a href="@($"account/manage/complaints/edit?id={complaint.Id}")">Edit</a> |
-        <a href="@($"account/manage/complaints/details?id={complaint.Id}")">Details</a> |
-        <a href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a>
-    </TemplateColumn>
+<div class="grid" tabindex="-1">
+    <QuickGrid ItemsProvider="@complaintProvider" Class="table">
+        <TemplateColumn Context="complaint">
+            <a class="text-nowrap" href="@($"account/manage/complaints/details?id={complaint.Id}")">@(complaint.Subject)</a>
+        </TemplateColumn>
+        <PropertyColumn Property="@(complaint => complaint.Closed)" Class="visually-hidden" />
+        <PropertyColumn Property="@(complaint => @Encoding.ASCII.GetString(complaint.Description!))" />
+        <PropertyColumn Property="@(complaint => complaint.Created)" />
+    </QuickGrid>
+</div>
 
-   <AuthorizeView>
-       <Authorized>
-           
-       </Authorized>
-    </AuthorizeView>
-    
-</QuickGrid>
 
-@code{
+@code {
+    GridItemsProvider<Complaint>? complaintProvider;
+
     private ApplicationUser user = default!;
-    private bool found{ get; set; }
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
-    
+
     protected override async Task OnInitializedAsync()
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
+        var response = DB.Complaint.Where(complaint => complaint.Username == user.UserName);
+        var rows = response.AsEnumerable<Complaint>().ToList<Complaint>();
+        var result = GridItemsProviderResult.From<Complaint>(items: rows, totalItemCount:rows.Count);
+        complaintProvider = req => ValueTask.FromResult(result);
     }
-    
- }
+}

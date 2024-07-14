@@ -19,7 +19,7 @@ namespace PennStateSoft.Data
             {
                 Admins?.Add(Activator.CreateInstance<ApplicationUser>());
                 Admin = Admins?.LastOrDefault();
-                Admin.Role = new IdentityRole("Administrator");
+                Admin!.Role = new IdentityRole("Admin");
             }
             catch
             {

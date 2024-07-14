@@ -1,0 +1,60 @@
+﻿@page "/Account/Manage/ComplaintsIndex"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject PennStateSoft.Data.UserComplaints DB
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+
+@using PennStateSoft
+@using System.Text
+@using System.Text.Encodings.Web
+@using PennStateSoft.Migrations
+@using Microsoft.AspNetCore.Identity
+@using PennStateSoft.Data
+
+<PageTitle>Complaints</PageTitle>
+
+<h3>Complaints</h3>
+
+<p>
+    <a href="/Account/Manage/Complaints/Create" class="text-decoration-none">New</a>
+</p>
+
+<QuickGrid Class="table" Items="DB.Complaint">
+    <PropertyColumn Property="complaint => complaint.Username" />
+    <PropertyColumn Property="complaint => complaint.Subject" />
+    <PropertyColumn Property="complaint => complaint.Created" />
+    <PropertyColumn Property="complaint => complaint.Closed" />
+    <PropertyColumn Property="complaint => complaint.Description" />
+
+
+    <TemplateColumn Context="complaint">
+        @if (DB.Database.GetType().Equals(@complaint.Description))
+        {
+            @Encoding.ASCII.GetString(@complaint.Description!)
+        }
+        <a href="@($"account/manage/complaints/edit?id={complaint.Id}")">Edit</a> |
+        <a href="@($"account/manage/complaints/details?id={complaint.Id}")">Details</a> |
+        <a href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a>
+    </TemplateColumn>
+
+    <AuthorizeView>
+        <Authorized>
+
+        </Authorized>
+    </AuthorizeView>
+
+</QuickGrid>
+
+@code {
+    private ApplicationUser user = default!;
+    private bool found { get; set; }
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+    }
+}

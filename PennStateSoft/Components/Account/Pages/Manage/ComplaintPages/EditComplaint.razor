@@ -69,8 +69,6 @@ else
 @code {
     private string? message;
     private ApplicationUser user = default!;
-    private string? UserName;
-    private string? _subject;
     private DateTime dateCreated;
     private DateTime dateClosed;
     private DateTime expiry;
@@ -116,7 +114,7 @@ else
     // For more details, see https://aka.ms/RazorPagesCRUD.
     public async Task UpdateComplaint()
     {
-        Complaint.Created = DateTime.UtcNow;
+        Complaint!.Created = DateTime.UtcNow;
         expiry = DateTime.UtcNow.AddDays(7);
         Complaint.Closed = expiry;
 

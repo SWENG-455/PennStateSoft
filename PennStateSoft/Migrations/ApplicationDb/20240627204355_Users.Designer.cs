@@ -11,7 +11,7 @@ using PennStateSoft.Data;
 
 namespace PennStateSoft.Migrations.ApplicationDb
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(ApplicationUser))]
     [Migration("20240627204355_Users")]
     partial class Users
     {

@@ -6,7 +6,6 @@ using PennStateSoft.Components.Account;
 using PennStateSoft.Data;
 using PennStateSoft;
 using BlazorSample.Components.Account;
-using Syncfusion.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<UserComplaints>(options =>
@@ -22,7 +21,6 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-builder.Services.AddSyncfusionBlazor();
 
 
 builder.Services.AddAuthentication(options =>
@@ -38,6 +36,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
@@ -68,6 +67,7 @@ else
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    app.UseMigrationsEndPoint();
 }
 
 app.UseHttpsRedirection();

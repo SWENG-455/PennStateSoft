@@ -19,7 +19,7 @@
         window.verifyAdmin = {
             isAdmin: function (role) {
                 var link = document.getElementById("RegAdmin");
-                if (role === 'None' || role === nul) {
+                if (role) {
                     link.setAttribute('href', "Account/AccessDenied");
                 }
                 else {

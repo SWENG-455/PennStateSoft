@@ -2,28 +2,38 @@
 
 @using Microsoft.AspNetCore.Identity
 @using PennStateSoft.Data
+@using Microsoft.AspNetCore.Components.QuickGrid
 
+@inject PennStateSoft.Data.ApplicationDbContext DB
+@inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
-
-<h3>Admin</h3>
 
 @code {
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
     private ApplicationUser? user { get; set; } = default!;
 
+    GridItemsProvider<Complaint>? AdminUsersProvider;
+
     protected override async Task OnInitializedAsync()
     {
 
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
-        if (user.GetRole().Equals("None"))
+        if (user!= null)
         {
-            await SignInManager.SignOutAsync();
+            var userRole = await UserManager.IsInRoleAsync(user, "Admin");
+            if (!userRole)
+            {
+                await SignInManager.SignOutAsync();
+                RedirectManager.RedirectToWithStatus("Account/AdminLogin", "Please log in with an admin account", HttpContext);
+            }
+        }
+        else
+        {
             RedirectManager.RedirectToWithStatus("Account/AdminLogin", "Please log in with an admin account", HttpContext);
         }
-
     }
 }

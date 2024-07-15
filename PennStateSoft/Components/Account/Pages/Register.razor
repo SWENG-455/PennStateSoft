@@ -8,6 +8,7 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using PennStateSoft.Data
 
+
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
 @inject SignInManager<ApplicationUser> SignInManager
@@ -59,6 +60,7 @@
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
+
     [SupplyParameterFromForm]
     private bool SendVerificationLink { get; set; }
 
@@ -76,7 +78,7 @@
         var emailStore = GetEmailStore();
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
         var result = await UserManager.CreateAsync(user, Input.Password);
-
+        
         if (!result.Succeeded)
         {
             identityErrors = result.Errors;

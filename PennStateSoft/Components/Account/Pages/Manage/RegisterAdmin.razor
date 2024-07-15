@@ -3,11 +3,16 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text
 @using System.Text.Encodings.Web
-@using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Identity.UI.Services
 @using Microsoft.AspNetCore.WebUtilities
 @using PennStateSoft.Data
 
+@inject IRoleStore<IdentityRole> RoleStore
+@inject IRoleValidator<IdentityRole> RoleValidator
+@inject IEnumerable<RoleValidator<IdentityRole>> RoleValidators
+@inject ILogger<RoleManager<IdentityRole>> RoleLogger
+@inject IdentityErrorDescriber IdentityErrorDescriber
+@inject ILookupNormalizer KeyNormalizer
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
 @inject SignInManager<ApplicationUser> SignInManager
@@ -56,11 +61,12 @@
 
 @code {
     private IEnumerable<IdentityError>? identityErrors;
-
     private ApplicationUser? loggedInUser;
+    private ApplicationRoleManager? RoleManager;
+    private IdentityRole? Role;
 
     [Parameter]
-    public string route { get; set; } = "Account/AccessDenied";
+    public string route { get; set; } = "RegisterAdmin";
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -79,6 +85,19 @@
     protected override async Task OnInitializedAsync()
     {
         loggedInUser = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+        if (loggedInUser != null)
+        {
+            var userRole = await UserManager.IsInRoleAsync(loggedInUser, "Admin");
+            if (!userRole)
+            {
+                RedirectManager.RedirectTo("Account/AccessDenied");
+            }
+        }
+        else
+        {
+            RedirectManager.RedirectToWithStatus("Account/AdminLogin", "Please log in with an admin account", HttpContext);
+        }
     }
 
     public async Task RegisterUser(EditContext editContext)
@@ -90,14 +109,33 @@
         var emailStore = GetEmailStore();
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
         var result = await UserManager.CreateAsync(user, Input.Password);
-
+        
         if (!result.Succeeded)
         {
             identityErrors = result.Errors;
             return;
         }
 
-        Logger.LogInformation("User created a new account with password.");
+        //Create Admin Role
+        RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
+        Role = await RoleManager.FindByNameAsync("Admin").ConfigureAwait(false);
+
+        if (Role == null)
+        {
+            Role = new IdentityRole("Admin");
+            var roleResult = await RoleManager.CreateAsync(Role);
+        }
+        result = await UserManager.AddToRoleAsync(user, Role.Name!);
+        
+        //Check if UserRole was added successfully
+        if (!result.Succeeded)
+        {
+            identityErrors = result.Errors;
+            return;
+        }
+
+
+        Logger.LogInformation("User created a new admin account with password.");
 
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
@@ -128,7 +166,7 @@
     {
         try
         {
-            return loggedInUser!.CreateAdminAccount(loggedInUser);
+            return Activator.CreateInstance<ApplicationUser>();
         }
         catch
         {

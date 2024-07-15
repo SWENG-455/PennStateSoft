@@ -10,7 +10,7 @@ using PennStateSoft.Data;
 
 namespace PennStateSoft.Migrations.ApplicationDb
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(ApplicationUser))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

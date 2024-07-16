@@ -34,6 +34,7 @@
                 @Encoding.ASCII.GetString(complaint.Description!)
             </div>
         </TemplateColumn>
+        
         <PropertyColumn Property="@(complaint => complaint.Closed)" Class="visually-hidden" />
         
         <TemplateColumn Context="complaint">
@@ -55,6 +56,7 @@
     GridItemsProvider<Complaint>? complaintProvider;
 
     private ApplicationUser user = default!;
+    private bool IsAdmin = false;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -65,9 +67,10 @@
 
         var response = DB.Complaint.Where(complaint => complaint.Username == user.UserName);
 
-       if (await UserManager.IsInRoleAsync(user, "Admin")){
-           response = DB.Complaint;
-       }
+        if (await UserManager.IsInRoleAsync(user, "Admin")){
+            response = DB.Complaint;
+            IsAdmin = true;
+        }
        
         var rows = response.AsEnumerable<Complaint>().ToList<Complaint>();
         var result = GridItemsProviderResult.From<Complaint>(items: rows, totalItemCount:rows.Count);

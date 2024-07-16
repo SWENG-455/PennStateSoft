@@ -40,19 +40,22 @@
     <li class="nav-item">
         <NavLink class="nav-link text-nowrap" href="Account/Manage/Complaints">Complaints</NavLink>
     </li>
-    <li class="nav-item">
-        <NavLink id="RegAdmin" class="nav-link text-nowrap" href="Account/Manage/RegisterAdmin"
-                 onclick="VerifyAdmin">
-            Create Admin Account
-        </NavLink>
-    </li>
+    @if (@hasRole)
+    {
+        <li class="nav-item">
+            <NavLink id="RegAdmin" class="nav-link text-nowrap" href="Account/Manage/RegisterAdmin">
+                Create Admin Account
+            </NavLink>
+        </li>
+    }
    
 </ul>
 
 @code {
     private bool hasExternalLogins;
 
-    private bool? hasRole;
+    private bool hasRole = false;
+
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
@@ -61,16 +64,19 @@
     protected override async Task OnInitializedAsync()
     {
         hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+
+        await VerifyAdmin();
     }
      /*
      * This does not work at the moment
     */
     private async Task VerifyAdmin()
     {
+        await Task.Delay(100);
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
         hasRole = await UserManager.IsInRoleAsync(user, "Admin");
 
-        await JS.InvokeVoidAsync("verifyAdmin.isAdmin(role)");
+        //await JS.InvokeVoidAsync("verifyAdmin.isAdmin(role)");
     }
 }

@@ -30,7 +30,8 @@
 </div>
 
 @code {
-    private ApplicationUser user = default!;
+    [CascadingParameter]
+    private ApplicationUser user { get; set; } = default!;
     private string? username;
     private string? phoneNumber;
 
@@ -43,9 +44,13 @@
     protected override async Task OnInitializedAsync()
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-        username = await UserManager.GetUserNameAsync(user);
-        phoneNumber = await UserManager.GetPhoneNumberAsync(user);
-        Input.PhoneNumber ??= phoneNumber;
+
+        if (user != null)
+        {
+            username = await UserManager.GetUserNameAsync(user);
+            phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+            Input.PhoneNumber ??= phoneNumber;
+        }
     }
 
     private async Task OnValidSubmitAsync()

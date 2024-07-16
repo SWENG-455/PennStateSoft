@@ -8,7 +8,8 @@
 
 @inject PennStateSoft.Data.UserComplaints DB
 @inject NavigationManager NavigationManager
-
+@inject IdentityUserAccessor UserAccessor
+@inject UserManager<ApplicationUser> UserManager
 
 <PageTitle>Complaint Details</PageTitle>
 
@@ -43,13 +44,21 @@
                 </textarea>
             </div>
         </div>
-
-        <div>
-            <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class=" m-2 text-decoration-none">Edit</a> |
-            <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a> |
-            <a class=" m-2 alert-danger text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a>
-            
-        </div>
+        <AuthorizeView Roles="Client">
+            <div>
+                <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class=" m-2 text-decoration-none">Edit</a> |
+                <a class=" m-2 alert-danger text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a> |
+                <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a>
+            </div>
+        </AuthorizeView>
+       
+         <AuthorizeView Roles="Admin">
+            <div>
+                <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a>
+            </div>
+         </AuthorizeView>
+        
+        
     }
 </div>
 
@@ -64,11 +73,12 @@
     private UIHelper UIhelper = new();
 
 
+    [CascadingParameter]
+    private bool IsAdmin  {get; set;}
+
     protected override async Task OnInitializedAsync()
     {
-        
         complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
-
 
         if (complaint is null)
         {
@@ -82,5 +92,5 @@
                 UIhelper.CalculateSize(Description);
             }
         }
-    }
+    }    
 }

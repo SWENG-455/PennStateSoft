@@ -17,12 +17,13 @@
 
 <h3>Complaints</h3>
 
-<div class="nav-item px-3" style="text-align:right; width:95%">
-    <NavLink style="text-decoration:none" href="Account/Manage/Complaints/Create">
-        <span class="bi-plus-square-fill-nav-menu" aria-hidden="true"></span> New
-    </NavLink>
-</div>
-
+<AuthorizeView Roles="Client">
+    <div class="nav-item px-3" style="text-align:right; width:95%">
+        <NavLink style="text-decoration:none" href="Account/Manage/Complaints/Create">
+            <span class="bi-plus-square-fill-nav-menu" aria-hidden="true"></span> New
+        </NavLink>
+    </div>
+</AuthorizeView>
 
 <div class="grid" tabindex="-1">
     <QuickGrid ItemsProvider="@complaintProvider" Class="table">

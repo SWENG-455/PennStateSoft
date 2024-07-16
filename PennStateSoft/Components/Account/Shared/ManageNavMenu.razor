@@ -40,17 +40,12 @@
     <li class="nav-item">
         <NavLink class="nav-link text-nowrap" href="Account/Manage/Complaints">Complaints</NavLink>
     </li>
-    <AuthorizeView>
-        <Authorized>
-            <li class="nav-item">
-                <NavLink id="RegAdmin" class="nav-link text-nowrap" @onload="VerifyAdmin"
-                         @ondblclick="VerifyAdmin" @onselect="VerifyAdmin" href="Account/Manage/RegisterAdmin"
-                         onclick="VerifyAdmin">
-                    Create Admin Account
-                </NavLink>
-            </li>
-        </Authorized>
-    </AuthorizeView>
+    <li class="nav-item">
+        <NavLink id="RegAdmin" class="nav-link text-nowrap" href="Account/Manage/RegisterAdmin"
+                 onclick="VerifyAdmin">
+            Create Admin Account
+        </NavLink>
+    </li>
    
 </ul>
 

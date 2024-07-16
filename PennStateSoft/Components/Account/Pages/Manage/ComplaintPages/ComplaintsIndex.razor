@@ -64,6 +64,11 @@
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
         var response = DB.Complaint.Where(complaint => complaint.Username == user.UserName);
+
+       if (await UserManager.IsInRoleAsync(user, "Admin")){
+           response = DB.Complaint;
+       }
+       
         var rows = response.AsEnumerable<Complaint>().ToList<Complaint>();
         var result = GridItemsProviderResult.From<Complaint>(items: rows, totalItemCount:rows.Count);
         complaintProvider = req => ValueTask.FromResult(result);

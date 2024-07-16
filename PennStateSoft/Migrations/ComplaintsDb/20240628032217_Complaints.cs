@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PennStateSoft.Migrations
+namespace PennStateSoft.Migrations.ComplaintsDb
 {
     /// <inheritdoc />
     public partial class Complaints : Migration

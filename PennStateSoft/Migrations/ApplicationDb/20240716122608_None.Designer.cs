@@ -11,16 +11,16 @@ using PennStateSoft.Data;
 
 namespace PennStateSoft.Migrations.ApplicationDb
 {
-    [DbContext(typeof(ApplicationUser))]
-    [Migration("20240627204355_Users")]
-    partial class Users
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20240716122608_None")]
+    partial class None
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("ProductVersion", "8.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

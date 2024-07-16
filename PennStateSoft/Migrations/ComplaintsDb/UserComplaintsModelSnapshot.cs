@@ -5,7 +5,7 @@ using PennStateSoft.Data;
 
 #nullable disable
 
-namespace PennStateSoft.Migrations
+namespace PennStateSoft.Migrations.ComplaintsDb
 {
     [DbContext(typeof(UserComplaints))]
     partial class UserComplaintsModelSnapshot : ModelSnapshot

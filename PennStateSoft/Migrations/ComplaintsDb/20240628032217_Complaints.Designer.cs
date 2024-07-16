@@ -9,7 +9,7 @@ using PennStateSoft.Data;
 
 #nullable disable
 
-namespace PennStateSoft.Migrations
+namespace PennStateSoft.Migrations.ComplaintsDb
 {
     [DbContext(typeof(UserComplaints))]
     [Migration("20240628032217_Complaints")]

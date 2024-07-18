@@ -8,10 +8,10 @@ using PennStateSoft.Data;
 
 #nullable disable
 
-namespace PennStateSoft.Migrations
+namespace PennStateSoft.Migrations.ComplaintRepliesMigrations
 {
-    [DbContext(typeof(UserComplaints))]
-    partial class UserComplaintsModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ComplaintReplies))]
+    partial class ComplaintRepliesModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -22,7 +22,7 @@ namespace PennStateSoft.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("PennStateSoft.Complaint", b =>
+            modelBuilder.Entity("PennStateSoft.ComplaintReply", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -32,6 +32,9 @@ namespace PennStateSoft.Migrations
 
                     b.Property<DateTime?>("Closed")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("ComplaintId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -47,7 +50,7 @@ namespace PennStateSoft.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Complaint");
+                    b.ToTable("ComplaintReply");
                 });
 #pragma warning restore 612, 618
         }

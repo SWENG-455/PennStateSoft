@@ -12,8 +12,8 @@ using PennStateSoft.Data;
 namespace PennStateSoft.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240716122608_None")]
-    partial class None
+    [Migration("20240717193657_ApplicationDb")]
+    partial class ApplicationDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -9,18 +9,18 @@ using PennStateSoft.Data;
 
 #nullable disable
 
-namespace PennStateSoft.Migrations.ComplaintsDb
+namespace PennStateSoft.Migrations
 {
     [DbContext(typeof(UserComplaints))]
-    [Migration("20240628032217_Complaints")]
-    partial class Complaints
+    [Migration("20240717193551_ComplaintsDb")]
+    partial class ComplaintsDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("ProductVersion", "8.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

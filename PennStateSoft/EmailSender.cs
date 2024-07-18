@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using Mandrill;
-using Mandrill.Model;
 using PennStateSoft.Data;
 using PennStateSoft;
-using FluentEmail;
+using RestSharp;
+using RestSharp.Authenticators;
+using Humanizer;
 
 namespace BlazorSample.Components.Account;
 
@@ -17,37 +17,10 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
     public AuthMessageSenderOptions Options { get; } = optionsAccessor.Value;
 
     public Task SendConfirmationLinkAsync(ApplicationUser user, string email,
-        string confirmationLink) => SendEmailAsync(email, "Confirm your email",
-            "<!DOCTYPE html>"
-            +"<html>" +
-            "<style>" +
-            "*{box-sizing: border-box;}" +
-            "body{font-family: Arial, Helvetica, sans-serif; background-color: WhiteSmoke; padding:10px;}" + 
-            "header{tbackground-color: RoyalBlue; padding:0px; text-align:center; font-size:20px; color:WhiteSmoke;}"  +
-            "section{display: -webkit-flex;ndisplay: flex; }" + 
-            "article{background-color:GhostWhite; -webkit-flex: 3; -ms-flex: 1; text-align:center; padding:80px;}" + 
-            "footer{background-color: RoyalBlue; padding:15px; text-align:center; color:WhiteSmoke; }" +
-            " @media (max-width: 600px) {section {-webkit-flex-direction: column; flex-direction: column;}" +
-            "</style>" +
-            "<body>" +
-            "<header style=\"align:left\">" +
-            "<img src=\"{layoutImg}\"" +
-            "style=\"width:200px; height:70px;\">" +
-            " </header>" +
-            "<footer> Welcome *|UserName|*,</footer>" +
-            "<section>" +
-            "<article>" +
-            "<p>We are glad to have you on board. Please confirm your account by<a href=\"{confirmationLink}\"> clicking here</a>. </p>" +
-            "</article>" +
-            "</section>" +
-            "<footer>" +
-            "Happy Schedule Management," +
-            "</footer>" +
-            "<footer>" +
-            "PennStateSoft" +
-            "</footer>" +
-            "</body>" +
-            "</html>");
+        string confirmationLink) => SendEmailAsync(email, "Confirm email",
+          "Please confirm your account by<a href=\"{confirmationLink}\"> clicking here</a>." +
+            "\nHappy Schedule Management," +
+            "\nPennStateSoft");
 
     public Task SendPasswordResetLinkAsync(ApplicationUser user, string email,
         string resetLink) => SendEmailAsync(email, "Reset your password",
@@ -71,21 +44,28 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
 
     public async Task Execute(string apiKey, string subject, string message,
         string toEmail)
-    {
-        //MailChimp/Mandrill has suspended this mailclient (tied to my domain).
-        //Need to implement a new client.
-        return;
-        
+    {   
         int index = toEmail.IndexOf('@');
         string user = toEmail.Substring(0, index);
-        var api = new MandrillApi(apiKey);
-        var mandrillMessage = new MandrillMessage("noreply@PennStateSoft.com", toEmail,
-            subject, message);
-        mandrillMessage.MergeLanguage = new MandrillMessageMergeLanguage();
-        mandrillMessage.AddGlobalMergeVars("UserName", user);
-        await api.Messages.SendAsync(mandrillMessage);
 
-        logger.LogInformation("Email to {EmailAddress} sent!", toEmail);
-        
+        var options = new RestClientOptions("https://api.mailgun.net/v3")
+        {
+            Authenticator = new HttpBasicAuthenticator("api", apiKey)
+        };
+        var client = new RestClient(options);
+        var request = new RestRequest();
+        request.AddParameter("domain", "sandboxcec030827ba94d4dbb2989a51345f1e8.mailgun.org", ParameterType.UrlSegment);
+        request.Resource = "{domain}/messages";
+        request.AddParameter("from", "Excited User <mailgun@sandboxcec030827ba94d4dbb2989a51345f1e8.mailgun.org>");
+        request.AddParameter("to", toEmail);
+        request.AddParameter("subject", subject);
+        request.AddParameter("html", message);
+        request.Method = Method.Post;
+        var response = await client.ExecuteAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            logger.LogInformation("Email to {EmailAddress} sent!", toEmail);
+        }   
     }
 }

@@ -5,11 +5,12 @@
 @using System.Text
 @using System.Text.Encodings.Web
 @using PennStateSoft.Components.Account.Shared
+@using PennStateSoft.Components.Account.Pages.Manage.ComplaintPages.ComplaintReplyPages
 
 @inject PennStateSoft.Data.UserComplaints DB
 @inject NavigationManager NavigationManager
-@inject IdentityUserAccessor UserAccessor
-@inject UserManager<ApplicationUser> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
+@rendermode InteractiveServer
 
 <PageTitle>Complaint Details</PageTitle>
 
@@ -22,24 +23,17 @@
     else {
         <h3>@complaint!.Subject</h3>
         <hr />
-        <div class="forms-control border border-dark border-start-0 border-end-0 border-bottom-0 
+        <div class="forms-control border border-light border-start-0 border-end-0 border-bottom-0 
                border-top-0" cols="80">
-            <div>
-                <label for="username" class=" form-label m-1"> Username: </label>
+             <div class="m-3">
+                <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
                 <label class=" form-label m-2 text-black-50"> @complaint.Username </label>
+                <label for="created" class="form-label" style="text-align:right; width:55%; color:#0070E0"> Posted On: </label>
+                <label class=" form-label text-black-50" style="text-align:right;"> @complaint.Created </label>
             </div>
-            <div>
-                <label for="created" class="form-label m-2"> Created: </label>
-                <label class=" form-label m-4 text-black-50"> @complaint.Created </label>
-            </div>
-            <div hidden>
-                <label for="closed" hidden> Closed: </label>
-                <label hidden> @complaint.Created </label>
-            </div>
-            <div>
-                <textarea class="text-black m-3 text-wrap border-start-0 border-end-0" cols="100"
-                          rows="@UIhelper.Rows" oninput="UIhelper.CalculateSize(Description)"
-                          disabled>
+            <div class="m-3">
+                <textarea class="text-black me-3 text-wrap border-light border-start-0 border-end-0" cols="100"
+                          rows="@UIhelper.Rows" disabled>
                     @Encoding.ASCII.GetString(complaint.Description!)
                 </textarea>
             </div>
@@ -54,16 +48,19 @@
        
          <AuthorizeView Roles="Admin">
             <div>
-                <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a>
+                <a href="@($"/account/manage/complaints")" class="text-decoration-none m-lg-3">Back</a>
+                <CreateReply/>
             </div>
-         </AuthorizeView>
-        
+        </AuthorizeView>
+        <div>
+            <ReplyDetails/>
+        </div>
         
     }
 </div>
 
 @code {
-    Complaint? complaint;
+    private static Complaint? complaint;
 
     [SupplyParameterFromQuery]
     public int Id { get; set; }
@@ -72,12 +69,15 @@
 
     private UIHelper UIhelper = new();
 
-
     [CascadingParameter]
-    private bool IsAdmin  {get; set;}
+    private HttpContext HttpContext { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
+        if (HttpContext is null)
+        {
+            HttpContext = HttpContextAccessor.HttpContext;
+        }
         complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
 
         if (complaint is null)
@@ -92,5 +92,6 @@
                 UIhelper.CalculateSize(Description);
             }
         }
-    }    
+    }
+    public static Complaint getComplaint() => complaint;
 }

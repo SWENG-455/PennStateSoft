@@ -8,6 +8,8 @@ using PennStateSoft;
 using BlazorSample.Components.Account;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContextFactory<ComplaintReplies>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ComplaintReplies") ?? throw new InvalidOperationException("Connection string 'ComplaintReplies' not found.")));
 builder.Services.AddDbContext<UserComplaints>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("UserComplaints") ?? throw new InvalidOperationException("Connection string 'UserComplaints' not found.")));
 
@@ -40,7 +42,6 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
-
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, EmailSender>();

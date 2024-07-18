@@ -1,0 +1,75 @@
+﻿@page "/complaintreplies"
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using PennStateSoft
+@using System.Text
+@using System.Text.Encodings.Web
+
+
+@inject PennStateSoft.Data.ComplaintReplies RepliesDB
+
+<PageTitle>Index</PageTitle>
+
+<hr/>
+<AuthorizeView Roles="Client">
+    <div class="nav-item px-3" style="text-align:right; width:95%">
+        <NavLink style="text-decoration:none" href="Account/Manage/Complaints/Create">
+            <span class="bi-plus-square-fill-nav-menu" aria-hidden="true"></span> New
+        </NavLink>
+    </div>
+</AuthorizeView>
+
+<div class="grid" tabindex="-1">
+    <QuickGrid ItemsProvider="@complaintReplyProvider" Class="table" Pagination="paginationState">
+        <TemplateColumn Context="complaintreply">
+            <div class="mt-4" style="text-align:right; width:100%;">
+                @(complaintreply.Username)
+            </div>
+        </TemplateColumn>
+        <TemplateColumn Context="complaintreply">
+            <div class="mt-3" style="text-align:right; width:100%; color:#0070E0">
+                Re: @(complaintreply.Subject)
+            </div>
+            <div class="mt-3 mb-4" style="text-align:right; width:100%;">
+                @Encoding.ASCII.GetString(complaintreply.Description!)
+            </div>
+        </TemplateColumn>
+
+        <PropertyColumn Property="@(complaintreply => complaintreply.Closed)" Class="visually-hidden" />
+
+        <TemplateColumn Context="complaintreply">
+            <div class="mt-4" style="text-align:right; width:90%">
+                <div style="color:#0070E0">
+                    Posted on
+                </div>
+                <div class="mt-2 text-nowrap">
+                    @(complaintreply.Created)
+                </div>
+            </div>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="paginationState" />
+</div>
+@code{
+    PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
+    GridItemsProvider<ComplaintReply>? complaintReplyProvider;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    /*
+     * protected override void OnInitialized()
+        {
+        var response = RepliesDB.ComplaintReply.Where(s => s.Subject == complaint!.Subject);
+
+        if (response is not null)
+            {
+            var rows = response.AsEnumerable<ComplaintReply>().ToList<ComplaintReply>();
+            var result = GridItemsProviderResult.From<ComplaintReply>(items: rows, totalItemCount: rows.Count);
+            complaintReplyProvider = req => ValueTask.FromResult(result);
+     }
+        }
+    */
+    
+}

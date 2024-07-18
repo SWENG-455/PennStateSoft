@@ -1,4 +1,5 @@
-﻿using PennStateSoft.Data;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace PennStateSoft
 {

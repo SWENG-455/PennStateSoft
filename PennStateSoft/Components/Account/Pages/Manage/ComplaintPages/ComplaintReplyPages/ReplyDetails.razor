@@ -1,0 +1,82 @@
+﻿
+@using Microsoft.EntityFrameworkCore
+@using PennStateSoft
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using PennStateSoft.Components.Account.Pages.Manage.ComplaintPages.ComplaintReplyPages
+@using PennStateSoft.Migrations.ComplaintRepliesMigrations
+
+
+@inject PennStateSoft.Data.ComplaintReplies RepliesDB
+@inject IDbContextFactory<PennStateSoft.Data.ComplaintReplies> DbFactory
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Reply Details</PageTitle>
+
+<AuthorizeView>
+    <div>
+        <hr />
+        @if (complaintreplies is null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+            @for (int i = complaintreplies.Length - 1; i >= 0; i--)
+            {
+                <div class="forms-control border border-light border-start-0 border-end-0 border-bottom-0
+               border-top-0" cols="40">
+                    <div class="mt-5 m-3">
+                        <h5 class="mt-4 m-3">Re: @complaintreplies[i].Subject</h5>
+                        <hr class="border-light" />
+                    </div>
+
+                    <div class="m-3">
+                        <label for="username" class="form-label ms-3" style="color:#0070E0"> Username: </label>
+                        <label class=" form-label m-2 text-black-50"> @complaintreplies[i].Username </label>
+                        <label for="created" class="form-label" style="text-align:right; width:45%; color:#0070E0"> Posted On: </label>
+                        <label class=" form-label text-black-50" style="text-align:right;"> @complaintreplies[i].Created </label>
+                    </div>
+                    <div class="m-lg-3">
+                        <textarea class="text-black ms-lg-3 text-wrap border-top-0 border-start-0 border-end-0" cols="100" disabled>
+                            @Encoding.ASCII.GetString(complaintreplies[i]!.Description!)
+                        </textarea>
+                        <CreateReply />
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</AuthorizeView>
+
+@code {
+    ComplaintReply[]? complaintreplies;
+    Complaint? complaint;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public ComplaintReply? ComplaintReply { get; set; } = new();
+
+    private UIHelper UIhelper = new();
+
+    private bool ReplyClicked { get; set; } = false;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        complaint = ComplaintDetails.getComplaint();
+        var response = RepliesDB.ComplaintReply.Where(m => m.ComplaintId == complaint.Id);
+        complaintreplies = response.AsEnumerable<ComplaintReply>().ToArray();
+
+        if (complaintreplies is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

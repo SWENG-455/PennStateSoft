@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PennStateSoft.Migrations.ApplicationDb
 {
     /// <inheritdoc />
-    public partial class None : Migration
+    public partial class ApplicationDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

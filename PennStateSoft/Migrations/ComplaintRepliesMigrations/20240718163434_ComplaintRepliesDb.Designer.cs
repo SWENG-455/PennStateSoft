@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PennStateSoft.Data;
 
 #nullable disable
 
-namespace PennStateSoft.Migrations
+namespace PennStateSoft.Migrations.ComplaintRepliesMigrations
 {
-    [DbContext(typeof(UserComplaints))]
-    partial class UserComplaintsModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ComplaintReplies))]
+    [Migration("20240718163434_ComplaintRepliesDb")]
+    partial class ComplaintRepliesDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace PennStateSoft.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("PennStateSoft.Complaint", b =>
+            modelBuilder.Entity("PennStateSoft.ComplaintReply", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -32,6 +35,9 @@ namespace PennStateSoft.Migrations
 
                     b.Property<DateTime?>("Closed")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("ComplaintId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -47,7 +53,7 @@ namespace PennStateSoft.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Complaint");
+                    b.ToTable("ComplaintReply");
                 });
 #pragma warning restore 612, 618
         }

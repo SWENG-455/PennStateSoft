@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazored.TextEditor" Version="1.1.0" />
     <PackageReference Include="FluentEmail.Mailgun" Version="3.0.2" />
     <PackageReference Include="MailChimp.Net.V3" Version="5.5.0" />
     <PackageReference Include="Mandrill.net" Version="9.0.1" />
@@ -30,6 +31,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.3" />
+    <PackageReference Include="RestSharp" Version="111.4.0" />
     <PackageReference Include="SendGrid" Version="9.29.3" />
   </ItemGroup>
 
@@ -43,6 +45,10 @@
 
   <ItemGroup>
     <None Include="Components\Account\Pages\AdminLogin.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\ApplicationDb\" />
   </ItemGroup>
 
 </Project>

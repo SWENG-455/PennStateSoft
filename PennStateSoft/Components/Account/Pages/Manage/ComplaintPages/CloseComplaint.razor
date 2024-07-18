@@ -1,10 +1,12 @@
 ﻿@page "/Account/Manage/Complaints/Delete"
-@inject PennStateSoft.Data.UserComplaints DB
 @using PennStateSoft
-@inject NavigationManager NavigationManager
 @using Microsoft.EntityFrameworkCore
 @using System.Text
 @using System.Text.Encodings.Web
+
+@inject PennStateSoft.Data.UserComplaints DB
+@inject PennStateSoft.Data.ComplaintReplies RepliesDB
+@inject NavigationManager NavigationManager
 
 <PageTitle>Close Complaint</PageTitle>
 
@@ -52,6 +54,8 @@
 @code {
     Complaint? complaint;
 
+    ComplaintReply[]? complaintReplies;
+
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
@@ -65,11 +69,24 @@
         {
             NavigationManager.NavigateTo("notfound");
         }
-        uIHelper.CalculateSize(@Encoding.ASCII.GetString(complaint.Description!));
+
+        var response = RepliesDB.ComplaintReply.Where(m => m.ComplaintId == complaint!.Id);
+        complaintReplies = response.AsEnumerable<ComplaintReply>().ToArray();
+
+        if (complaintReplies is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+
+        uIHelper.CalculateSize(@Encoding.ASCII.GetString(complaint!.Description!));
     }
 
     public async Task DeleteComplaint()
     {
+        foreach (ComplaintReply reply in complaintReplies!){
+            RepliesDB.Remove(reply);
+        }
+        await RepliesDB.SaveChangesAsync();
         DB.Complaint.Remove(complaint!);
         await DB.SaveChangesAsync();
         NavigationManager.NavigateTo("/account/manage/complaints");

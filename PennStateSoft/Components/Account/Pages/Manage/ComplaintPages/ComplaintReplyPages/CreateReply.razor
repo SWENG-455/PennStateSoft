@@ -21,8 +21,7 @@
             <EditForm method="post" Model="ComplaintReply" FormName="create" Enhance>
                 <DataAnnotationsValidator />
                 <InputTextArea id="replydescription" @bind-Value="ReplyDescription" class="form-control text-wrap navbar-expand"
-                               rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(ReplyDescription)">
-                    <input autofocus />
+                               rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(ReplyDescription)" autofocus>
                 </InputTextArea>
                 <ValidationMessage For="() => ReplyDescription" class="text-danger" />
             </EditForm>
@@ -59,11 +58,6 @@
     {
         complaint = ComplaintDetails.getComplaint();
 
-        if (HttpContext is null)
-        {
-            HttpContext = HttpContextAccessor.HttpContext!;
-        }
-
         if (ReplyDescription is not null)
         {
             ComplaintReply.Description = Encoding.ASCII.GetBytes(ReplyDescription);
@@ -89,6 +83,11 @@
     }
     private async Task OnValidSubmitAsync()
     {
+        if (HttpContext is null)
+        {
+            HttpContext = HttpContextAccessor.HttpContext!;
+        }
+
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
         if (user == null)

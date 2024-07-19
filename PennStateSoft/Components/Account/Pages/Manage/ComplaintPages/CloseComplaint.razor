@@ -10,38 +10,29 @@
 
 <PageTitle>Close Complaint</PageTitle>
 
-<h3 class="alert-danger">Mark as resolved?</h3>
+
 <div>
-    <hr />
     @if (complaint is null)
     {
+        <hr />
         <p><em>Loading...</em></p>
     }
     else {
-        <div class="forms-control border border-dark border-start-0 border-end-0 border-bottom-0
-                border-top-0" cols="80">
-            <div>
-                <label for="username" class=" form-label m-1"> Username: </label>
+        <h3 class="alert-danger">@complaint.Subject: Mark as resolved?</h3>
+        <hr />
+        <div class="forms-control border border-light border-start-0 border-end-0 border-bottom-0
+               border-top-0" cols="80">
+            <div class="m-3">
+                <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
                 <label class=" form-label m-2 text-black-50"> @complaint.Username </label>
+                <label for="created" class="form-label" style="text-align:right; width:55%; color:#0070E0"> Posted On: </label>
+                <label class=" form-label text-black-50" style="text-align:right;"> @complaint.Created </label>
             </div>
-            <div>
-                <label for="subject" class="form-label m-2"> Subject: </label>
-                <label class=" form-label m-4 text-black-50"> @complaint.Subject </label>
-            </div>
-            <div>
-                <label for="created" class="form-label m-2"> Created: </label>
-                <label class=" form-label m-4 text-black-50"> @complaint.Created </label>
-            </div>
-            <div hidden>
-                <label for="closed" hidden> Closed: </label>
-                <label hidden> @complaint.Created </label>
-            </div>
-            <div>
-                <textarea class="text-black m-3 text-wrap border-start-0 border-end-0" cols="100"
-                          rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(Description)"
-                          disabled>
+            <div class="m-3">
+                <textarea class="text-black ms-lg-3 text-wrap border-light border-start-0 border-end-0" cols="100"
+                          rows="@uIHelper.Rows" disabled>
                     @Encoding.ASCII.GetString(complaint.Description!)
-                </textarea>
+                    </textarea>
             </div>
         </div>
         <EditForm method="post" Model="complaint" OnValidSubmit="DeleteComplaint" FormName="delete" Enhance>
@@ -55,6 +46,7 @@
     Complaint? complaint;
 
     ComplaintReply[]? complaintReplies;
+
 
     [SupplyParameterFromQuery]
     public int Id { get; set; }

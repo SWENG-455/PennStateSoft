@@ -33,7 +33,7 @@
             </div>        
             <div class="mb-3">
                 <label for="subject" class="form-label">Subject:</label>
-                <InputText id="title" @bind-Value="complaint.Subject" class="form-control" />
+                <InputText id="title" @bind-Value="complaint.Subject" class="form-control" autofocus />
                 <ValidationMessage For="() => complaint.Subject" class="text-danger" />
             </div>        
             <div class="mb-3">
@@ -49,7 +49,7 @@
             <div class="mb-3">
                 <label for="description" class="form-label">Description:</label> 
                 <InputTextArea id="description" @bind-Value="Description" class="form-control text-wrap navbar-expand"
-                               rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(Description)" />
+                               rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(Description)" autofocus />
                 <ValidationMessage For="() => Description" class="text-danger" /> 
             </div>        
             <button type="submit" class="btn btn-primary">Create</button>
@@ -113,10 +113,6 @@
         complaint.Description = Encoding.ASCII.GetBytes(Description);
 
         await AddComplaint();
-
-        message = $"Success: {string.Join(", ", "Complaint has been logged.")}";
-
-        await Task.Delay(1000);
     }
 
     [SupplyParameterFromForm]

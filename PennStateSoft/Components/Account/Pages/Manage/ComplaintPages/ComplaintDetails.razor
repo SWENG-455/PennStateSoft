@@ -31,15 +31,15 @@
                 <label for="created" class="form-label" style="text-align:right; width:55%; color:#0070E0"> Posted On: </label>
                 <label class=" form-label text-black-50" style="text-align:right;"> @complaint.Created </label>
             </div>
-            <div class="m-3">
-                <textarea class="text-black me-3 text-wrap border-light border-start-0 border-end-0" cols="100"
+            <div class="m-1">
+                <textarea class="text-black ms-lg-3 text-wrap border-light border-start-0 border-end-0" cols="100"
                           rows="@UIhelper.Rows" disabled>
                     @Encoding.ASCII.GetString(complaint.Description!)
                 </textarea>
             </div>
         </div>
         <AuthorizeView Roles="Client">
-            <div>
+            <div class="ms-3">
                 <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class=" m-2 text-decoration-none">Edit</a> |
                 <a class=" m-2 alert-danger text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a> |
                 <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a>
@@ -48,7 +48,7 @@
        
          <AuthorizeView Roles="Admin">
             <div>
-                <a href="@($"/account/manage/complaints")" class="text-decoration-none m-lg-3">Back</a>
+                <a href="@($"/account/manage/complaints")" class="text-decoration-none ms-3">Back</a>
                 <CreateReply/>
             </div>
         </AuthorizeView>
@@ -74,10 +74,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (HttpContext is null)
-        {
-            HttpContext = HttpContextAccessor.HttpContext;
-        }
         complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
 
         if (complaint is null)

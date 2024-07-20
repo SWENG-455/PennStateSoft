@@ -14,9 +14,33 @@
     <nav class="flex-column text-black">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>Home
             </NavLink>
         </div>
+        <AuthorizeView Roles="Admin">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="#!" Match="NavLinkMatch.All">
+                    <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true" @onclick="ShowHideItems" @onblur="HideItems"></span>Meeting Rooms
+                </NavLink>
+            </div>
+            <div class="nav-item px-3 text-nowrap">
+                @if (_showItems)
+                {
+                    <ul class="dropdown-list">
+                        <li class="dropdown-item">
+                            <NavLink id="RegAdmin" class="nav-link text-nowrap" href="#!">
+                                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> New Room
+                            </NavLink>
+                        </li>
+                        <li class="dropdown-item">
+                            <NavLink id="RegAdmin" class="nav-link text-nowrap" href="#!">
+                                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Update Rooms
+                            </NavLink>
+                        </li>
+                    </ul>
+                }
+            </div>
+        </AuthorizeView>
         <AuthorizeView>
             <Authorized>
                 <div class="nav-item px-3">
@@ -47,6 +71,7 @@
                 </div>
             </NotAuthorized>
         </AuthorizeView>
+
     </nav>
 </div>
 
@@ -63,6 +88,26 @@
     {
         currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
         StateHasChanged();
+    }
+    private bool _showItems = false;
+
+    private Task ShowHideItems()
+    {
+        _showItems = !_showItems;
+
+        return Task.CompletedTask;
+    }
+    private Task ShowItems()
+    {
+        _showItems = true;
+
+        return Task.CompletedTask;
+    }
+    private Task HideItems()
+    {
+        _showItems = false;
+
+        return Task.CompletedTask;
     }
 
     public void Dispose()

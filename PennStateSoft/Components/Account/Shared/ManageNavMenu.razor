@@ -48,13 +48,13 @@
             </NavLink>
         </li>
     </AuthorizeView>
- 
 </ul>
 
 @code {
     private bool hasExternalLogins;
 
     private bool hasRole = false;
+    private bool showItems = false;
 
     protected override async Task OnInitializedAsync()
     {

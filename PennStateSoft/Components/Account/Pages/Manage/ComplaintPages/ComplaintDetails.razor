@@ -61,6 +61,7 @@
 
 @code {
     private static Complaint? complaint;
+    private Complaint? _complaint;
 
     [SupplyParameterFromQuery]
     public int Id { get; set; }
@@ -74,7 +75,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
+        _complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
+        complaint = _complaint;
 
         if (complaint is null)
         {

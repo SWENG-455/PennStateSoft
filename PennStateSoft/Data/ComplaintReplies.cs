@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using PennStateSoft;
 
 namespace PennStateSoft.Data
 {
@@ -14,6 +13,6 @@ namespace PennStateSoft.Data
         {
         }
 
-        public DbSet<PennStateSoft.ComplaintReply> ComplaintReply { get; set; } = default!;
+        public DbSet<ComplaintReply> ComplaintReply { get; set; } = default!;
     }
 }

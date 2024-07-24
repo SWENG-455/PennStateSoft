@@ -1,4 +1,5 @@
 ﻿@page "/Account/Manage/Complaints/Delete"
+
 @using PennStateSoft
 @using Microsoft.EntityFrameworkCore
 @using System.Text
@@ -65,20 +66,20 @@
         var response = RepliesDB.ComplaintReply.Where(m => m.ComplaintId == complaint!.Id);
         complaintReplies = response.AsEnumerable<ComplaintReply>().ToArray();
 
-        if (complaintReplies is null)
-        {
-            NavigationManager.NavigateTo("notfound");
-        }
-
         uIHelper.CalculateSize(@Encoding.ASCII.GetString(complaint!.Description!));
     }
 
     public async Task DeleteComplaint()
     {
-        foreach (ComplaintReply reply in complaintReplies!){
-            RepliesDB.Remove(reply);
+        if (complaintReplies is not null)
+        {
+            foreach (ComplaintReply reply in complaintReplies!)
+            {
+                RepliesDB.Remove(reply);
+            }
+            await RepliesDB.SaveChangesAsync();
         }
-        await RepliesDB.SaveChangesAsync();
+        
         DB.Complaint.Remove(complaint!);
         await DB.SaveChangesAsync();
         NavigationManager.NavigateTo("/account/manage/complaints");

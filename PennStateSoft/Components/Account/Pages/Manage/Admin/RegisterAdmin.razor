@@ -65,9 +65,6 @@
     private ApplicationRoleManager? RoleManager;
     private IdentityRole? Role;
 
-    [Parameter]
-    public string route { get; set; } = "RegisterAdmin";
-
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 

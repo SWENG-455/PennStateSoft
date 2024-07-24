@@ -7,6 +7,10 @@
     "mssql1": {
       "type": "mssql.local",
       "connectionId": "ConnectionStrings:ComplaintReplies"
+    },
+    "mssql2": {
+      "type": "mssql.local",
+      "connectionId": "ConnectionStrings:MeetingsContext"
     }
   }
 }

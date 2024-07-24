@@ -9,6 +9,6 @@ namespace PennStateSoft.Data
         {
         }
 
-        public DbSet<PennStateSoft.Complaint> Complaint { get; set; } = default!;
+        public DbSet<Complaint> Complaint { get; set; } = default!;
     }
 }

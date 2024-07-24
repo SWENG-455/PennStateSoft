@@ -1,4 +1,4 @@
-﻿namespace PennStateSoft
+﻿namespace PennStateSoft.Data
 {
     public class ComplaintReply
     {

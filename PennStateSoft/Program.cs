@@ -6,6 +6,7 @@ using PennStateSoft.Components.Account;
 using PennStateSoft.Data;
 using PennStateSoft;
 using BlazorSample.Components.Account;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextFactory<ComplaintReplies>(options =>

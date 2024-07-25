@@ -1,4 +1,4 @@
-﻿@page "/Rooms/create"
+﻿@page "/Rooms/Create"
 
 @inject PennStateSoft.Data.MeetingContext MeetingsDb
 @inject NavigationManager NavigationManager
@@ -14,7 +14,7 @@
             <ValidationSummary class="text-danger" />
             <div class="mb-3">
                 <label for="name" class="form-label">Name:</label> 
-                <InputText id="name" @bind-Value="Room.Name" class="form-control" /> 
+                <InputText id="name" @bind-Value="Room.Name" class="form-control" autofocus/> 
                 <ValidationMessage For="() => Room.Name" class="text-danger" /> 
             </div>        
             <div class="mb-3">
@@ -41,10 +41,10 @@
     {
         MeetingsDb.Room.Add(Room);
         await MeetingsDb.SaveChangesAsync();
-        NavigationManager.NavigateTo("/Rooms");
+        NavigationManager.NavigateTo("Rooms");
     }
     public void Cancel()
     {
-        NavigationManager.NavigateTo("/Rooms");
+        NavigationManager.NavigateTo("Rooms");
     }
 }

@@ -10,7 +10,6 @@
 <h3>File a new complaint</h3>
 
 <StatusMessage Message="@message" />
-
 <hr />
 <div class="row">
     <div class="w-100 col-md-4">
@@ -103,7 +102,6 @@
         }
 
         complaint.Description = Encoding.ASCII.GetBytes(Description);
-
         await AddComplaint();
     }
 

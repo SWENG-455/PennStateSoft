@@ -1,4 +1,4 @@
-﻿@page "/Rooms/edit"
+﻿@page "/Rooms/Edit"
 
 @inject PennStateSoft.Data.MeetingContext MeetingsDb
 @inject NavigationManager NavigationManager
@@ -30,6 +30,11 @@ else
                     <label for="capacity" class="form-label">Capacity:</label>
                     <InputNumber id="capacity" @bind-Value="Room.Capacity" class="form-control" />
                     <ValidationMessage For="() => Room.Capacity" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="capacity" class="form-label">Occupied:</label>
+                    <InputCheckbox id="isOccupied" @bind-Value="Room.IsOccupied" class="darker-border-checkbox" />
+                    <ValidationMessage For="() => Room.IsOccupied" class="text-danger" />
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
                 <button type="reset" class="btn btn-secondary ms-2" @onclick="Cancel">
@@ -79,11 +84,11 @@ else
             }
         }
 
-        NavigationManager.NavigateTo("/Rooms");
+        NavigationManager.NavigateTo("Rooms");
     }
     public void Cancel()
     {
-        NavigationManager.NavigateTo($"/Rooms/details?id={Room?.Id}");
+        NavigationManager.NavigateTo($"Rooms/Details?id={Room?.Id}");
     }
 
     bool RoomExists(int id)

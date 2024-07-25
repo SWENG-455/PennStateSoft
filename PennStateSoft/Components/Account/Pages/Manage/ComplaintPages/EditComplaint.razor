@@ -1,12 +1,5 @@
 ﻿@page "/Account/Manage/Complaints/Edit"
 
-@using Microsoft.AspNetCore.Identity
-@using PennStateSoft
-@using Microsoft.EntityFrameworkCore
-@using PennStateSoft.Data
-@using System.Text
-@using System.Text.Encodings.Web
-
 @inject PennStateSoft.Data.UserComplaints DB
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
@@ -57,14 +50,13 @@ else
                     <ValidationMessage For="() => Complaint.Description" class="text-danger" />
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
+                <a class="btn btn-secondary ms-2" href="Account/Manage/Complaints">
+                    Cancel
+                </a>
             </EditForm>
         </div>
     </div>
 }
-
-<div>
-    <a href="/account/manage/complaints" class="text-decoration-none">Back to List</a>
-</div>
 
 @code {
     private string? message;
@@ -117,8 +109,6 @@ else
         Complaint!.Created = DateTime.UtcNow;
         expiry = DateTime.UtcNow.AddDays(7);
         Complaint.Closed = expiry;
-
-        await Task.Delay(500);
 
         if (Complaint.Subject is null || Complaint.Subject.Length < 1)
         {

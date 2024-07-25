@@ -1,8 +1,4 @@
-﻿@page "/complaintreplies/deletereply"
-
-@using Microsoft.EntityFrameworkCore
-@using PennStateSoft
-@inject IDbContextFactory<PennStateSoft.Data.ComplaintReplies> DbFactory
+﻿@inject PennStateSoft.Data.ComplaintReplies RepliesDb
 @inject NavigationManager NavigationManager
 
 
@@ -54,8 +50,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        complaintreply = await context.ComplaintReply.FirstOrDefaultAsync(m => m.Id == Id);
+        complaintreply = await RepliesDb.ComplaintReply.FirstOrDefaultAsync(m => m.Id == Id);
 
         if (complaintreply is null)
         {
@@ -65,9 +60,8 @@
 
     public async Task DeleteComplaintReply()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.ComplaintReply.Remove(complaintreply!);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/complaintreplies");
+        RepliesDb.ComplaintReply.Remove(complaintreply!);
+        await RepliesDb.SaveChangesAsync();
+        NavigationManager.Refresh();
     }
 }

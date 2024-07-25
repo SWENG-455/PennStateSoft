@@ -1,12 +1,4 @@
-﻿
-@using Microsoft.EntityFrameworkCore
-@using PennStateSoft
-@using Humanizer
-@using System.Text
-@using System.Text.Encodings.Web
-
-
-@inject IDbContextFactory<PennStateSoft.Data.ComplaintReplies> DbFactory
+﻿@inject PennStateSoft.Data.ComplaintReplies RepliesDb
 @inject NavigationManager NavigationManager
 @inject IdentityUserAccessor UserAccessor;
 @inject IHttpContextAccessor HttpContextAccessor
@@ -19,9 +11,10 @@
         @if (ReplyClicked)
         {
             <EditForm method="post" Model="ComplaintReply" FormName="create" Enhance>
+                <AntiforgeryToken />
                 <DataAnnotationsValidator />
-                <InputTextArea id="replydescription" @bind-Value="ReplyDescription" class="form-control text-wrap navbar-expand"
-                               rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(ReplyDescription)" autofocus>
+                <InputTextArea id="replydescription" @bind-Value="ReplyDescription" class="form-control text-wrap"
+                               rows="@uIHelper.Rows" @onchange="@(()=> uIHelper.CalculateSize(ReplyDescription))" autofocus>
                 </InputTextArea>
                 <ValidationMessage For="() => ReplyDescription" class="text-danger" />
             </EditForm>
@@ -73,6 +66,7 @@
     private Task OnCancelClicked()
     {
         ReplyClicked = false;
+        ReplyDescription = "";
 
         return Task.CompletedTask;
     }
@@ -118,8 +112,7 @@
 
     public async Task AddComplaintReply()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.ComplaintReply.Add(ComplaintReply);
-        await context.SaveChangesAsync();
+        RepliesDb.ComplaintReply.Add(ComplaintReply);
+        await RepliesDb.SaveChangesAsync();
     }
 }

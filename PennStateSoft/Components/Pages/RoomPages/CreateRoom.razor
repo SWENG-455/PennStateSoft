@@ -1,0 +1,50 @@
+﻿@page "/Rooms/create"
+
+@inject PennStateSoft.Data.MeetingContext MeetingsDb
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h3> Create Room</h3>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Room" OnValidSubmit="AddRoom" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="name" class="form-label">Name:</label> 
+                <InputText id="name" @bind-Value="Room.Name" class="form-control" /> 
+                <ValidationMessage For="() => Room.Name" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="capacity" class="form-label">Capacity:</label> 
+                <InputNumber id="capacity" @bind-Value="Room.Capacity" class="form-control" /> 
+                <ValidationMessage For="() => Room.Capacity" class="text-danger" /> 
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+            <button type="reset" class="btn btn-secondary ms-2" @onclick="Cancel">
+                Cancel
+            </button>
+        </EditForm>
+       
+    </div>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public Room Room { get; set; } = new();
+
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddRoom()
+    {
+        MeetingsDb.Room.Add(Room);
+        await MeetingsDb.SaveChangesAsync();
+        NavigationManager.NavigateTo("/Rooms");
+    }
+    public void Cancel()
+    {
+        NavigationManager.NavigateTo("/Rooms");
+    }
+}

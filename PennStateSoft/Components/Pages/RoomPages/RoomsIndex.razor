@@ -1,0 +1,65 @@
+﻿@page "/Rooms"
+
+@inject PennStateSoft.Data.MeetingContext MeetingsDb
+@inject NavigationManager NavigationManager
+
+<PageTitle>Index</PageTitle>
+
+<h3>Meeting Rooms</h3>
+
+<AuthorizeView Roles="Admin">
+    <div class="nav-item px-3" style="text-align:right; width:95%">
+        <NavLink style="text-decoration:none" href="Rooms/Create">
+            <span class="bi-plus-square-fill-nav-menu" aria-hidden="true"></span> New
+        </NavLink>
+    </div>
+</AuthorizeView>
+
+<QuickGrid Class="table" ItemsProvider="@RoomProvider">
+    <TemplateColumn Context="room" Title="Name">
+        <div class="flex items-center mt-1">
+            <nobr>
+                <strong>@room.Name</strong>
+            </nobr>
+        </div>
+    </TemplateColumn>
+    <TemplateColumn Context="room" Title="Actions">
+        <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
+                        margin:0.25rem 0.5rem;"
+            @onclick="@(()=> OnViewClicked(room.Id))">View</button>
+        <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
+                        margin:0.25rem 0.5rem;"
+            @onclick="@(()=> OnDeleteClicked(room.Id))">Delete</button>
+    </TemplateColumn>
+
+</QuickGrid>
+
+
+@code {
+    PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
+    GridItemsProvider<Room>? RoomProvider;
+
+    private ApplicationUser user = default!;
+    private bool IsAdmin = false;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        var response = MeetingsDb.Room;
+
+        IsAdmin = true;
+        var rows = response.AsEnumerable<Room>().ToList<Room>();
+        var result = GridItemsProviderResult.From<Room>(items: rows, totalItemCount: rows.Count);
+        RoomProvider = req => ValueTask.FromResult(result);
+    }
+    private void OnViewClicked(int Id)
+    {
+        NavigationManager.NavigateTo($"Rooms/details?id={Id}");
+    }
+    private void OnDeleteClicked(int Id)
+    {
+        NavigationManager.NavigateTo($"Rooms/delete?id={Id}");
+    }
+}

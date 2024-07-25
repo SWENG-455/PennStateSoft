@@ -1,20 +1,8 @@
-﻿@using Microsoft.AspNetCore.Identity
-@using PennStateSoft.Data
-@using PennStateSoft.Components.Pages
-@using System.Threading.Tasks
-
-@inject UserManager<ApplicationUser> UserManager
+﻿@inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 @inject IJSRuntime JS
-
-<head>
-    <script>
-        const link = document.getElementById("RegAdmin");
-        link.href = route;
-    </script>
-</head>
 
 <ul class="nav nav-pills flex-lg-row flex-nowrap">
     <li class="nav-item">

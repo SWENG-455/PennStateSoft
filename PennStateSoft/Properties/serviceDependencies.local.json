@@ -11,6 +11,10 @@
     "mssql2": {
       "type": "mssql.local",
       "connectionId": "ConnectionStrings:MeetingsContext"
+    },
+    "mssql3": {
+      "type": "mssql.local",
+      "connectionId": "ConnectionStrings:MeetingContext"
     }
   }
 }

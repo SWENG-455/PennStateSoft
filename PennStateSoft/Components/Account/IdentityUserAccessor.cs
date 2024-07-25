@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using PennStateSoft.Data;
+using PennStateSoft.Data.Models;
 
 namespace PennStateSoft.Components.Account
 {

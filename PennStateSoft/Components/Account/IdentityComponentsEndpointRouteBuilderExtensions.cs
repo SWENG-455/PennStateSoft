@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using PennStateSoft.Components.Account.Pages;
 using PennStateSoft.Components.Account.Pages.Manage;
-using PennStateSoft.Data;
+using PennStateSoft.Data.Models;
 using System.Security.Claims;
 using System.Text.Json;
 

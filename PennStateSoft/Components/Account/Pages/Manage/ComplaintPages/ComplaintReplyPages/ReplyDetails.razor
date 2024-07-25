@@ -1,15 +1,4 @@
-﻿
-@using Microsoft.EntityFrameworkCore
-@using PennStateSoft
-@using System.Text
-@using System.Text.Encodings.Web
-@using Microsoft.AspNetCore.Components.QuickGrid
-@using PennStateSoft.Components.Account.Pages.Manage.ComplaintPages.ComplaintReplyPages
-@using PennStateSoft.Migrations.ComplaintRepliesMigrations
-
-
-@inject PennStateSoft.Data.ComplaintReplies RepliesDB
-@inject IDbContextFactory<PennStateSoft.Data.ComplaintReplies> DbFactory
+﻿@inject PennStateSoft.Data.ComplaintReplies RepliesDB
 @inject NavigationManager NavigationManager
 
 
@@ -40,7 +29,6 @@
                                 <CreateReply />
                             </div>
                         </div>
-                        
                     </div>
                 </TemplateColumn>
             </QuickGrid>
@@ -51,7 +39,7 @@
 @code {
     Complaint? complaint;
 
-    GridItemsProvider<ComplaintReply> ComplaintReplyGridProvider;
+    GridItemsProvider<ComplaintReply>? ComplaintReplyGridProvider;
 
     [SupplyParameterFromQuery]
     public int Id { get; set; }
@@ -70,14 +58,13 @@
     {
         complaint = ComplaintDetails.getComplaint();
         var response = RepliesDB.ComplaintReply.Where(m => m.ComplaintId == complaint.Id);
-        //complaintreplies = response.AsEnumerable<ComplaintReply>().ToArray();
 
         if (response is null)
         {
             NavigationManager.NavigateTo("notfound");
         }
 
-        var rows = response.AsEnumerable<ComplaintReply>().ToList<ComplaintReply>();
+        var rows = response?.AsEnumerable<ComplaintReply>().ToList<ComplaintReply>();
         var result = GridItemsProviderResult.From<ComplaintReply>(items: rows, totalItemCount: rows.Count);
         ComplaintReplyGridProvider = req => ValueTask.FromResult(result);
     }

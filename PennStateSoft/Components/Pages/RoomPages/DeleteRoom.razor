@@ -1,0 +1,65 @@
+﻿@page "/Rooms/delete"
+
+@inject PennStateSoft.Data.MeetingContext MeetingsDb
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Delete</PageTitle>
+<h3 class="alert-danger" style="width:fit-content">Are you sure you want to delete this room?</h3>
+<hr class="link-danger" />
+<div>
+    @if (room is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <h3 class="mt-4">@room.Name</h3>
+        <hr />
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@room.Name</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Capacity</dt>
+            <dd class="col-sm-10">@room.Capacity</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">IsOccupied</dt>
+            <dd class="col-sm-10">@room.IsOccupied</dd>
+        </dl>
+        <EditForm method="post" Model="room" OnValidSubmit="Delete_Room" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(room is null)">Delete</button>
+            <button type="reset" class="btn btn-secondary ms-2" @onclick="Cancel">
+                Cancel
+            </button>
+        </EditForm>
+    }
+</div>
+
+@code {
+    Room? room;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        room = await MeetingsDb.Room.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (room is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+    public void Cancel()
+    {
+        NavigationManager.NavigateTo("/Rooms");
+    }
+
+    public async Task Delete_Room()
+    {
+        MeetingsDb.Room.Remove(room!);
+        await MeetingsDb.SaveChangesAsync();
+        NavigationManager.NavigateTo("/rooms");
+    }
+}

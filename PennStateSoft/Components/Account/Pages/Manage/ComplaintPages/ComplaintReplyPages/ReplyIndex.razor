@@ -1,13 +1,4 @@
-﻿@page "/complaintreplies"
-
-@using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.QuickGrid
-@using PennStateSoft
-@using System.Text
-@using System.Text.Encodings.Web
-
-
-@inject PennStateSoft.Data.ComplaintReplies RepliesDB
+﻿@inject PennStateSoft.Data.ComplaintReplies RepliesDB
 
 <PageTitle>Index</PageTitle>
 
@@ -54,22 +45,23 @@
 @code{
     PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
     GridItemsProvider<ComplaintReply>? complaintReplyProvider;
+    private Complaint? complaint;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    /*
-     * protected override void OnInitialized()
-        {
-        var response = RepliesDB.ComplaintReply.Where(s => s.Subject == complaint!.Subject);
+    
+     protected override void OnInitialized()
+     {
+        complaint = ComplaintDetails.getComplaint();
+        var response = RepliesDB.ComplaintReply.Where(s => s.Id == complaint!.Id);
 
         if (response is not null)
-            {
+        {
             var rows = response.AsEnumerable<ComplaintReply>().ToList<ComplaintReply>();
             var result = GridItemsProviderResult.From<ComplaintReply>(items: rows, totalItemCount: rows.Count);
             complaintReplyProvider = req => ValueTask.FromResult(result);
-     }
         }
-    */
+     }
     
 }

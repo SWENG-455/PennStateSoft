@@ -1,0 +1,48 @@
+﻿@page "/Rooms/details"
+
+@inject PennStateSoft.Data.MeetingContext MeetingsDb
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<div>
+    @if (room is null)
+    {
+        <h3>Room</h3>
+        <hr />
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <h3>@room.Name</h3>
+        <hr />
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@room.Name</dd>
+            <dt class="col-sm-2">Capacity</dt>
+            <dd class="col-sm-10">@room.Capacity</dd>
+            <dt class="col-sm-2">Occupied</dt>
+            <dd class="col-sm-10">@room.IsOccupied</dd>
+        </dl>
+        <div>
+            <a class="text-decoration-none" href="@($"/Rooms/edit?id={room.Id}")">Edit</a> |
+            <a class="text-decoration-none" href="@($"/Rooms")">Back</a>
+        </div>
+    }
+</div>
+
+@code {
+    Room? room;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        room = await MeetingsDb.Room.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (room is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

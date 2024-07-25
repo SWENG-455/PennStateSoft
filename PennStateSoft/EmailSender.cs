@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using PennStateSoft.Data;
 using PennStateSoft;
 using RestSharp;
 using RestSharp.Authenticators;
 using Humanizer;
+using PennStateSoft.Data.Models;
 
 namespace BlazorSample.Components.Account;
 

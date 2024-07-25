@@ -12,7 +12,7 @@ using PennStateSoft.Data;
 namespace PennStateSoft.Migrations.ComplaintRepliesMigrations
 {
     [DbContext(typeof(ComplaintReplies))]
-    [Migration("20240718163434_ComplaintRepliesDb")]
+    [Migration("20240724203403_ComplaintRepliesDb")]
     partial class ComplaintRepliesDb
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace PennStateSoft.Migrations.ComplaintRepliesMigrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("PennStateSoft.ComplaintReply", b =>
+            modelBuilder.Entity("PennStateSoft.Data.Models.ComplaintReply", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

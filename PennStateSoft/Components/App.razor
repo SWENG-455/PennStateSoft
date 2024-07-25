@@ -15,19 +15,6 @@
 <body>
     <Routes @rendermode="RenderModeForPage" />
     <script src="_framework/blazor.web.js"></script>
-    <script>
-        window.verifyAdmin = {
-            isAdmin: function (role) {
-                var link = document.getElementById("RegAdmin");
-                if (role) {
-                    link.setAttribute('href', "Account/AccessDenied");
-                }
-                else {
-                    link.setAttribute('href', "Account/Manage/RegisterAdmin");
-                }
-            }
-        };
-    </script>
 </body>
 
 </html>

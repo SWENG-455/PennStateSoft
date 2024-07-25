@@ -1,16 +1,10 @@
 ﻿@page "/Account/Manage/Complaints/Delete"
 
-@using PennStateSoft
-@using Microsoft.EntityFrameworkCore
-@using System.Text
-@using System.Text.Encodings.Web
-
 @inject PennStateSoft.Data.UserComplaints DB
 @inject PennStateSoft.Data.ComplaintReplies RepliesDB
 @inject NavigationManager NavigationManager
 
 <PageTitle>Close Complaint</PageTitle>
-
 
 <div>
     @if (complaint is null)
@@ -18,9 +12,12 @@
         <hr />
         <p><em>Loading...</em></p>
     }
-    else {
-        <h3 class="alert-danger">@complaint.Subject: Mark as resolved?</h3>
-        <hr />
+    else
+    {
+        <h3 class="alert-danger" style="width:fit-content">Mark as resolved?</h3>
+        <hr class="link-danger"/>
+        <h4 class="mt-4">@complaint.Subject</h4>
+        <hr/>
         <div class="forms-control border border-light border-start-0 border-end-0 border-bottom-0
                border-top-0" cols="80">
             <div class="m-3">
@@ -29,25 +26,27 @@
                 <label for="created" class="form-label" style="text-align:right; width:55%; color:#0070E0"> Posted On: </label>
                 <label class=" form-label text-black-50" style="text-align:right;"> @complaint.Created </label>
             </div>
-            <div class="m-3">
+            <div class="mt-3 mb-4">
                 <textarea class="text-black ms-lg-3 text-wrap border-light border-start-0 border-end-0" cols="100"
                           rows="@uIHelper.Rows" disabled>
                     @Encoding.ASCII.GetString(complaint.Description!)
-                    </textarea>
+                                            </textarea>
             </div>
         </div>
         <EditForm method="post" Model="complaint" OnValidSubmit="DeleteComplaint" FormName="delete" Enhance>
-            <button type="submit" class="btn btn-danger" disabled="@(complaint is null)">Resolve</button> |
-            <a href="/account/manage/complaints" class="text-decoration-none">Back to List</a>
+            <button type="submit" class="btn btn-danger ms-4" disabled="@(complaint is null)">Resolve</button>
+            <a class="btn btn-secondary ms-2" href="Account/Manage/Complaints">
+                Cancel
+            </a>
         </EditForm>
     }
 </div>
+
 
 @code {
     Complaint? complaint;
 
     ComplaintReply[]? complaintReplies;
-
 
     [SupplyParameterFromQuery]
     public int Id { get; set; }

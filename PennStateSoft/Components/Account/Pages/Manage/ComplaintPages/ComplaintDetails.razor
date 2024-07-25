@@ -1,19 +1,11 @@
 ﻿@page "/Account/Manage/Complaints/Details"
 
-@using PennStateSoft
-@using Microsoft.EntityFrameworkCore
-@using System.Text
-@using System.Text.Encodings.Web
-@using PennStateSoft.Components.Account.Shared
-@using PennStateSoft.Components.Account.Pages.Manage.ComplaintPages.ComplaintReplyPages
-
 @inject PennStateSoft.Data.UserComplaints DB
 @inject NavigationManager NavigationManager
 @inject IHttpContextAccessor HttpContextAccessor
 @rendermode InteractiveServer
 
 <PageTitle>Complaint Details</PageTitle>
-
 
 <div>
     @if (complaint is null)
@@ -41,7 +33,7 @@
         <AuthorizeView Roles="Client">
             <div class="ms-3">
                 <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class=" m-2 text-decoration-none">Edit</a> |
-                <a class=" m-2 alert-danger text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a> |
+                <a class=" m-2 text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a> |
                 <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a>
             </div>
         </AuthorizeView>

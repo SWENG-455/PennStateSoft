@@ -1,0 +1,93 @@
+﻿@page "/Rooms/edit"
+
+@inject PennStateSoft.Data.MeetingContext MeetingsDb
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+@if (Room is null)
+{
+    <h3>Edit Room</h3>
+    <hr />
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h3>Edit @Room.Name</h3>
+    <hr />
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Room" OnValidSubmit="UpdateRoom" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Room.Id" value="@Room.Id" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="Room.Name" class="form-control" />
+                    <ValidationMessage For="() => Room.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="capacity" class="form-label">Capacity:</label>
+                    <InputNumber id="capacity" @bind-Value="Room.Capacity" class="form-control" />
+                    <ValidationMessage For="() => Room.Capacity" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="reset" class="btn btn-secondary ms-2" @onclick="Cancel">
+                    Cancel
+                </button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Room? Room { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Room ??= await MeetingsDb.Room.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Room is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateRoom()
+    {
+        MeetingsDb.Attach(Room!).State = EntityState.Modified;
+
+        try
+        {
+            await MeetingsDb.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!RoomExists(Room!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/Rooms");
+    }
+    public void Cancel()
+    {
+        NavigationManager.NavigateTo($"/Rooms/details?id={Room?.Id}");
+    }
+
+    bool RoomExists(int id)
+    {
+        return MeetingsDb.Room.Any(e => e.Id == id);
+    }
+}

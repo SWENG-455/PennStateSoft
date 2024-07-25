@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PennStateSoft.Data.Models;
 
 namespace PennStateSoft.Data
 {

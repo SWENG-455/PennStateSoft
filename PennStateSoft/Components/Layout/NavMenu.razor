@@ -10,7 +10,7 @@
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-<div class="nav-scrollable bg-white flex-lg-shrink-0 text-black"  style="-webkit-text-fill-color:royalblue" stonclick="document.querySelector('.navbar-toggler').click()">
+<div class="nav-scrollable bg-white" stonclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column text-black">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
@@ -19,7 +19,7 @@
         </div>
         <AuthorizeView Roles="Admin">
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="#!" Match="NavLinkMatch.All">
+                <NavLink class="nav-link" href="/Rooms">
                     <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true" @onclick="ShowHideItems" @onblur="HideItems"></span>Meeting Rooms
                 </NavLink>
             </div>
@@ -28,13 +28,8 @@
                 {
                     <ul class="dropdown-list">
                         <li class="dropdown-item">
-                            <NavLink id="RegAdmin" class="nav-link text-nowrap" href="#!">
+                            <NavLink id="RegAdmin" class="nav-link text-nowrap" href="Rooms/create">
                                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> New Room
-                            </NavLink>
-                        </li>
-                        <li class="dropdown-item">
-                            <NavLink id="RegAdmin" class="nav-link text-nowrap" href="#!">
-                                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Update Rooms
                             </NavLink>
                         </li>
                     </ul>

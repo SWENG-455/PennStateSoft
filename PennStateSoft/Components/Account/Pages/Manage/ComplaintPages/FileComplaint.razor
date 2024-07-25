@@ -1,13 +1,5 @@
 ﻿@page "/Account/Manage/Complaints/Create"
 
-@using System.ComponentModel.DataAnnotations
-@using System.Text
-@using System.Text.Encodings.Web
-@using Microsoft.AspNetCore.Identity
-@using Microsoft.AspNetCore.WebUtilities
-@using PennStateSoft
-@using PennStateSoft.Data
-
 @inject PennStateSoft.Data.UserComplaints DB
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
@@ -22,8 +14,8 @@
 <hr />
 <div class="row">
     <div class="w-100 col-md-4">
-        <EditForm method="post" Model="complaint" OnValidSubmit="OnValidSubmitAsync" FormName="create" Enhance>
-            <DataAnnotationsValidator />
+        <EditForm method="post" Model="complaint" OnValidSubmit="OnValidSubmit" FormName="create" Enhance>
+            <DataAnnotationsValidator/>
             <ValidationSummary class="text-danger" />
 
             <div class="mb-3">
@@ -48,17 +40,17 @@
             </div>        
             <div class="mb-3">
                 <label for="description" class="form-label">Description:</label> 
-                <InputTextArea id="description" @bind-Value="Description" class="form-control text-wrap navbar-expand"
-                               rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(Description)" autofocus />
+                <InputTextArea id="description" @bind-Value="Description" class="form-control text-wrap"
+                               rows="@uIHelper.Rows" @oninput="@(()=> uIHelper.CalculateSize(Description))"/>
                 <ValidationMessage For="() => Description" class="text-danger" /> 
-            </div>        
+            </div>
             <button type="submit" class="btn btn-primary">Create</button>
+            <a class="btn btn-secondary ms-2" href="Account/Manage/Complaints">
+                Cancel
+            </a>
         </EditForm>
+        
     </div>
-</div>
-
-<div>
-    <a href="/Account/Manage/Complaints" class="text-decoration-none">Back to List</a>
 </div>
 
 @code {
@@ -86,7 +78,7 @@
         uIHelper.CalculateSize(Description);
     }
 
-    private async Task OnValidSubmitAsync()
+    private async Task OnValidSubmit()
     {
 
         if (complaint.Subject is null || complaint.Subject.Length < 1)

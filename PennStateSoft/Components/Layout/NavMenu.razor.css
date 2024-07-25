@@ -1,9 +1,9 @@
 .navbar-toggler {
-    appearance: none;
+    appearance: push-button;
     cursor: pointer;
     width: 3.5rem;
     height: 2.5rem;
-    color: white;
+    color: midnightblue;
     position: absolute;
     top: 0.5rem;
     right: 1rem;
@@ -80,7 +80,7 @@
     }
 
     .nav-item ::deep .nav-link {
-        color: #d7d7d7;
+        color: midnightblue;
         background: none;
         border: none;
         border-radius: 4px;
@@ -92,13 +92,13 @@
     }
 
 .nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.37);
-    color: white;
+    background-color: rgb(222, 217, 217);
+    color: midnightblue;
 }
 
 .nav-item ::deep .nav-link:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: white;
+    background-color: rgb(201, 196, 196);
+    color: midnightblue;
 }
 
 .nav-scrollable {

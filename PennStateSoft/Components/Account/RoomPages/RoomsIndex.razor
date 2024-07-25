@@ -1,39 +1,51 @@
-﻿@page "/Rooms"
+﻿@page "/Account/Rooms"
 
 @inject PennStateSoft.Data.MeetingContext MeetingsDb
 @inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@rendermode InteractiveServer
 
-<PageTitle>Index</PageTitle>
+@attribute [Authorize(Roles = "Admin")]
+<PageTitle>Meeting Rooms</PageTitle>
 
 <h3>Meeting Rooms</h3>
 
-<AuthorizeView Roles="Admin">
-    <div class="nav-item px-3" style="text-align:right; width:95%">
-        <NavLink style="text-decoration:none" href="Rooms/Create">
-            <span class="bi-plus-square-fill-nav-menu" aria-hidden="true"></span> New
-        </NavLink>
-    </div>
-</AuthorizeView>
+
+<div class="nav-item px-3" style="text-align:right; width:95%">
+    <NavLink style="text-decoration:none" href="Account/Rooms/Create">
+        <span class="bi-plus-square-fill-nav-menu" aria-hidden="true"></span> New
+    </NavLink>
+</div>
 
 <QuickGrid Class="table" ItemsProvider="@RoomProvider">
     <TemplateColumn Context="room" Title="Name">
         <div class="flex items-center mt-1">
             <nobr>
-                <strong>@room.Name</strong>
+                @if (room.Price > 0)
+                {
+                    <strong>@room.Name</strong>
+                }
+                else
+                {
+                    @room.Name
+                }
             </nobr>
         </div>
     </TemplateColumn>
     <TemplateColumn Context="room" Title="Actions">
         <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
                         margin:0.25rem 0.5rem;"
-            @onclick="@(()=> OnViewClicked(room.Id))">View</button>
+                @onclick="@(()=> OnViewClicked(room.Id))">
+            View
+        </button>
         <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
                         margin:0.25rem 0.5rem;"
-            @onclick="@(()=> OnDeleteClicked(room.Id))">Delete</button>
+                @onclick="@(()=> OnDeleteClicked(room.Id))">
+            Delete
+        </button>
     </TemplateColumn>
 
 </QuickGrid>
-
 
 @code {
     PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
@@ -56,10 +68,10 @@
     }
     private void OnViewClicked(int Id)
     {
-        NavigationManager.NavigateTo($"Rooms/Details?id={Id}");
+        NavigationManager.NavigateTo($"Account/Rooms/Details?id={Id}");
     }
     private void OnDeleteClicked(int Id)
     {
-        NavigationManager.NavigateTo($"Rooms/Delete?id={Id}");
+        NavigationManager.NavigateTo($"Account/Rooms/Delete?id={Id}");
     }
 }

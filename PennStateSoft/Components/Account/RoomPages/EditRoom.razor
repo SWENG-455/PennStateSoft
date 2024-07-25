@@ -1,11 +1,13 @@
-﻿@page "/Rooms/Edit"
+﻿@page "/Account/Rooms/Edit"
 
 @inject PennStateSoft.Data.MeetingContext MeetingsDb
 @inject NavigationManager NavigationManager
+@rendermode InteractiveServer
 
+@attribute [Authorize(Roles = "Admin")]
 <PageTitle>Edit</PageTitle>
 
-@if (Room is null)
+    @if (Room is null)
 {
     <h3>Edit Room</h3>
     <hr />
@@ -30,6 +32,11 @@ else
                     <label for="capacity" class="form-label">Capacity:</label>
                     <InputNumber id="capacity" @bind-Value="Room.Capacity" class="form-control" />
                     <ValidationMessage For="() => Room.Capacity" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="capacity" class="form-label">Price:</label>
+                    <InputNumber id="price" @bind-Value="Room.Price" class="form-control" />
+                    <ValidationMessage For="() => Room.Price" class="text-danger" />
                 </div>
                 <div class="mb-3">
                     <label for="capacity" class="form-label">Occupied:</label>
@@ -84,11 +91,11 @@ else
             }
         }
 
-        NavigationManager.NavigateTo("Rooms");
+        NavigationManager.NavigateTo("Account/Rooms");
     }
     public void Cancel()
     {
-        NavigationManager.NavigateTo($"Rooms/Details?id={Room?.Id}");
+        NavigationManager.NavigateTo($"Account/Rooms/Details?id={Room?.Id}");
     }
 
     bool RoomExists(int id)

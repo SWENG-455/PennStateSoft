@@ -6,30 +6,4 @@
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 
-@code {
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-    private ApplicationUser? user { get; set; } = default!;
-
-    GridItemsProvider<Complaint>? AdminUsersProvider;
-
-    protected override async Task OnInitializedAsync()
-    {
-
-        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-
-        if (user!= null)
-        {
-            var userRole = await UserManager.IsInRoleAsync(user, "Admin");
-            if (!userRole)
-            {
-                await SignInManager.SignOutAsync();
-                RedirectManager.RedirectToWithStatus("Account/AdminLogin", "Please log in with an admin account", HttpContext);
-            }
-        }
-        else
-        {
-            RedirectManager.RedirectToWithStatus("Account/AdminLogin", "Please log in with an admin account", HttpContext);
-        }
-    }
-}
+@attribute [Authorize(Roles = "Admin")]

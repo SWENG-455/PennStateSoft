@@ -10,5 +10,6 @@ namespace PennStateSoft.Data.Models
         public string? Name { get; set; }
         public int Capacity { get; set; }
         public bool IsOccupied { get; set; }
+        public double Price { get; set; }
     }
 }

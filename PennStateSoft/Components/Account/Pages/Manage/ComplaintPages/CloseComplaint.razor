@@ -4,6 +4,8 @@
 @inject PennStateSoft.Data.ComplaintReplies RepliesDB
 @inject NavigationManager NavigationManager
 
+@attribute [Authorize(Roles = "Client")]
+
 <PageTitle>Close Complaint</PageTitle>
 
 <div>

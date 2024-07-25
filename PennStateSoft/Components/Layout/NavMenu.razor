@@ -19,7 +19,7 @@
         </div>
         <AuthorizeView Roles="Admin">
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="Rooms">
+                <NavLink class="nav-link" href="Account/Rooms">
                     <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true" @onclick="ShowHideItems" @onblur="HideItems"></span>Meeting Rooms
                 </NavLink>
             </div>
@@ -29,7 +29,7 @@
 
                     <ul class="dropdown-list">
                         <li class="dropdown-item">
-                            <NavLink id="RegAdmin" class="nav-link text-nowrap" href="Rooms/Create">
+                            <NavLink id="RegAdmin" class="nav-link text-nowrap" href="Account/Rooms/Create">
                                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> New Room
                             </NavLink>
                         </li>

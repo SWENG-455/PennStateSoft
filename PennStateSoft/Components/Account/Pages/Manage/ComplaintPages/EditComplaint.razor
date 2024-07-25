@@ -5,6 +5,8 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityUserAccessor UserAccessor
 
+@attribute [Authorize(Roles = "Client")]
+
 <PageTitle>Edit Complaint</PageTitle>
 
 <h3>Edit Complaint</h3>

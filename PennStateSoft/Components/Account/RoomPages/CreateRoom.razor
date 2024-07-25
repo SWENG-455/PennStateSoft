@@ -1,8 +1,10 @@
-﻿@page "/Rooms/Create"
+﻿@page "/Account/Rooms/Create"
 
 @inject PennStateSoft.Data.MeetingContext MeetingsDb
 @inject NavigationManager NavigationManager
+@rendermode InteractiveServer
 
+@attribute [Authorize(Roles = "Admin")]
 <PageTitle>Create</PageTitle>
 
 <h3> Create Room</h3>
@@ -13,21 +15,25 @@
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" />
             <div class="mb-3">
-                <label for="name" class="form-label">Name:</label> 
-                <InputText id="name" @bind-Value="Room.Name" class="form-control" autofocus/> 
-                <ValidationMessage For="() => Room.Name" class="text-danger" /> 
-            </div>        
+                <label for="name" class="form-label">Name:</label>
+                <InputText id="name" @bind-Value="Room.Name" class="form-control" autofocus />
+                <ValidationMessage For="() => Room.Name" class="text-danger" />
+            </div>
             <div class="mb-3">
-                <label for="capacity" class="form-label">Capacity:</label> 
-                <InputNumber id="capacity" @bind-Value="Room.Capacity" class="form-control" /> 
-                <ValidationMessage For="() => Room.Capacity" class="text-danger" /> 
+                <label for="capacity" class="form-label">Capacity:</label>
+                <InputNumber id="capacity" @bind-Value="Room.Capacity" class="form-control" />
+                <ValidationMessage For="() => Room.Capacity" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="capacity" class="form-label">Price:</label>
+                <InputNumber id="price" @bind-Value="Room.Price" class="form-control" />
+                <ValidationMessage For="() => Room.Price" class="text-danger" />
             </div>
             <button type="submit" class="btn btn-primary">Create</button>
             <button type="reset" class="btn btn-secondary ms-2" @onclick="Cancel">
                 Cancel
             </button>
         </EditForm>
-       
     </div>
 </div>
 
@@ -41,10 +47,10 @@
     {
         MeetingsDb.Room.Add(Room);
         await MeetingsDb.SaveChangesAsync();
-        NavigationManager.NavigateTo("Rooms");
+        NavigationManager.NavigateTo("Account/Rooms");
     }
     public void Cancel()
     {
-        NavigationManager.NavigateTo("Rooms");
+        NavigationManager.NavigateTo("Account/Rooms");
     }
 }

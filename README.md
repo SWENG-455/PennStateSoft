@@ -10,5 +10,5 @@ Do the same for additional database contexts such as MeetingContext.
 
 Each additional context will need a migration.
 
-Type **Add-Migration <"YourMigrationName"> -context <"YourContextName">** in your Nuget Packet Manager console and proceed to update
-the database with your new context.
+Type **Add-Migration <"YourMigrationName"> -context <"YourContextName">** in your Nuget Package Manager console 
+and proceed to update the database with your new context.

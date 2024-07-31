@@ -40,11 +40,6 @@ else
                     <ValidationMessage For="() => meeting.Time" class="text-danger" />
                 </div>
                 <div class="mb-3">
-                    <label for="duration" class="form-label">Duration:</label>
-                    <InputNumber id="duration" @bind-Value="meeting.Duration" class="form-control" />
-                    <ValidationMessage For="() => meeting.Duration" class="text-danger" />
-                </div>
-                <div class="mb-3">
                     <label for="room" class="form-label">Room:</label>
                     <InputSelect id="room" @bind-Value="selectedRoom" class="form-select">
                         @if (rooms is not null)

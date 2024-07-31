@@ -5,6 +5,8 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @rendermode InteractiveServer
 
+@attribute [Authorize]
+
 <PageTitle>Complaint Details</PageTitle>
 
 <div>
@@ -41,19 +43,24 @@
          <AuthorizeView Roles="Admin">
             <div>
                 <a href="@($"/account/manage/complaints")" class="text-decoration-none ms-3">Back</a>
-                <CreateReply/>
+                <CascadingValue Value="complaint">
+                    <CreateReply />
+                </CascadingValue>
             </div>
         </AuthorizeView>
         <div>
-            <ReplyDetails/>
+            <CascadingValue Value="complaint">
+                <ReplyIndex /> 
+            </CascadingValue>
         </div>
         
     }
 </div>
 
 @code {
-    private static Complaint? complaint;
-    private Complaint? _complaint;
+
+    private Complaint? complaint;
+    private List<ComplaintReply>? complaintReplies;
 
     [SupplyParameterFromQuery]
     public int Id { get; set; }
@@ -67,8 +74,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
-        complaint = _complaint;
+        complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
 
         if (complaint is null)
         {
@@ -76,6 +82,9 @@
         }
         else
         {
+            //await ProtectedSessionStore.SetAsync("complaint", complaint);
+            complaint.ComplaintReplies = DB.ComplaintReply.Where(c => c.ComplaintId == Id).ToList<ComplaintReply>();
+            
             if (complaint.Description is not null)
             {
                 Description = Encoding.ASCII.GetString(complaint.Description);
@@ -83,5 +92,4 @@
             }
         }
     }
-    public static Complaint getComplaint() => complaint;
 }

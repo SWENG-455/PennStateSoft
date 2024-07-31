@@ -1,50 +1,51 @@
-﻿@inject PennStateSoft.Data.ComplaintReplies RepliesDB
+﻿@inject PennStateSoft.Data.UserComplaints ComplaintsDb
 @inject NavigationManager NavigationManager
+
+@attribute [Authorize]
 
 <PageTitle>Reply Details</PageTitle>
 
 <AuthorizeView>
     <div>
-        @if (ComplaintReplyGridProvider is null)
+        @if (ComplaintReply is null)
         {
             <p><em>Loading...</em></p>
         }
         else
         {
-            <QuickGrid ItemsProvider="@ComplaintReplyGridProvider" Class="table" Theme="chat">
-                <TemplateColumn Context="complaintreply" Align="Align.Right">
-                    <div class="mt-5 m-3">
-                        <h5 class="mt-4 m-3">Re: @complaintreply.Subject</h5>
-                        <hr class="border-light" />
-                        <div>
-                            <label for="username" class="form-label ms-4" style="color:#0070E0"> Username: </label>
-                            <label class=" form-label m-2 text-black-50"> @complaintreply.Username </label>
-                            <label for="created" class="form-label" style="text-align:right; width:45%; color:#0070E0"> Posted On: </label>
-                            <label class=" form-label text-black-50" style="text-align:right;"> @complaintreply.Created </label>
-                            <div class="m-3">
-                                <textarea class="text-black ms-lg-3 text-wrap border-top-0 border-start-0 border-end-0" cols="100" disabled>
-                                    @Encoding.ASCII.GetString(complaintreply!.Description!)
-                                        </textarea>
-                                <CreateReply />
-                            </div>
-                        </div>
+            <div class="mt-5 m-3">
+                <h5 class="mt-4 m-3">Re: @ComplaintReply.Subject</h5>
+                <hr class="border-light" />
+                <div>
+                    <label for="username" class="form-label ms-4" style="color:#0070E0"> Username: </label>
+                    <label class=" form-label m-2 text-black-50"> @ComplaintReply.Username </label>
+                    <label for="created" class="form-label" style="text-align:right; width:45%; color:#0070E0"> Posted On: </label>
+                    <label class=" form-label text-black-50" style="text-align:right;"> @ComplaintReply.Created </label>
+                    <div class="m-3">
+                        <textarea class="text-black ms-lg-3 text-wrap border-top-0 border-start-0 border-end-0" cols="100" disabled>
+                            @Encoding.ASCII.GetString(ComplaintReply!.Description!)
+                        </textarea>
+                        <CascadingValue Value="complaint">
+                            <CreateReply />
+                        </CascadingValue>
                     </div>
-                </TemplateColumn>
-            </QuickGrid>
+                </div>
+            </div>
         }
     </div>
 </AuthorizeView>
 
 @code {
-    Complaint? complaint;
+    [CascadingParameter]
+    Complaint? complaint { get; set; } = default!;
 
-    GridItemsProvider<ComplaintReply>? ComplaintReplyGridProvider;
+    //GridItemsProvider<ComplaintReply>? ComplaintReplyGridProvider;
 
     [SupplyParameterFromQuery]
-    public int Id { get; set; }
+    public int replyId { get; set; }
 
-    [SupplyParameterFromForm]
-    public ComplaintReply? ComplaintReply { get; set; } = new();
+    [CascadingParameter]
+    public ComplaintReply? ComplaintReply { get; set; } = default!;
 
     private UIHelper UIhelper = new();
 
@@ -55,16 +56,14 @@
 
     protected override void OnInitialized()
     {
-        complaint = ComplaintDetails.getComplaint();
-        var response = RepliesDB.ComplaintReply.Where(m => m.ComplaintId == complaint.Id);
 
-        if (response is null)
+        if (ComplaintReply is null)
         {
             NavigationManager.NavigateTo("notfound");
         }
 
-        var rows = response?.AsEnumerable<ComplaintReply>().ToList<ComplaintReply>();
-        var result = GridItemsProviderResult.From<ComplaintReply>(items: rows, totalItemCount: rows.Count);
-        ComplaintReplyGridProvider = req => ValueTask.FromResult(result);
+        //var rows = response?.AsEnumerable<ComplaintReply>().ToList<ComplaintReply>();
+        //var result = GridItemsProviderResult.From<ComplaintReply>(items: rows, totalItemCount: rows.Count);
+        //ComplaintReplyGridProvider = req => ValueTask.FromResult(result);
     }
 }

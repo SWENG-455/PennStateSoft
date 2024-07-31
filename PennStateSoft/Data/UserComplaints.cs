@@ -11,5 +11,6 @@ namespace PennStateSoft.Data
         }
 
         public DbSet<Complaint> Complaint { get; set; } = default!;
+        public DbSet<ComplaintReply> ComplaintReply { get; set; } = default!;
     }
 }

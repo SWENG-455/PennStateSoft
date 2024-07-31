@@ -22,7 +22,7 @@ namespace PennStateSoft.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("PennStateSoft.Complaint", b =>
+            modelBuilder.Entity("PennStateSoft.Data.Models.Complaint", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -48,6 +48,53 @@ namespace PennStateSoft.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Complaint");
+                });
+
+            modelBuilder.Entity("PennStateSoft.Data.Models.ComplaintReply", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("Closed")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ComplaintId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("Description")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComplaintId");
+
+                    b.ToTable("ComplaintReply");
+                });
+
+            modelBuilder.Entity("PennStateSoft.Data.Models.ComplaintReply", b =>
+                {
+                    b.HasOne("PennStateSoft.Data.Models.Complaint", null)
+                        .WithMany("ComplaintReplies")
+                        .HasForeignKey("ComplaintId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PennStateSoft.Data.Models.Complaint", b =>
+                {
+                    b.Navigation("ComplaintReplies");
                 });
 #pragma warning restore 612, 618
         }

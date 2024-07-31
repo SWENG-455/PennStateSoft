@@ -9,11 +9,11 @@ using PennStateSoft.Data;
 
 #nullable disable
 
-namespace PennStateSoft.Migrations.ComplaintRepliesMigrations
+namespace PennStateSoft.Migrations
 {
-    [DbContext(typeof(ComplaintReplies))]
-    [Migration("20240724203403_ComplaintRepliesDb")]
-    partial class ComplaintRepliesDb
+    [DbContext(typeof(UserComplaints))]
+    [Migration("20240729191242_ComplaintsDb")]
+    partial class ComplaintsDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,34 @@ namespace PennStateSoft.Migrations.ComplaintRepliesMigrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("PennStateSoft.Data.Models.Complaint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("Closed")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("Description")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Complaint");
+                });
 
             modelBuilder.Entity("PennStateSoft.Data.Models.ComplaintReply", b =>
                 {
@@ -53,7 +81,23 @@ namespace PennStateSoft.Migrations.ComplaintRepliesMigrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ComplaintId");
+
                     b.ToTable("ComplaintReply");
+                });
+
+            modelBuilder.Entity("PennStateSoft.Data.Models.ComplaintReply", b =>
+                {
+                    b.HasOne("PennStateSoft.Data.Models.Complaint", null)
+                        .WithMany("ComplaintReplies")
+                        .HasForeignKey("ComplaintId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PennStateSoft.Data.Models.Complaint", b =>
+                {
+                    b.Navigation("ComplaintReplies");
                 });
 #pragma warning restore 612, 618
         }

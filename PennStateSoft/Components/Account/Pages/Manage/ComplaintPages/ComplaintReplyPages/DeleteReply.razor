@@ -1,6 +1,7 @@
-﻿@inject PennStateSoft.Data.ComplaintReplies RepliesDb
+﻿@inject PennStateSoft.Data.UserComplaints ComplaintsDb
 @inject NavigationManager NavigationManager
 
+@attribute [Authorize]
 
 <PageTitle>Delete</PageTitle>
 
@@ -50,7 +51,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        complaintreply = await RepliesDb.ComplaintReply.FirstOrDefaultAsync(m => m.Id == Id);
+        //complaintreply = await ComplaintsDb.ComplaintReply.FirstOrDefaultAsync(m => m.ComplaintR);
 
         if (complaintreply is null)
         {
@@ -60,8 +61,8 @@
 
     public async Task DeleteComplaintReply()
     {
-        RepliesDb.ComplaintReply.Remove(complaintreply!);
-        await RepliesDb.SaveChangesAsync();
+        //ComplaintsDb.ComplaintReply.Remove(complaintreply!);
+        await ComplaintsDb.SaveChangesAsync();
         NavigationManager.Refresh();
     }
 }

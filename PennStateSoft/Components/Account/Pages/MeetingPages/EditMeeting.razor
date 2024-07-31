@@ -1,0 +1,98 @@
+﻿@page "/Account/Meetings/Edit"
+
+@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize]
+
+<PageTitle>Edit Meeting</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Meeting</h4>
+<hr />
+@if (Meeting is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Meeting" OnValidSubmit="UpdateMeeting" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Meeting.Id" value="@Meeting.Id" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="Meeting.Name" class="form-control" />
+                    <ValidationMessage For="() => Meeting.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">Date:</label>
+                    <InputDate id="date" @bind-Value="Meeting.Date" class="form-control" />
+                    <ValidationMessage For="() => Meeting.Date" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="time" class="form-label">Time:</label>
+                    <InputDate id="time" @bind-Value="Meeting.Time" class="form-control" />
+                    <ValidationMessage For="() => Meeting.Time" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="duration" class="form-label">Duration:</label>
+                    <InputNumber id="duration" @bind-Value="Meeting.Duration" class="form-control" />
+                    <ValidationMessage For="() => Meeting.Duration" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="account/meetings">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Meeting? Meeting { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Meeting ??= await context.Meeting.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Meeting is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateMeeting()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Meeting!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            NavigationManager.NavigateTo("NotFound");
+        }
+
+        NavigationManager.NavigateTo("Account/Meetings");
+    }
+
+    bool MeetingExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Meeting.Any(e => e.Id == id);
+    }
+}

@@ -24,7 +24,16 @@
             <dt class="col-sm-2">Price</dt>
             <dd class="col-sm-10">$@room.Price / hr</dd>
             <dt class="col-sm-2">Occupied</dt>
-            <dd class="col-sm-10">@room.IsOccupied</dd>
+            <dd class="col-sm-10">
+                @if (room.MeetingId > 0)
+                {
+                    <p>True</p>
+                }
+                else
+                {
+                    <p>False</p>
+                }
+            </dd>
         </dl>
         <div>
             <a class="text-decoration-none" href="@($"Account/Rooms/Edit?id={room.Id}")">Edit</a> |

@@ -16,7 +16,7 @@
     }
     else
     {
-        @if (room.IsOccupied)
+        @if (room.MeetingId > -1)
         {
             <p class="alert-danger" style="width:fit-content">
                 @message
@@ -38,7 +38,16 @@
         </dl>
         <dl class="row">
             <dt class="col-sm-2">Occupied</dt>
-            <dd class="col-sm-10">@room.IsOccupied</dd>
+            <dd class="col-sm-10">
+                @if (room.MeetingId > 0)
+                {
+                    <p>True</p>
+                }
+                else
+                {
+                    <p>False</p>
+                }
+            </dd>
         </dl>
         <EditForm method="post" Model="room" OnValidSubmit="Delete_Room" FormName="delete" Enhance>
             <button type="submit" class="btn btn-danger" disabled="@(room is null)">Delete</button>
@@ -71,7 +80,7 @@
 
     public async Task Delete_Room()
     {
-        if (!room!.IsOccupied)
+        if (room!.MeetingId == 0)
         {
             MeetingsDb.Room.Remove(room!);
             await MeetingsDb.SaveChangesAsync();

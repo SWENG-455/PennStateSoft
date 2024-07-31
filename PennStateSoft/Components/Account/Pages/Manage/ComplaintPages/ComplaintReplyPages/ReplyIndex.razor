@@ -1,66 +1,38 @@
-﻿@inject PennStateSoft.Data.ComplaintReplies RepliesDB
+﻿@inject PennStateSoft.Data.UserComplaints ComplaintsDb
+
+@attribute [Authorize]
 
 <PageTitle>Index</PageTitle>
 
-<hr/>
-<AuthorizeView Roles="Client">
-    <div class="nav-item px-3" style="text-align:right; width:95%">
-        <NavLink style="text-decoration:none" href="Account/Manage/Complaints/Create">
-            <span class="bi-plus-square-fill-nav-menu" aria-hidden="true"></span> New
-        </NavLink>
-    </div>
-</AuthorizeView>
+<QuickGrid ItemsProvider="@ComplaintReplyGridProvider" Class="table" Theme="chat">
+    <TemplateColumn Context="complaintreply" Align="Align.Right">
+        <CascadingValue Value="Complaint">
+            <CascadingValue Value="@complaintreply">
+                <ReplyDetails />
+            </CascadingValue>
+        </CascadingValue>
+    </TemplateColumn>
+</QuickGrid>
 
-<div class="grid" tabindex="-1">
-    <QuickGrid ItemsProvider="@complaintReplyProvider" Class="table" Pagination="paginationState">
-        <TemplateColumn Context="complaintreply">
-            <div class="mt-4" style="text-align:right; width:100%;">
-                @(complaintreply.Username)
-            </div>
-        </TemplateColumn>
-        <TemplateColumn Context="complaintreply">
-            <div class="mt-3" style="text-align:right; width:100%; color:#0070E0">
-                Re: @(complaintreply.Subject)
-            </div>
-            <div class="mt-3 mb-4" style="text-align:right; width:100%;">
-                @Encoding.ASCII.GetString(complaintreply.Description!)
-            </div>
-        </TemplateColumn>
-
-        <PropertyColumn Property="@(complaintreply => complaintreply.Closed)" Class="visually-hidden" />
-
-        <TemplateColumn Context="complaintreply">
-            <div class="mt-4" style="text-align:right; width:90%">
-                <div style="color:#0070E0">
-                    Posted on
-                </div>
-                <div class="mt-2 text-nowrap">
-                    @(complaintreply.Created)
-                </div>
-            </div>
-        </TemplateColumn>
-    </QuickGrid>
-    <Paginator State="paginationState" />
-</div>
 @code{
+
     PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
-    GridItemsProvider<ComplaintReply>? complaintReplyProvider;
-    private Complaint? complaint;
+    GridItemsProvider<ComplaintReply>? ComplaintReplyGridProvider;
+
+    [CascadingParameter]
+    private Complaint? Complaint { get; set; } = default!;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    
-     protected override void OnInitialized()
-     {
-        complaint = ComplaintDetails.getComplaint();
-        var response = RepliesDB.ComplaintReply.Where(s => s.Id == complaint!.Id);
 
-        if (response is not null)
+    protected override void OnInitialized()
+    {
+        if (Complaint is not null)
         {
-            var rows = response.AsEnumerable<ComplaintReply>().ToList<ComplaintReply>();
-            var result = GridItemsProviderResult.From<ComplaintReply>(items: rows, totalItemCount: rows.Count);
-            complaintReplyProvider = req => ValueTask.FromResult(result);
+            var rows = Complaint.ComplaintReplies;
+            var result = GridItemsProviderResult.From<ComplaintReply>(items: rows!, totalItemCount: rows!.Count);
+            ComplaintReplyGridProvider = req => ValueTask.FromResult(result);
         }
      }
     

@@ -11,8 +11,6 @@ using PennStateSoft.Data.Models;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextFactory<MeetingContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MeetingContext") ?? throw new InvalidOperationException("Connection string 'MeetingContext' not found.")));
-builder.Services.AddDbContextFactory<ComplaintReplies>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ComplaintReplies") ?? throw new InvalidOperationException("Connection string 'ComplaintReplies' not found.")));
 builder.Services.AddDbContext<UserComplaints>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("UserComplaints") ?? throw new InvalidOperationException("Connection string 'UserComplaints' not found.")));
 

@@ -12,6 +12,7 @@ namespace PennStateSoft.Data.Models
         public DateTime? Closed { get; set; }
 
         public byte[]? Description { get; set; }
+        public List<ComplaintReply>? ComplaintReplies { get; set; }
 
     }
 }

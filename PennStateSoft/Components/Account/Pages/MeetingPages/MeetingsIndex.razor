@@ -1,0 +1,148 @@
+﻿@page "/Account/Meetings"
+
+@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>Meetings</PageTitle>
+
+<h3>Meetings</h3>
+
+<div class="nav-item px-3" style="text-align:right; width:95%">
+    <NavLink style="text-decoration:none" href="Account/Meetings/Create">
+         New
+    </NavLink>
+</div>
+
+<QuickGrid Class="table" ItemsProvider="@gridItemsProvider">
+    <TemplateColumn Context="meeting" Title="Name">
+        <div class="flex items-center mt-1">
+            <nobr>
+                @meeting.Name
+            </nobr>
+        </div>
+    </TemplateColumn>
+    <TemplateColumn Context="meeting" Title="Date">
+        <div class="flex items-center mt-1">
+            <nobr>
+                @meeting.Date
+            </nobr>
+        </div>
+    </TemplateColumn>
+    <TemplateColumn Context="meeting" Title="Time">
+        <div class="flex items-center mt-1">
+            <nobr>
+                @meeting.Time
+            </nobr>
+        </div>
+    </TemplateColumn>
+    <TemplateColumn Context="meeting" Title="Room">
+        <div class="flex items-center mt-1">
+            <nobr>
+                @GetMeetingRoom(meeting.RoomId).Name
+            </nobr>
+        </div>
+    </TemplateColumn>
+    <TemplateColumn Context="meeting" Title="Actions">
+        <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
+                        margin:0.25rem 0.5rem;"
+                @onclick="@(()=> OnViewClicked(meeting.Id))">
+            View
+        </button>
+        <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
+                        margin:0.25rem 0.5rem;"
+                @onclick="@(()=> OnDeleteClicked(meeting.Id))">
+            Delete
+        </button>
+    </TemplateColumn>
+</QuickGrid>
+
+
+@code{
+
+    private GridItemsProvider<Meeting>? gridItemsProvider;
+    private Room? room { get; set; }
+    private List<Meeting>? meetings { get; set; }
+    private List<MeetingMember>? Members { get; set; }
+    private ClaimsPrincipal? claimsPrincipal { get; set; }
+
+    private string? currentUrl;
+
+    protected override async void OnInitialized()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        claimsPrincipal = authState.User;
+
+        if (claimsPrincipal is null)
+        {
+            try
+            {
+                NavigationManager.NavigateTo("/Account/NotFound");
+            }
+            catch (NavigationException ex)
+            {
+                var source = ex.Source;
+            }
+        }
+        else
+        {
+            using var context = MeetingDbFactory.CreateDbContext();
+            var response = context.Meeting.AsEnumerable<Meeting>().ToList<Meeting>();
+
+            if (claimsPrincipal.IsInRole("Admin"))
+            {
+                SetGridItemsProvider(response);
+            }
+            else
+            {
+                GetClientView(response);
+            }
+        }
+    }
+    private void SetGridItemsProvider(List<Meeting> meetingList)
+    {
+        var result = GridItemsProviderResult.From<Meeting>(items: meetingList!, totalItemCount: meetingList.Count);
+        gridItemsProvider = req => ValueTask.FromResult(result);
+    }
+
+    private Room GetMeetingRoom(int Id)
+    {
+        using var context = MeetingDbFactory.CreateDbContext();
+        room = context.Room.FirstOrDefault(r => r.Id == Id);
+
+        return room!;
+    }
+
+    private async void GetClientView(List<Meeting> meetingList)
+    {
+        using var context = MeetingDbFactory.CreateDbContext();
+        var userId = UserManager.GetUserId(claimsPrincipal!);
+        Members = context.Members.Where(m => m.User.Id == userId).ToList();
+        meetings = new List<Meeting>();
+
+        if (userId is not null && Members is not null)
+        {
+            foreach (var member in Members)
+            {
+                //Get the meetings current App user has attended/been invited to
+                var newMeetingList = meetingList.FirstOrDefault(m => m.Id == member.MeetingId);
+                meetings!.Add(newMeetingList!);
+            }  
+        }
+        //Set the client view
+        SetGridItemsProvider(meetings);
+    }
+
+    private void OnViewClicked(int Id)
+    {
+        NavigationManager.NavigateTo($"Account/Meetings/Details?id={Id}");
+    }
+    private void OnDeleteClicked(int Id)
+    {
+        NavigationManager.NavigateTo($"Account/Meetings/Delete?id={Id}");
+    }
+}

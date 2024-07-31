@@ -1,0 +1,75 @@
+﻿@page "/Account/Meetings/Details"
+
+@inject PennStateSoft.Data.MeetingContext MeetingDb
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize]
+
+<PageTitle>Meeting Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h4>Meeting</h4>
+    <hr />
+    @if (meeting is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@meeting.Name</dd>
+            <dt class="col-sm-2">Date</dt>
+            <dd class="col-sm-10">@meeting.Date</dd>
+            <dt class="col-sm-2">Time</dt>
+            <dd class="col-sm-10">@meeting.Time</dd>
+            <dt class="col-sm-2">Duration</dt>
+            <dd class="col-sm-10">@meeting.Duration hr(s) </dd>
+            <dt class="col-sm-2">Room</dt>
+            <dd class="col-sm-10">@room!.Name</dd>
+        </dl>
+        <dl class="col">
+
+        </dl>
+        <div>
+            <a href="@($"Account/Meetings/Edit?id={meeting.Id}")">Edit</a> |
+            <a href="@($"Account/Meetings")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    Meeting? meeting;
+
+    GridItemsProvider<ApplicationUser>? gridItemsProvider;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    [SupplyParameterFromQuery]
+    public int RoomId { get; set; }
+
+    private Room? room { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        meeting = await MeetingDb.Meeting.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (meeting is not null)
+        {
+            room = await MeetingDb.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
+        }
+        else
+        {
+            try
+            {
+                NavigationManager.NavigateTo("/Account/NotFound");
+            }
+            catch (NavigationException navEx)
+            {
+                navEx.HelpLink = "/Account/Help";
+            }
+        }
+    }
+}

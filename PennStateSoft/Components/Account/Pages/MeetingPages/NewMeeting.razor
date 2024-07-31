@@ -1,0 +1,267 @@
+﻿@page "/Account/Meetings/Create"
+@using Microsoft.EntityFrameworkCore.ChangeTracking
+
+@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
+@inject PennStateSoft.Data.ApplicationDbContext AppDb
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+<PageTitle>Create</PageTitle>
+
+<h3>Create Meeting</h3>
+<hr />
+<p class="text-danger">
+    @statusMessage
+</p>
+
+@if (rooms is null || rooms.Count() == 0)
+{
+    <p>Loading....</p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="meeting" OnValidSubmit="AddMeeting" FormName="create" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="meeting.Name" class="form-control" />
+                    <ValidationMessage For="() => meeting.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">Date:</label>
+                    <InputDate id="date" @bind-Value="meeting.Date" class="form-control" />
+                    <ValidationMessage For="() => meeting.Date" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="time" class="form-label">Time:</label>
+                    <InputDate Type="InputDateType.Time" id="time" @bind-Value="meeting.Time" class="form-control" />
+                    <ValidationMessage For="() => meeting.Time" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="duration" class="form-label">Duration (hrs):</label>
+                    <InputNumber id="duration" @bind-Value="meeting.Duration" class="form-control" />
+                    <ValidationMessage For="() => meeting.Duration" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="room" class="form-label">Room:</label>
+                    <InputSelect id="room" @bind-Value="selectedRoom" class="form-select">
+                        @if (rooms is not null)
+                        {
+                            foreach (var room in rooms)
+                            {
+                                <option value="@room.Name">@room.Name</option>
+                            }
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => meeting.RoomId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="user" class="form-label">Add people to the meeting:</label>
+                    <InputSelect id="user" @bind-Value="selectedUser" class="form-select">
+                        @if (Users is not null)
+                        {
+                            foreach (var appUser in Users)
+                            {
+                                <option value="@appUser">@appUser.UserName</option>
+                            }
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => User" class="text-danger" />
+                    @if (!memberAdded)
+                    {
+                        <button type="button" class="btn btn-outline-info mt-1" @onclick="@(()=> AddSelectedMember(selectedUser!))">
+                            Add
+                        </button>
+                    }
+                    @if (memberAdded)
+                    {
+                        <div class="text-success mt-1">
+                            @User!.UserName was added to the meeting.
+                        </div>
+                        memberAdded = false;
+                    }
+                </div>
+                <button type="submit" class="btn btn-primary">Create</button>
+                <a class="btn btn-secondary ms-2" href="Account/Meetings">
+                    Cancel
+                </a>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+
+    [SupplyParameterFromForm]
+    public Meeting? meeting { get; set; }
+
+    private Room[]? rooms { get; set; }
+
+    private MeetingMember[]? members { get; set; }
+
+    [SupplyParameterFromForm]
+    private string? selectedRoom { get; set; }
+
+    [SupplyParameterFromForm]
+    private string? selectedUser { get; set; }
+
+    private ApplicationUser? User { get; set; }
+
+    private ApplicationUser[]? Users { get; set; }
+
+    private Room? room { get; set; }
+
+    [Parameter]
+    public bool memberAdded { get; set; } = false;
+
+    private string? statusMessage = "";
+
+
+    protected override void OnInitialized()
+    {
+        meeting = Create();
+        using var RoomContext = MeetingDbFactory.CreateDbContext();
+        rooms = RoomContext.Room.AsEnumerable<Room>().ToArray();
+
+        if (rooms.Count() == 0)
+        {
+            try{
+                NavigationManager.NavigateTo("/Account/NotFound");
+            }
+            catch (NavigationException ex)
+            {
+                var source = ex.Source;
+            }
+        }
+        else
+        {
+            //Get all registered app users
+            Users = AppDb.Users.AsEnumerable<ApplicationUser>().ToArray();
+        }
+    }
+
+    private void AddSelectedMember(string UserName)
+    {
+        //Check if user is in any of the meetings.
+        using var MemberContext = MeetingDbFactory.CreateDbContext();
+        members = MemberContext.Members.ToArray();
+
+        User = Users!.FirstOrDefault(u => u.UserName == UserName);
+
+        if (User is null)
+        {
+            //Get the first user in the dropdown if user wasn't selected
+            User = Users!.First();
+        }
+
+        //Get the meeting members that match current App user
+        members = members.Where(m => m.User == User).ToArray();
+
+        var member = new MeetingMember();
+
+        //Only add users not in any meetings currently
+        if (members is not null)
+        {
+            using var MeetingContext = MeetingDbFactory.CreateDbContext();
+
+            //Get the meetings currently ongoing
+            var Meetings = MeetingContext.Meeting.ToList<Meeting>();
+            Meetings = Meetings.Where(m => m.Date == DateOnly.FromDateTime(DateTime.Now) && m.Time == TimeOnly.FromDateTime(DateTime.Now)).ToList<Meeting>();
+
+            foreach (var meeting in Meetings)
+            {
+                if (members.FirstOrDefault(m => m.MeetingId == meeting.Id) is not null)
+                {
+                    statusMessage = $"Error: Cannot add {UserName} to {meeting!.Name}. {UserName} has a conflicting schedule.";
+                    memberAdded = false;
+                    return;
+                }
+            }
+        }
+        member.User = User;
+        member.MeetingId = meeting!.Id;
+        meeting.Members?.Add(member);
+
+        memberAdded = true;
+    }
+    private void AddSelectedRoom(string RoomName)
+    {
+        room = rooms!.FirstOrDefault(r => r.Name == RoomName);
+
+        if (room is null)
+        {
+            room = rooms!.First();
+        }
+
+        if (room.MeetingId > 0)
+        {
+            statusMessage = $"Error: {room.Name} is currently in use by another meeting.";
+        }
+        else
+        {
+            meeting!.RoomId = room!.Id;   //Set the meeting room
+        }
+    }
+    private async void ClaimRoom()
+    {
+
+        if (room is not null)
+        {
+            using var context = MeetingDbFactory.CreateDbContext();
+            var meetingRoom = context.Room.FirstOrDefault(r => r.Id == room.Id);
+            meetingRoom!.MeetingId = meeting!.Id;    //Claim the room
+            await context.SaveChangesAsync();
+        }
+    }
+
+    private async Task ReleaseRoom()
+    {
+        if (room is not null)
+        {
+            using var context = MeetingDbFactory.CreateDbContext();
+            var meetingRoom = context.Room.FirstOrDefault(r => r.Id == room.Id);
+            meetingRoom!.MeetingId = 0;             //Release the room
+            await context.SaveChangesAsync();
+        }
+    }
+
+    private Meeting Create()
+    {
+        try
+        {
+            return Activator.CreateInstance<Meeting>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(Meeting)}'. " +
+                $"Ensure that '{nameof(Meeting)}' is not an abstract class and has a parameterless constructor.");
+        }
+
+    }
+
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddMeeting()
+    {
+        //Create meeting
+        using var context = MeetingDbFactory.CreateDbContext();
+        context.Meeting.Add(meeting!);
+        AddSelectedRoom(selectedRoom!);
+
+        if (!statusMessage!.Contains("Error"))
+        {
+            //Add the meeting to the DB to get the meeting ID
+            await context.SaveChangesAsync();
+
+            //Get the meeting just added with the new ID
+            using var MeetingContext = MeetingDbFactory.CreateDbContext();
+            meeting = MeetingContext.Meeting.FirstOrDefault(m => m.Name == meeting!.Name);
+
+            ClaimRoom();
+            NavigationManager.NavigateTo("Account/Meetings");
+        }
+    }
+}

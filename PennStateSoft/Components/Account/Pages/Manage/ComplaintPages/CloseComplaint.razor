@@ -1,7 +1,7 @@
 ﻿@page "/Account/Manage/Complaints/Delete"
 
 @inject PennStateSoft.Data.UserComplaints DB
-@inject PennStateSoft.Data.ComplaintReplies RepliesDB
+@inject PennStateSoft.Data.UserComplaints RepliesDB
 @inject NavigationManager NavigationManager
 
 @attribute [Authorize(Roles = "Client")]
@@ -48,8 +48,6 @@
 @code {
     Complaint? complaint;
 
-    ComplaintReply[]? complaintReplies;
-
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
@@ -64,23 +62,11 @@
             NavigationManager.NavigateTo("notfound");
         }
 
-        var response = RepliesDB.ComplaintReply.Where(m => m.ComplaintId == complaint!.Id);
-        complaintReplies = response.AsEnumerable<ComplaintReply>().ToArray();
-
         uIHelper.CalculateSize(@Encoding.ASCII.GetString(complaint!.Description!));
     }
 
     public async Task DeleteComplaint()
     {
-        if (complaintReplies is not null)
-        {
-            foreach (ComplaintReply reply in complaintReplies!)
-            {
-                RepliesDB.Remove(reply);
-            }
-            await RepliesDB.SaveChangesAsync();
-        }
-        
         DB.Complaint.Remove(complaint!);
         await DB.SaveChangesAsync();
         NavigationManager.NavigateTo("/account/manage/complaints");

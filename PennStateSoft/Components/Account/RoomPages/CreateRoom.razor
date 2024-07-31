@@ -9,6 +9,10 @@
 
 <h3> Create Room</h3>
 <hr />
+<p class="text-danger">
+    @statusMessage
+</p>
+
 <div class="row">
     <div class="col-md-4">
         <EditForm method="post" Model="Room" OnValidSubmit="AddRoom" FormName="create" Enhance>
@@ -18,6 +22,22 @@
                 <label for="name" class="form-label">Name:</label>
                 <InputText id="name" @bind-Value="Room.Name" class="form-control" autofocus />
                 <ValidationMessage For="() => Room.Name" class="text-danger" />
+
+                @if (Rooms is not null && (Room.Name is not null && !Room.Name.Equals("")))
+                {
+                    foreach (var room in Rooms)
+                    {
+                        if (room.Name!.Equals(Room.Name))
+                        {
+                            statusMessage = $"Error: {Room.Name} already exists";
+                            break;
+                        }
+                        else
+                        {
+                            statusMessage = "";
+                        }
+                    }
+                }
             </div>
             <div class="mb-3">
                 <label for="capacity" class="form-label">Capacity:</label>
@@ -38,16 +58,28 @@
 </div>
 
 @code {
+    private string? statusMessage = "";
 
     [SupplyParameterFromForm]
     public Room Room { get; set; } = new();
 
+    private Room[]? Rooms;
+
+    protected override void OnInitialized()
+    {
+        Rooms = MeetingsDb.Room.AsEnumerable<Room>().ToArray<Room>();
+    }
+
     // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
     public async Task AddRoom()
     {
-        MeetingsDb.Room.Add(Room);
-        await MeetingsDb.SaveChangesAsync();
-        NavigationManager.NavigateTo("Account/Rooms");
+        if (statusMessage!.Equals(""))
+        {
+            MeetingsDb.Room.Add(Room);
+            await MeetingsDb.SaveChangesAsync();
+            NavigationManager.NavigateTo("Account/Rooms");
+        }
+        
     }
     public void Cancel()
     {

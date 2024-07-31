@@ -43,7 +43,10 @@
     <TemplateColumn Context="meeting" Title="Room">
         <div class="flex items-center mt-1">
             <nobr>
-                @GetMeetingRoom(meeting.RoomId).Name
+                @if (Rooms is not null)
+                {
+                    @GetMeetingRoom(meeting.RoomId).Name
+                }
             </nobr>
         </div>
     </TemplateColumn>
@@ -53,24 +56,24 @@
                 @onclick="@(()=> OnViewClicked(meeting.Id))">
             View
         </button>
-        <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
+        <AuthorizeView Roles="Creator, Admin">
+            <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
                         margin:0.25rem 0.5rem;"
-                @onclick="@(()=> OnDeleteClicked(meeting.Id))">
-            Delete
-        </button>
+                    @onclick="@(()=> OnDeleteClicked(meeting.Id))">
+                Delete
+            </button>
+        </AuthorizeView>
     </TemplateColumn>
 </QuickGrid>
 
 
 @code{
-
     private GridItemsProvider<Meeting>? gridItemsProvider;
-    private Room? room { get; set; }
+    private Room? Room { get; set; }
+    private List<Room>? Rooms { get; set; }
     private List<Meeting>? meetings { get; set; }
     private List<MeetingMember>? Members { get; set; }
     private ClaimsPrincipal? claimsPrincipal { get; set; }
-
-    private string? currentUrl;
 
     protected override async void OnInitialized()
     {
@@ -92,6 +95,7 @@
         {
             using var context = MeetingDbFactory.CreateDbContext();
             var response = context.Meeting.AsEnumerable<Meeting>().ToList<Meeting>();
+            Rooms = context.Room.AsEnumerable<Room>().ToList();
 
             if (claimsPrincipal.IsInRole("Admin"))
             {
@@ -111,17 +115,16 @@
 
     private Room GetMeetingRoom(int Id)
     {
-        using var context = MeetingDbFactory.CreateDbContext();
-        room = context.Room.FirstOrDefault(r => r.Id == Id);
+        Room = Rooms!.FirstOrDefault(r => r.Id == Id);
 
-        return room!;
+        return Room!;
     }
 
-    private async void GetClientView(List<Meeting> meetingList)
+    private void GetClientView(List<Meeting> meetingList)
     {
         using var context = MeetingDbFactory.CreateDbContext();
         var userId = UserManager.GetUserId(claimsPrincipal!);
-        Members = context.Members.Where(m => m.User.Id == userId).ToList();
+        Members = context.Members.Where(m => m.UserId == userId).ToList();
         meetings = new List<Meeting>();
 
         if (userId is not null && Members is not null)

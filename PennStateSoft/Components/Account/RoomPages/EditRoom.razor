@@ -38,11 +38,6 @@ else
                     <InputNumber id="price" @bind-Value="Room.Price" class="form-control" />
                     <ValidationMessage For="() => Room.Price" class="text-danger" />
                 </div>
-                <div class="mb-3">
-                    <label for="capacity" class="form-label">Meeting ID:</label>
-                    <InputNumber id="meetingId" @bind-Value="Room.MeetingId" class="darker-border-checkbox" />
-                    <ValidationMessage For="() => Room.MeetingId" class="text-danger" />
-                </div>
                 <button type="submit" class="btn btn-primary">Save</button>
                 <button type="reset" class="btn btn-secondary ms-2" @onclick="Cancel">
                     Cancel

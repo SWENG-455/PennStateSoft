@@ -3,7 +3,15 @@
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject PennStateSoft.Data.ApplicationDbContext AppDb
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IRoleStore<IdentityRole> RoleStore
+@inject IRoleValidator<IdentityRole> RoleValidator
+@inject IEnumerable<RoleValidator<IdentityRole>> RoleValidators
+@inject ILogger<RoleManager<IdentityRole>> RoleLogger
+@inject IdentityErrorDescriber IdentityErrorDescriber
+@inject ILookupNormalizer KeyNormalizer
 @rendermode InteractiveServer
 
 @attribute [Authorize]
@@ -95,6 +103,9 @@ else
 }
 
 @code {
+    private IEnumerable<IdentityError>? identityErrors;
+    private ApplicationRoleManager? RoleManager;
+    private IdentityRole? Role;
 
     [SupplyParameterFromForm]
     public Meeting? meeting { get; set; }
@@ -110,6 +121,7 @@ else
     private string? selectedUser { get; set; }
 
     private ApplicationUser? User { get; set; }
+    private ApplicationUser? applicationUser { get; set; }
 
     private ApplicationUser[]? Users { get; set; }
 
@@ -118,10 +130,12 @@ else
     [Parameter]
     public bool memberAdded { get; set; } = false;
 
-    private string? statusMessage = "";
+    [Parameter]
+    public string? statusMessage { get; set; } = "";
 
+    private ClaimsPrincipal? claimsPrincipal { get; set; }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         meeting = Create();
         using var RoomContext = MeetingDbFactory.CreateDbContext();
@@ -141,52 +155,114 @@ else
         {
             //Get all registered app users
             Users = AppDb.Users.AsEnumerable<ApplicationUser>().ToArray();
+
+            //Get the logged in user
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            claimsPrincipal = authState.User;
+            var userId = UserManager.GetUserId(claimsPrincipal);
+            applicationUser = Users.FirstOrDefault(l => l.Id == userId);
+
+            if (applicationUser is not null)
+            {
+                await CreateRole(applicationUser);
+            }
+        }
+    }
+    private async Task CreateRole(ApplicationUser authUser)
+    {
+        //Create Creator Role
+        RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
+        Role = await RoleManager.FindByNameAsync("Creator").ConfigureAwait(false);
+
+        if (Role == null)
+        {
+            Role = new IdentityRole("Creator");
+            var roleResult = await RoleManager.CreateAsync(Role);
+        }
+        var result = await UserManager.AddToRoleAsync(authUser, Role.Name!);
+
+        //Check if UserRole was added successfully
+        if (!result.Succeeded)
+        {
+            identityErrors = result.Errors;
+            return;
         }
     }
 
     private void AddSelectedMember(string UserName)
     {
-        //Check if user is in any of the meetings.
+        //Check if user is in any other meetings.
         using var MemberContext = MeetingDbFactory.CreateDbContext();
         members = MemberContext.Members.ToArray();
 
         User = Users!.FirstOrDefault(u => u.UserName == UserName);
-
         if (User is null)
         {
             //Get the first user in the dropdown if user wasn't selected
             User = Users!.First();
+            UserName = User.UserName!;
         }
 
         //Get the meeting members that match current App user
-        members = members.Where(m => m.User == User).ToArray();
+        members = members.Where(m => m.UserId == User.Id).ToArray();
+
+        //Check if current user is in any meetings currently ongoing
+        if (IsMemberInAMeeting(UserName))
+        {
+            //Only add users not in any meetings currently
+            return;
+        }
 
         var member = new MeetingMember();
+        member.UserId = User.Id;
+        member.MeetingId = meeting!.Id;
 
-        //Only add users not in any meetings currently
+        if (meeting.Members is null)
+        {
+            meeting.Members = new List<MeetingMember>();
+        }
+
+        if (meeting.Members.FirstOrDefault(m => m.UserId == User.Id) is null)
+        {
+            meeting.Members?.Add(member);
+        }
+        else
+        {
+            statusMessage = $"Error: {UserName} has already been added {meeting!.Name}.";
+            return;
+        }
+
+        statusMessage = "";
+        memberAdded = true;
+    }
+    private bool IsMemberInAMeeting(string UserName)
+    {
         if (members is not null)
         {
             using var MeetingContext = MeetingDbFactory.CreateDbContext();
 
             //Get the meetings currently ongoing
             var Meetings = MeetingContext.Meeting.ToList<Meeting>();
-            Meetings = Meetings.Where(m => m.Date == DateOnly.FromDateTime(DateTime.Now) && m.Time == TimeOnly.FromDateTime(DateTime.Now)).ToList<Meeting>();
+            var CurrDate = DateOnly.FromDateTime(DateTime.Now);
+            var StartTime = TimeOnly.FromDateTime(DateTime.Now);
+            var EndTime = TimeOnly.FromDateTime(DateTime.Now).AddHours(meeting!.Duration);
 
-            foreach (var meeting in Meetings)
+            Meetings = Meetings.Where(m => m.Date == CurrDate && m.Time <= EndTime).ToList<Meeting>();
+
+            if (Meetings.Count() > 0)
             {
-                if (members.FirstOrDefault(m => m.MeetingId == meeting.Id) is not null)
+                foreach (var _meeting in Meetings)
                 {
-                    statusMessage = $"Error: Cannot add {UserName} to {meeting!.Name}. {UserName} has a conflicting schedule.";
-                    memberAdded = false;
-                    return;
+                    if (members.FirstOrDefault(m => m.MeetingId == _meeting.Id) is not null)
+                    {
+                        statusMessage = $"Error: Cannot add {UserName} to {meeting!.Name}. {UserName} has a conflicting schedule.";
+                        memberAdded = false;
+                        return true;
+                    }
                 }
             }
         }
-        member.User = User;
-        member.MeetingId = meeting!.Id;
-        meeting.Members?.Add(member);
-
-        memberAdded = true;
+        return false;
     }
     private void AddSelectedRoom(string RoomName)
     {
@@ -204,27 +280,16 @@ else
         else
         {
             meeting!.RoomId = room!.Id;   //Set the meeting room
+            statusMessage = "";
         }
     }
     private async void ClaimRoom()
     {
-
         if (room is not null)
         {
             using var context = MeetingDbFactory.CreateDbContext();
             var meetingRoom = context.Room.FirstOrDefault(r => r.Id == room.Id);
             meetingRoom!.MeetingId = meeting!.Id;    //Claim the room
-            await context.SaveChangesAsync();
-        }
-    }
-
-    private async Task ReleaseRoom()
-    {
-        if (room is not null)
-        {
-            using var context = MeetingDbFactory.CreateDbContext();
-            var meetingRoom = context.Room.FirstOrDefault(r => r.Id == room.Id);
-            meetingRoom!.MeetingId = 0;             //Release the room
             await context.SaveChangesAsync();
         }
     }
@@ -242,6 +307,28 @@ else
         }
 
     }
+    private async Task AddCreatorToMeeting(ApplicationUser meetingCreator)
+    {
+        var member = new MeetingMember();
+        member.UserId = meetingCreator.Id;
+        member.MeetingId = meeting!.Id;
+
+        if (meeting.Members is null)
+        {
+            meeting.Members = new List<MeetingMember>();
+        }
+
+        if (meeting.Members.FirstOrDefault(m => m.UserId == meetingCreator.Id) is null)
+        {
+            using var MemberContext = MeetingDbFactory.CreateDbContext();
+            MemberContext.Members.Add(member);
+            await MemberContext.SaveChangesAsync();
+        }
+        else
+        {
+            return;
+        }
+    }
 
     // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
     public async Task AddMeeting()
@@ -251,6 +338,7 @@ else
         context.Meeting.Add(meeting!);
         AddSelectedRoom(selectedRoom!);
 
+
         if (!statusMessage!.Contains("Error"))
         {
             //Add the meeting to the DB to get the meeting ID
@@ -259,7 +347,7 @@ else
             //Get the meeting just added with the new ID
             using var MeetingContext = MeetingDbFactory.CreateDbContext();
             meeting = MeetingContext.Meeting.FirstOrDefault(m => m.Name == meeting!.Name);
-
+            await AddCreatorToMeeting(applicationUser!);
             ClaimRoom();
             NavigationManager.NavigateTo("Account/Meetings");
         }

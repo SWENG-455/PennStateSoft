@@ -7,11 +7,12 @@
 
 <PageTitle>Edit Meeting</PageTitle>
 
-<h1>Edit</h1>
-
-<h4>Meeting</h4>
+<h4>Edit Meeting</h4>
 <hr />
-@if (Meeting is null)
+<p class="text-danger">
+    @statusMessage
+</p>
+@if (meeting is null)
 {
     <p><em>Loading...</em></p>
 }
@@ -19,64 +20,132 @@ else
 {
     <div class="row">
         <div class="col-md-4">
-            <EditForm method="post" Model="Meeting" OnValidSubmit="UpdateMeeting" FormName="edit" Enhance>
+            <EditForm method="post" Model="meeting" OnValidSubmit="@(() => UpdateMeeting(selectedRoom!))" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
                 <ValidationSummary />
-                <input type="hidden" name="Meeting.Id" value="@Meeting.Id" />
+                <input type="hidden" name="meeting.Id" value="@meeting.Id" />
                 <div class="mb-3">
                     <label for="name" class="form-label">Name:</label>
-                    <InputText id="name" @bind-Value="Meeting.Name" class="form-control" />
-                    <ValidationMessage For="() => Meeting.Name" class="text-danger" />
+                    <InputText id="name" @bind-Value="meeting.Name" class="form-control" />
+                    <ValidationMessage For="() => meeting.Name" class="text-danger" />
                 </div>
                 <div class="mb-3">
                     <label for="date" class="form-label">Date:</label>
-                    <InputDate id="date" @bind-Value="Meeting.Date" class="form-control" />
-                    <ValidationMessage For="() => Meeting.Date" class="text-danger" />
+                    <InputDate id="date" @bind-Value="meeting.Date" class="form-control" />
+                    <ValidationMessage For="() => meeting.Date" class="text-danger" />
                 </div>
                 <div class="mb-3">
                     <label for="time" class="form-label">Time:</label>
-                    <InputDate id="time" @bind-Value="Meeting.Time" class="form-control" />
-                    <ValidationMessage For="() => Meeting.Time" class="text-danger" />
+                    <InputDate Type="InputDateType.Time" id="time" @bind-Value="meeting.Time" class="form-control" />
+                    <ValidationMessage For="() => meeting.Time" class="text-danger" />
                 </div>
                 <div class="mb-3">
                     <label for="duration" class="form-label">Duration:</label>
-                    <InputNumber id="duration" @bind-Value="Meeting.Duration" class="form-control" />
-                    <ValidationMessage For="() => Meeting.Duration" class="text-danger" />
+                    <InputNumber id="duration" @bind-Value="meeting.Duration" class="form-control" />
+                    <ValidationMessage For="() => meeting.Duration" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="room" class="form-label">Room:</label>
+                    <InputSelect id="room" @bind-Value="selectedRoom" class="form-select">
+                        @if (rooms is not null)
+                        {
+                            foreach (var room in rooms)
+                            {
+                                <option value="@room.Name">@room.Name</option>
+                            }
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => meeting.RoomId" class="text-danger" />
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
+                <a class="btn btn-secondary ms-2" href="Account/Meetings">
+                    Cancel
+                </a>
             </EditForm>
         </div>
     </div>
 }
-
-<div>
-    <a href="account/meetings">Back to List</a>
-</div>
-
 @code {
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
+    private Room[]? rooms { get; set; }
+
     [SupplyParameterFromForm]
-    public Meeting? Meeting { get; set; }
+    private string? selectedRoom { get; set; }
+
+    private Room? room { get; set; }
+
+    [SupplyParameterFromForm]
+    public Meeting? meeting { get; set; }
+
+    [Parameter]
+    public string? statusMessage { get; set; } = "";
 
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        Meeting ??= await context.Meeting.FirstOrDefaultAsync(m => m.Id == Id);
+        meeting ??= await context.Meeting.FirstOrDefaultAsync(m => m.Id == Id);
 
-        if (Meeting is null)
+        if (meeting is null)
         {
-            NavigationManager.NavigateTo("notfound");
+            NavigationManager.NavigateTo("NotFound");
+        }
+        else
+        {
+            using var RoomContext = DbFactory.CreateDbContext();
+            rooms = RoomContext.Room.AsEnumerable<Room>().ToArray();
+
+            if (selectedRoom is null)
+            {
+                room = rooms.FirstOrDefault(r => r.MeetingId == meeting.Id);
+                selectedRoom = room!.Name;
+            }
+        }
+    }
+    private async Task ReleaseRoom()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var meetingRoom = context.Room.FirstOrDefault(r => r.MeetingId == meeting!.Id);
+        meetingRoom!.MeetingId = 0;             //Release the room
+        await context.SaveChangesAsync();
+    }
+    private async Task AddSelectedRoom(string RoomName)
+    {
+        //Release current room
+        await ReleaseRoom();
+
+        room = rooms!.FirstOrDefault(r => r.Name == RoomName);
+
+        if (room!.MeetingId > 0)
+        {
+            statusMessage = $"Error: {room.Name} is currently in use by another meeting.";
+        }
+        else
+        {
+            meeting!.RoomId = room!.Id;   //Set the meeting room
+            ClaimRoom();                  //Claim new room
+            statusMessage = "";
+        }
+    }
+    private async void ClaimRoom()
+    {
+        if (room is not null)
+        {
+            using var context = DbFactory.CreateDbContext();
+            var meetingRoom = context.Room.FirstOrDefault(r => r.Id == room.Id);
+            meetingRoom!.MeetingId = meeting!.Id;    //Claim the room
+            await context.SaveChangesAsync();
         }
     }
 
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see https://aka.ms/RazorPagesCRUD.
-    public async Task UpdateMeeting()
+    public async Task UpdateMeeting(string room)
     {
+        await AddSelectedRoom(room);
         using var context = DbFactory.CreateDbContext();
-        context.Attach(Meeting!).State = EntityState.Modified;
+        context.Attach(meeting!).State = EntityState.Modified;
 
         try
         {
@@ -87,9 +156,8 @@ else
             NavigationManager.NavigateTo("NotFound");
         }
 
-        NavigationManager.NavigateTo("Account/Meetings");
+        NavigationManager.NavigateTo($"Account/Meetings/Details?id={meeting!.Id}");
     }
-
     bool MeetingExists(int id)
     {
         using var context = DbFactory.CreateDbContext();

@@ -14,7 +14,7 @@ builder.Services.AddDbContextFactory<MeetingContext>(options =>
 builder.Services.AddDbContext<UserComplaints>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("UserComplaints") ?? throw new InvalidOperationException("Connection string 'UserComplaints' not found.")));
 
-builder.Services.AddQuickGridEntityFrameworkAdapter();;
+builder.Services.AddQuickGridEntityFrameworkAdapter(); ;
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -27,10 +27,10 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 
 
 builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-    })
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+})
     .AddIdentityCookies();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");

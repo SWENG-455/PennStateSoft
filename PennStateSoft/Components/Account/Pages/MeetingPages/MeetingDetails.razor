@@ -1,16 +1,15 @@
 ﻿@page "/Account/Meetings/Details"
 
-@inject PennStateSoft.Data.MeetingContext MeetingDb
+@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject NavigationManager NavigationManager
+@rendermode InteractiveServer
 
 @attribute [Authorize]
 
 <PageTitle>Meeting Details</PageTitle>
 
-<h1>Details</h1>
-
 <div>
-    <h4>Meeting</h4>
+    <h4>Meeting Details</h4>
     <hr />
     @if (meeting is null)
     {
@@ -29,12 +28,17 @@
             <dt class="col-sm-2">Room</dt>
             <dd class="col-sm-10">@room!.Name</dd>
         </dl>
-        <dl class="col">
-
-        </dl>
+        <CascadingValue Value="Id">
+            <CascadingValue Value="meeting">
+                <UpdateMeetingComponent />
+            </CascadingValue>
+        </CascadingValue>
+       
         <div>
-            <a href="@($"Account/Meetings/Edit?id={meeting.Id}")">Edit</a> |
-            <a href="@($"Account/Meetings")">Back to List</a>
+            <AuthorizeView Roles="Creator, Admin">
+                <a class="text-decoration-none" href="@($"Account/Meetings/Edit?id={meeting.Id}")">Edit</a> |
+             </AuthorizeView>
+            <a class="text-decoration-none" href="@($"Account/Meetings")">Back</a>
         </div>
     }
 </div>
@@ -42,23 +46,23 @@
 @code {
     Meeting? meeting;
 
-    GridItemsProvider<ApplicationUser>? gridItemsProvider;
+    [SupplyParameterFromForm]
+    private string? selectedUser { get; set; }
 
     [SupplyParameterFromQuery]
     public int Id { get; set; }
-
-    [SupplyParameterFromQuery]
-    public int RoomId { get; set; }
 
     private Room? room { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        meeting = await MeetingDb.Meeting.FirstOrDefaultAsync(m => m.Id == Id);
+        using var context = MeetingDbFactory.CreateDbContext();
+        meeting = await context.Meeting.FirstOrDefaultAsync(m => m.Id == Id);
 
         if (meeting is not null)
         {
-            room = await MeetingDb.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
+            using var roomContext = MeetingDbFactory.CreateDbContext();
+            room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
         }
         else
         {
@@ -68,7 +72,7 @@
             }
             catch (NavigationException navEx)
             {
-                navEx.HelpLink = "/Account/Help";
+                var source = navEx.Source;
             }
         }
     }

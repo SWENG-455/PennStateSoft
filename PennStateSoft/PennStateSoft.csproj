@@ -40,10 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Components\Account\Pages\AdminLogin.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Migrations\ApplicationDb\" />
     <Folder Include="Migrations\Meeting\" />
   </ItemGroup>

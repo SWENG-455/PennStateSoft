@@ -1,6 +1,9 @@
 ﻿@page "/Account/Meetings/Details"
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
+@inject PennStateSoft.Data.ApplicationDbContext AppDb
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -24,20 +27,26 @@
             <dt class="col-sm-2">Time</dt>
             <dd class="col-sm-10">@meeting.Time</dd>
             <dt class="col-sm-2">Duration</dt>
-            <dd class="col-sm-10">@meeting.Duration hr(s) </dd>
+            <dd class="col-sm-10">@meeting.Duration hr </dd>
             <dt class="col-sm-2">Room</dt>
             <dd class="col-sm-10">@room!.Name</dd>
         </dl>
         <CascadingValue Value="Id">
             <CascadingValue Value="meeting">
-                <UpdateMeetingComponent />
+                <CascadingValue Value="roles">
+                    <UpdateMeetingComponent />
+                </CascadingValue>
             </CascadingValue>
         </CascadingValue>
        
         <div>
-            <AuthorizeView Roles="Creator, Admin">
-                <a class="text-decoration-none" href="@($"Account/Meetings/Edit?id={meeting.Id}")">Edit</a> |
-             </AuthorizeView>
+            @if (roles is not null && roles.Count() > 0)
+            {
+                <a class="text-decoration-none me-2" href="@($"Account/Meetings/Edit?id={meeting.Id}")">
+                    Edit
+                </a> <span class="me-2">  | </span>
+            }
+
             <a class="text-decoration-none" href="@($"Account/Meetings")">Back</a>
         </div>
     }
@@ -48,19 +57,41 @@
 
     [SupplyParameterFromForm]
     private string? selectedUser { get; set; }
+    private string? role { get; set; }
 
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
     private Room? room { get; set; }
+    private List<string>? roles { get; set; }
+    private ClaimsPrincipal? claimsPrincipal { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         using var context = MeetingDbFactory.CreateDbContext();
         meeting = await context.Meeting.FirstOrDefaultAsync(m => m.Id == Id);
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        claimsPrincipal = authState.User;
 
         if (meeting is not null)
         {
+            var Roles = AppDb.Roles.ToList();
+            var UserRoles = AppDb.UserRoles.Where(r => r.UserId == UserManager.GetUserId(claimsPrincipal)).ToList();
+            roles = new List<string>();
+
+            //Get only the roles claimed by the current user
+            foreach (var userRole in UserRoles)
+            {
+                var role = Roles.FirstOrDefault(r => r.Id == userRole.RoleId);
+                if (role is not null)
+                {
+                    if (role.Name!.Contains("Creator" + meeting.Id))
+                    {
+                        roles.Add(role.Name!);
+                    }
+                }
+            }
+
             using var roomContext = MeetingDbFactory.CreateDbContext();
             room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
         }

@@ -98,9 +98,11 @@
     private async Task RemoveRole()
     {
         RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
-        Role = await RoleManager.FindByNameAsync("Creator").ConfigureAwait(false);
-        var Users = UserManager.GetUsersInRoleAsync("Creator").Result;
+        Role = await RoleManager.FindByNameAsync("Creator" + meeting!.Id).ConfigureAwait(false);
+        var Users = UserManager.GetUsersInRoleAsync("Creator" + meeting.Id).Result;
+        var result = await RoleManager.DeleteAsync(Role!);
 
+        /*
         using var context = MeetingDbFactory.CreateDbContext();
         var members = context.Members.ToList();
 
@@ -112,8 +114,7 @@
                 break;
             }
         }
-
-        var result = await UserManager.RemoveFromRoleAsync(User, Role.Name!);
+        */
 
         //Check if UserRole was added successfully
         if (!result.Succeeded)

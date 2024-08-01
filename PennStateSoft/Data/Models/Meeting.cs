@@ -10,7 +10,7 @@ namespace PennStateSoft.Data.Models
         public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         public TimeOnly Time { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
         public int RoomId { get; set; }
-        public int Duration { get; set; }
+        public int Duration { get; set; } = 1;
         public List<MeetingMember>? Members { get; set; }
     }
 }

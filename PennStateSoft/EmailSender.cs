@@ -12,7 +12,6 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
     ILogger<EmailSender> logger) : IEmailSender<ApplicationUser>
 {
     private readonly ILogger logger = logger;
-    readonly string layoutImg = "logo.png";
 
     public AuthMessageSenderOptions Options { get; } = optionsAccessor.Value;
 

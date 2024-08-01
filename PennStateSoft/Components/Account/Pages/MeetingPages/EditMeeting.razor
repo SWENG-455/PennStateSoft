@@ -107,18 +107,26 @@ else
     }
     private async Task AddSelectedRoom(string RoomName)
     {
-        //Release current room
-        await ReleaseRoom();
+        var newRoom = rooms!.FirstOrDefault(r => r.Name == RoomName);
 
-        room = rooms!.FirstOrDefault(r => r.Name == RoomName);
-
-        if (room!.MeetingId > 0)
+        if (newRoom!.MeetingId > 0)
         {
-            statusMessage = $"Error: {room.Name} is currently in use by another meeting.";
+            using var context = DbFactory.CreateDbContext();
+            var meetingRoom = context.Room.FirstOrDefault(r => r.MeetingId == meeting!.Id);
+
+            if (meetingRoom!.Id == newRoom.Id)
+            {
+                NavigationManager.NavigateTo($"Account/Meetings/Details?id={meeting!.Id}");
+            }
+            statusMessage = $"Error: {newRoom.Name} is currently in use by another meeting.";
         }
         else
         {
-            meeting!.RoomId = room!.Id;   //Set the meeting room
+            //Release current room
+            await ReleaseRoom();
+
+            meeting!.RoomId = newRoom!.Id;   //Set the meeting room
+            room = newRoom;
             ClaimRoom();                  //Claim new room
             statusMessage = "";
         }
@@ -139,19 +147,23 @@ else
     public async Task UpdateMeeting(string room)
     {
         await AddSelectedRoom(room);
-        using var context = DbFactory.CreateDbContext();
-        context.Attach(meeting!).State = EntityState.Modified;
-
-        try
+        if (!statusMessage!.Contains("Error"))
         {
-            await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            NavigationManager.NavigateTo("NotFound");
-        }
+            using var context = DbFactory.CreateDbContext();
+            context.Attach(meeting!).State = EntityState.Modified;
 
-        NavigationManager.NavigateTo($"Account/Meetings/Details?id={meeting!.Id}");
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                NavigationManager.NavigateTo("NotFound");
+            }
+
+            NavigationManager.NavigateTo($"Account/Meetings/Details?id={meeting!.Id}");
+        }
+        
     }
     bool MeetingExists(int id)
     {

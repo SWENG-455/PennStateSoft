@@ -1,6 +1,7 @@
 ﻿@page "/Account/Meetings"
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
+@inject PennStateSoft.Data.ApplicationDbContext AppDb
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
@@ -12,11 +13,13 @@
 
 <h3>Meetings</h3>
 
-<div class="nav-item px-3" style="text-align:right; width:95%">
-    <NavLink style="text-decoration:none" href="Account/Meetings/Create">
-         New
-    </NavLink>
-</div>
+<AuthorizeView Roles="Client">
+    <div class="nav-item px-3" style="text-align:right; width:95%">
+        <NavLink style="text-decoration:none" href="Account/Meetings/Create">
+            New
+        </NavLink>
+    </div>
+</AuthorizeView>
 
 <QuickGrid Class="table" ItemsProvider="@gridItemsProvider">
     <TemplateColumn Context="meeting" Title="Name">
@@ -41,7 +44,7 @@
         </div>
     </TemplateColumn>
     <TemplateColumn Context="meeting" Title="Room">
-        <div class="flex items-center mt-1">
+        <div class="flex items-center mt-1" @onactivate="@(()=>ReleaseRoom(meeting))">
             <nobr>
                 @if (Rooms is not null)
                 {
@@ -56,13 +59,14 @@
                 @onclick="@(()=> OnViewClicked(meeting.Id))">
             View
         </button>
-        <AuthorizeView Roles="Creator, Admin">
+        @if (roles is not null && roles.Count() > 0 && MeetingIds!.Contains(meeting.Id))
+        {
             <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
                         margin:0.25rem 0.5rem;"
                     @onclick="@(()=> OnDeleteClicked(meeting.Id))">
                 Delete
             </button>
-        </AuthorizeView>
+        }      
     </TemplateColumn>
 </QuickGrid>
 
@@ -74,6 +78,8 @@
     private List<Meeting>? meetings { get; set; }
     private List<MeetingMember>? Members { get; set; }
     private ClaimsPrincipal? claimsPrincipal { get; set; }
+    private List<string>? roles { get; set; }
+    private List<int>? MeetingIds { get; set; } = new List<int>();
 
     protected override async void OnInitialized()
     {
@@ -94,8 +100,10 @@
         else
         {
             using var context = MeetingDbFactory.CreateDbContext();
-            var response = context.Meeting.AsEnumerable<Meeting>().ToList<Meeting>();
-            Rooms = context.Room.AsEnumerable<Room>().ToList();
+            var response = context.Meeting.ToList<Meeting>();
+
+            using var RoomContext = MeetingDbFactory.CreateDbContext();
+            Rooms = RoomContext.Room.AsEnumerable<Room>().ToList();
 
             if (claimsPrincipal.IsInRole("Admin"))
             {
@@ -122,22 +130,65 @@
 
     private void GetClientView(List<Meeting> meetingList)
     {
+        var Roles = AppDb.Roles.ToList();
+        var UserID = UserManager.GetUserId(claimsPrincipal);
+        var UserRoles = AppDb.UserRoles.Where(r => r.UserId == UserID).ToList();
+        roles = new List<string>();
+
+        //Get only the roles claimed by the current user
+        foreach (var userRole in UserRoles)
+        {
+            var role = Roles.FirstOrDefault(r => r.Id == userRole.RoleId);
+            if (role is not null)
+            {
+                if (role.Name!.Contains("Creator"))
+                {
+                    roles.Add(role.Name!);
+                }
+            }
+        }
+
         using var context = MeetingDbFactory.CreateDbContext();
-        var userId = UserManager.GetUserId(claimsPrincipal!);
-        Members = context.Members.Where(m => m.UserId == userId).ToList();
+        Members = context.Members.Where(m => m.UserId == UserID).ToList();
         meetings = new List<Meeting>();
 
-        if (userId is not null && Members is not null)
+        if (UserID is not null && Members is not null)
         {
             foreach (var member in Members)
             {
                 //Get the meetings current App user has attended/been invited to
-                var newMeetingList = meetingList.FirstOrDefault(m => m.Id == member.MeetingId);
-                meetings!.Add(newMeetingList!);
-            }  
+                var newMeeting = meetingList.FirstOrDefault(m => m.Id == member.MeetingId);
+                meetings!.Add(newMeeting!);
+            }
+            //Get the meetings current user has created
+            foreach (var role in roles!)
+            {
+                var ID = Int32.Parse(role.Substring(7));
+                MeetingIds!.Add(ID);
+                var newMeeting = meetingList.FirstOrDefault(m => m.Id == ID);
+                if (!meetings.Contains(newMeeting))
+                {
+                    meetings!.Add(newMeeting!);
+                }
+            }
         }
         //Set the client view
         SetGridItemsProvider(meetings);
+    }
+    private async Task ReleaseRoom(Meeting meeting)
+    {
+        using var MeetingContext = MeetingDbFactory.CreateDbContext();
+
+        //Get the meetings currently ongoing
+        var Meetings = MeetingContext.Meeting.Where(m => m.Date == meeting!.Date && m.Time.AddHours(meeting!.Duration) >= meeting.Time).ToList();
+        if (!Meetings.Contains(meeting))
+        {
+            //Get the room from the meeting ID and release it
+            using var context = MeetingDbFactory.CreateDbContext();
+            var meetingRoom = context.Room.FirstOrDefault(r => r.MeetingId == meeting!.Id);
+            meetingRoom!.MeetingId = 0;             //Release the room
+            await context.SaveChangesAsync();
+        } 
     }
 
     private void OnViewClicked(int Id)

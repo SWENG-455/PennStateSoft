@@ -48,7 +48,6 @@
     GridItemsProvider<Complaint>? complaintProvider;
 
     private ApplicationUser user = default!;
-    private bool IsAdmin = false;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -61,7 +60,6 @@
 
         if (await UserManager.IsInRoleAsync(user, "Admin")){
             response = DB.Complaint;
-            IsAdmin = true;
         }
        
         var rows = response.AsEnumerable<Complaint>().ToList<Complaint>();

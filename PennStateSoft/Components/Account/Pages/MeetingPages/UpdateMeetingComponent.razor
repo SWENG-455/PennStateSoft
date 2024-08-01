@@ -9,16 +9,19 @@
     <div style="text-align:right;">
         @if (!AddMembersClicked)
         {
-            <button style="background-color:#4969ee; color:white; border-radius:0.25rem;"
-                    @onclick="OnAddClicked">
-                Add
-            </button>
+            @if (roles is not null && roles.Count() > 0)
+            {
+                <button style="background-color:#4969ee; color:white; border-radius:0.25rem;"
+                        @onclick="OnAddClicked">
+                    Add
+                </button>
+            }
         }
         @if (AddMembersClicked)
         {
-            <p class="text-danger">
+            <div class="text-danger">
                 @statusMessage
-            </p>
+            </div>
             @if (memberAdded)
             {
                 <p class="text-success mt-1">
@@ -38,7 +41,10 @@
                         {
                             foreach (var appUser in users)
                             {
-                                <option value="@appUser">@appUser.UserName</option>
+                                if (UserRoles!.FirstOrDefault(u => u.UserId == appUser.Id && u.RoleId == AdminRole!.Id) is null)
+                                {
+                                    <option value="@appUser">@appUser.UserName</option>
+                                }
                             }
                         }
                     </InputSelect>
@@ -77,13 +83,14 @@
             </div>
         </TemplateColumn>
         <TemplateColumn Context="member">
-            <AuthorizeView Roles="Creator, Admin">
+            @if (roles is not null && roles.Count() > 0)
+            {
                 <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
                         margin:0.25rem 0.5rem;"
                         @onclick="@(()=> OnRemoveClicked(member))">
                     Remove
                 </button>
-            </AuthorizeView>
+            }
         </TemplateColumn>
     </QuickGrid>
 </dl>
@@ -93,8 +100,15 @@
     Meeting? meeting { get; set; }
 
     [CascadingParameter]
+    private List<string>? roles { get; set; }
+
+    private string? role { get; set; }
+
+    [CascadingParameter]
     public int Id { get; set; }
 
+    private IdentityRole? AdminRole;
+    private IdentityUserRole<string>[]? UserRoles { get; set; }
     private List<MeetingMember>? members { get; set; }
     private List<ApplicationUser>? Members { get; set; }
     private List<ApplicationUser>? users { get; set; }
@@ -126,12 +140,20 @@
     {
         if (meeting is not null)
         {
+            role = "Creator" + meeting.Id.ToString();
+
             using var roomContext = MeetingDbFactory.CreateDbContext();
             room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
             SetGridItemsProvider();
 
             //Get all registered app users
             users = AppDb.Users.AsEnumerable<ApplicationUser>().ToList();
+
+            //Get all userRoles
+            UserRoles = AppDb.UserRoles.AsEnumerable<IdentityUserRole<string>>().ToArray();
+
+            //Get all roles
+            AdminRole = AppDb.Roles.FirstOrDefault(r => r.Name == "Admin");
         }
         else
         {

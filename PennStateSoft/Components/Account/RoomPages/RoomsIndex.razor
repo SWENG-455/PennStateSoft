@@ -52,9 +52,6 @@
     PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
     GridItemsProvider<Room>? RoomProvider;
 
-    private ApplicationUser user = default!;
-    private bool IsAdmin = false;
-
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
@@ -62,7 +59,6 @@
     {
         var response = MeetingsDb.Room;
 
-        IsAdmin = true;
         var rows = response.AsEnumerable<Room>().ToList<Room>();
         var result = GridItemsProviderResult.From<Room>(items: rows, totalItemCount: rows.Count);
         RoomProvider = req => ValueTask.FromResult(result);

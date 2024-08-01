@@ -41,9 +41,6 @@
 @code {
     private bool hasExternalLogins;
 
-    private bool hasRole = false;
-    private bool showItems = false;
-
     protected override async Task OnInitializedAsync()
     {
         hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();

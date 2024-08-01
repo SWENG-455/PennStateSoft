@@ -1,6 +1,5 @@
 ﻿@page "/Account/Rooms/Create"
-
-@inject PennStateSoft.Data.MeetingContext MeetingsDb
+@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -67,16 +66,18 @@
 
     protected override void OnInitialized()
     {
-        Rooms = MeetingsDb.Room.AsEnumerable<Room>().ToArray<Room>();
+        using var context = MeetingDbFactory.CreateDbContext();
+        Rooms = context.Room.AsEnumerable<Room>().ToArray<Room>();
     }
 
     // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
     public async Task AddRoom()
     {
+        using var context = MeetingDbFactory.CreateDbContext();
         if (statusMessage!.Equals(""))
         {
-            MeetingsDb.Room.Add(Room);
-            await MeetingsDb.SaveChangesAsync();
+            context.Room.Add(Room);
+            await context.SaveChangesAsync();
             NavigationManager.NavigateTo("Account/Rooms");
         }
         

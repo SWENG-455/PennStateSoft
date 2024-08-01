@@ -1,6 +1,6 @@
 ﻿@page "/Account/Rooms/Delete"
 
-@inject PennStateSoft.Data.MeetingContext MeetingsDb
+@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -66,7 +66,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        room = await MeetingsDb.Room.FirstOrDefaultAsync(m => m.Id == Id);
+        using var context = MeetingDbFactory.CreateDbContext();
+        room = await context.Room.FirstOrDefaultAsync(m => m.Id == Id);
 
         if (room is null)
         {
@@ -80,10 +81,11 @@
 
     public async Task Delete_Room()
     {
+        using var context = MeetingDbFactory.CreateDbContext();
         if (room!.MeetingId == 0)
         {
-            MeetingsDb.Room.Remove(room!);
-            await MeetingsDb.SaveChangesAsync();
+            context.Room.Remove(room!);
+            await context.SaveChangesAsync();
             NavigationManager.NavigateTo("Account/Rooms");
         }
         else

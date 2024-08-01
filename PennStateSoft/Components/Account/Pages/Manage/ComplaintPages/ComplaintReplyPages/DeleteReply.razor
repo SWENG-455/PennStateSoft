@@ -1,4 +1,4 @@
-﻿@inject PennStateSoft.Data.UserComplaints ComplaintsDb
+﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
 
 @attribute [Authorize]
@@ -61,8 +61,8 @@
 
     public async Task DeleteComplaintReply()
     {
-        //ComplaintsDb.ComplaintReply.Remove(complaintreply!);
-        await ComplaintsDb.SaveChangesAsync();
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        await context.SaveChangesAsync();
         NavigationManager.Refresh();
     }
 }

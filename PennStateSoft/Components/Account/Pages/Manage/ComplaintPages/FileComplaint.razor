@@ -1,6 +1,6 @@
 ﻿@page "/Account/Manage/Complaints/Create"
 
-@inject PennStateSoft.Data.UserComplaints DB
+@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityUserAccessor UserAccessor
@@ -111,8 +111,9 @@
     // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
     public async Task AddComplaint()
     {
-        DB.Complaint.Add(complaint);
-        await DB.SaveChangesAsync();
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        context.Complaint.Add(complaint);
+        await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/account/manage/complaints");
     }
 }

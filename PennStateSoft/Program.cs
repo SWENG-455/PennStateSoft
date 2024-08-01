@@ -11,7 +11,7 @@ using PennStateSoft.Data.Models;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextFactory<MeetingContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MeetingContext") ?? throw new InvalidOperationException("Connection string 'MeetingContext' not found.")));
-builder.Services.AddDbContext<UserComplaints>(options =>
+builder.Services.AddDbContextFactory<UserComplaints>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("UserComplaints") ?? throw new InvalidOperationException("Connection string 'UserComplaints' not found.")));
 
 builder.Services.AddQuickGridEntityFrameworkAdapter(); ;
@@ -34,7 +34,7 @@ builder.Services.AddAuthentication(options =>
     .AddIdentityCookies();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

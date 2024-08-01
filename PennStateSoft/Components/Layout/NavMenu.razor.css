@@ -1,9 +1,9 @@
 .navbar-toggler {
-    appearance: push-button;
+    appearance:menulist-button;
     cursor: pointer;
     width: 3.5rem;
     height: 2.5rem;
-    color: midnightblue;
+    color: white;
     position: absolute;
     top: 0.5rem;
     right: 1rem;

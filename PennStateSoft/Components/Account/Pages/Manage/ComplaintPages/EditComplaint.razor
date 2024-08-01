@@ -1,9 +1,9 @@
 ﻿@page "/Account/Manage/Complaints/Edit"
 
-@inject PennStateSoft.Data.UserComplaints DB
+@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
-@inject IdentityUserAccessor UserAccessor
+@inject AuthenticationStateProvider AuthStateProvider
 
 @attribute [Authorize(Roles = "Client")]
 
@@ -74,23 +74,40 @@ else
     [SupplyParameterFromForm]
     private string? Description { get; set; } = "";
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private ClaimsPrincipal? claimsPrincipal { get; set; }
 
     protected UIHelper uIHelper = new();
 
     protected override async Task OnInitializedAsync()
     {
-        Complaint ??= await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        Complaint ??= await context.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
 
         if (Complaint is null)
         {
-            NavigationManager.NavigateTo("notfound");
+            try
+            {
+                NavigationManager.NavigateTo("Account/NotFound");
+            }
+            catch (NavigationException ex)
+            {
+                var source = ex.Source;
+            }
         }
         else
         {
-            user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-            Complaint.Username = await UserManager.GetUserNameAsync(user);
+            var authenticationState = await AuthStateProvider.GetAuthenticationStateAsync();
+            claimsPrincipal = authenticationState.User;
+
+            if(claimsPrincipal is not null)
+            {
+                user = await UserManager.GetUserAsync(claimsPrincipal);
+            }
+            if (user is not null)
+            {
+                Complaint.Username = await UserManager.GetUserNameAsync(user);
+            }
+
             Complaint.Created = DateTime.UtcNow;
             expiry = DateTime.UtcNow.AddDays(7);
             Complaint.Closed = expiry;
@@ -133,11 +150,12 @@ else
 
         Complaint.Description = Encoding.ASCII.GetBytes(Description);
 
-        DB.Attach(Complaint!).State = EntityState.Modified;
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        context.Attach(Complaint!).State = EntityState.Modified;
 
         try
         {
-            await DB.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -156,6 +174,7 @@ else
 
     bool ComplaintExists(int id)
     {
-        return DB.Complaint.Any(e => e.Id == id);
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        return context.Complaint.Any(e => e.Id == id);
     }
 }

@@ -1,4 +1,4 @@
-﻿@inject PennStateSoft.Data.UserComplaints ComplaintsDb
+﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
 
 @attribute [Authorize]
@@ -73,7 +73,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        complaint ??= await ComplaintsDb.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        complaint ??= await context.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
         ComplaintReply = complaint?.ComplaintReplies?.FirstOrDefault(c => c.Id == replyId);
 
         if (ComplaintReply is null)
@@ -86,13 +87,14 @@ else
     // For more details, see https://aka.ms/RazorPagesCRUD.
     public async Task UpdateComplaintReply()
     {
-        ComplaintsDb.Attach(ComplaintReply!).State = EntityState.Modified;
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        context.Attach(ComplaintReply!).State = EntityState.Modified;
 
         ComplaintReply!.Description = Encoding.ASCII.GetBytes(Description);
 
         try
         {
-            await ComplaintsDb.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -111,6 +113,7 @@ else
 
     bool ComplaintReplyExists(int id)
     {
-        return ComplaintsDb.ComplaintReply.Any(e => e.Id == id);
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        return context.ComplaintReply.Any(e => e.Id == id);
     }
 }

@@ -1,8 +1,7 @@
 ﻿@page "/Account/Manage/Complaints/Details"
 
-@inject PennStateSoft.Data.UserComplaints DB
+@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
-@inject IHttpContextAccessor HttpContextAccessor
 @rendermode InteractiveServer
 
 @attribute [Authorize]
@@ -17,16 +16,15 @@
     else {
         <h3>@complaint!.Subject</h3>
         <hr />
-        <div class="forms-control border border-light border-start-0 border-end-0 border-bottom-0 
-               border-top-0" cols="80">
+        <div class="border border-light border-start-0 border-end-0 border-bottom-0 
+               border-top-0">
              <div class="m-3">
                 <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
-                <label class=" form-label m-2 text-black-50"> @complaint.Username </label>
-                <label for="created" class="form-label" style="text-align:right; width:55%; color:#0070E0"> Posted On: </label>
-                <label class=" form-label text-black-50" style="text-align:right;"> @complaint.Created </label>
+                <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username </label>
+                <label class="ms-5 form-label text-black-50"> @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() </label>
             </div>
             <div class="m-1">
-                <textarea class="text-black ms-lg-3 text-wrap border-light border-start-0 border-end-0" cols="100"
+                <textarea class="text-black text-wrap" style="border:none" cols="100"
                           rows="@UIhelper.Rows" disabled>
                     @Encoding.ASCII.GetString(complaint.Description!)
                 </textarea>
@@ -68,12 +66,10 @@
 
     private UIHelper UIhelper = new();
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
     protected override async Task OnInitializedAsync()
     {
-        complaint = await DB.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        complaint = await context.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
 
         if (complaint is null)
         {
@@ -81,8 +77,8 @@
         }
         else
         {
-            //await ProtectedSessionStore.SetAsync("complaint", complaint);
-            complaint.ComplaintReplies = DB.ComplaintReply.Where(c => c.ComplaintId == Id).ToList<ComplaintReply>();
+            using var replyContext = ComplaintsDbFactory.CreateDbContext();
+            complaint.ComplaintReplies = replyContext.ComplaintReply.Where(c => c.ComplaintId == Id).ToList<ComplaintReply>();
             
             if (complaint.Description is not null)
             {

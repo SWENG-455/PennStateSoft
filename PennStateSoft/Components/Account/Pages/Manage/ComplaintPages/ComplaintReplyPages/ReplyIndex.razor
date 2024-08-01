@@ -1,4 +1,4 @@
-﻿@inject PennStateSoft.Data.UserComplaints ComplaintsDb
+﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 
 @attribute [Authorize]
 
@@ -21,9 +21,6 @@
 
     [CascadingParameter]
     private Complaint? Complaint { get; set; } = default!;
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
 
 
     protected override void OnInitialized()

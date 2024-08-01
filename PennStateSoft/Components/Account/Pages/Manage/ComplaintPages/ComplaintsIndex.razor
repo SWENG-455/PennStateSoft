@@ -1,8 +1,8 @@
 ﻿@page "/Account/Manage/Complaints"
 
-@inject PennStateSoft.Data.UserComplaints DB
+@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject UserManager<ApplicationUser> UserManager
-@inject IdentityUserAccessor UserAccessor
+@inject AuthenticationStateProvider AuthStateProvider
 
 
 <PageTitle>Complaints</PageTitle>
@@ -35,8 +35,8 @@
                 <div style="color:#0070E0">
                     Posted on
                 </div>
-                <div class="mt-2 text-nowrap">
-                    @(complaint.Created)
+                <div class="mt-2 text-nowrap text-black-50">
+                    @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString()
                 </div>
             </div> 
         </TemplateColumn> 
@@ -49,17 +49,19 @@
 
     private ApplicationUser user = default!;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private ClaimsPrincipal? claimsPrincipal { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        claimsPrincipal = authState.User;
+        user = await UserManager.GetUserAsync(claimsPrincipal);
 
-        var response = DB.Complaint.Where(complaint => complaint.Username == user.UserName);
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        var response = context.Complaint.Where(complaint => complaint.Username == user.UserName);
 
         if (await UserManager.IsInRoleAsync(user, "Admin")){
-            response = DB.Complaint;
+            response = context.Complaint;
         }
        
         var rows = response.AsEnumerable<Complaint>().ToList<Complaint>();

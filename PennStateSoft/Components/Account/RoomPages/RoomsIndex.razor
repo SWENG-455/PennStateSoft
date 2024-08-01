@@ -1,6 +1,6 @@
 ﻿@page "/Account/Rooms"
 
-@inject PennStateSoft.Data.MeetingContext MeetingsDb
+@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @rendermode InteractiveServer
@@ -57,7 +57,8 @@
 
     protected override void OnInitialized()
     {
-        var response = MeetingsDb.Room;
+        using var context = MeetingDbFactory.CreateDbContext();
+        var response = context.Room;
 
         var rows = response.AsEnumerable<Room>().ToList<Room>();
         var result = GridItemsProviderResult.From<Room>(items: rows, totalItemCount: rows.Count);

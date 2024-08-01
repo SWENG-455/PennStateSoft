@@ -1,14 +1,13 @@
-﻿@inject PennStateSoft.Data.UserComplaints ComplaintsDb
+﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
-@inject IdentityUserAccessor UserAccessor;
-@inject IHttpContextAccessor HttpContextAccessor
 @inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
 
 @attribute [Authorize]
 
 <button type="submit" class="ms-3 btn btn-primary" @onclick="OnReplyClicked">Reply</button>
 <div class="mt-3">
-    <div class="m-3" style="text-align:right; width:90%">
+    <div class="m-3" style="text-align:right; width:80%">
         @if (ReplyClicked)
         {
             <EditForm method="post" Model="ComplaintReply" FormName="create" Enhance>
@@ -40,6 +39,8 @@
     [SupplyParameterFromForm]
     public ComplaintReply ComplaintReply { get; set; } = new();
 
+    private ClaimsPrincipal? claimsPrincipal { get; set; }
+
     [CascadingParameter]
     public int Id { get; set; }
 
@@ -48,8 +49,6 @@
     private  ApplicationUser user = default!;
     private DateTime expiry;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
 
     protected override void OnInitialized()
     {
@@ -84,16 +83,24 @@
     }
     private async Task OnValidSubmitAsync()
     {
-        if (HttpContext is null)
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        claimsPrincipal = authState.User;
+
+        if (claimsPrincipal is not null)
         {
-            HttpContext = HttpContextAccessor.HttpContext!;
+            user = await UserManager.GetUserAsync(claimsPrincipal);
         }
 
-        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-
-        if (user == null)
+        if (user is null)
         {
-            throw new NullReferenceException();
+            try
+            {
+                NavigationManager.NavigateTo("Account/NotFound");
+            }
+            catch (NavigationException ex)
+            {
+                var source = ex.Source;
+            }
         }
 
         ComplaintReply.Username = user.UserName;
@@ -115,11 +122,14 @@
 
         await AddComplaintReply();
         NavigationManager.Refresh(true);
+        
     }
 
     public async Task AddComplaintReply()
     {
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        context.ComplaintReply.Add(ComplaintReply);
         complaint?.ComplaintReplies!.Add(ComplaintReply);
-        await ComplaintsDb.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 }

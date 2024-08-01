@@ -36,7 +36,7 @@
                     Posted on
                 </div>
                 <div class="mt-2 text-nowrap text-black-50">
-                    @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString()
+                    @complaint.Created.ToLongDateString().Substring(@complaint.Created.ToLongDateString().IndexOf(',') + 2) @complaint.Created.ToShortTimeString()
                 </div>
             </div> 
         </TemplateColumn> 

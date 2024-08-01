@@ -32,7 +32,7 @@
     <TemplateColumn Context="meeting" Title="Date">
         <div class="flex items-center mt-1">
             <nobr>
-                @meeting.Date
+                @meeting.Date.ToLongDateString().Substring(@meeting.Date.ToLongDateString().IndexOf(',') + 2)
             </nobr>
         </div>
     </TemplateColumn>
@@ -44,7 +44,7 @@
         </div>
     </TemplateColumn>
     <TemplateColumn Context="meeting" Title="Room">
-        <div class="flex items-center mt-1" @onactivate="@(()=>ReleaseRoom(meeting))">
+        <div class="flex items-center mt-1">
             <nobr>
                 @if (Rooms is not null)
                 {
@@ -107,16 +107,20 @@
 
             if (claimsPrincipal.IsInRole("Admin"))
             {
-                SetGridItemsProvider(response);
+                await SetGridItemsProvider(response);
             }
             else
             {
-                GetClientView(response);
+                await GetClientView(response);
             }
         }
     }
-    private void SetGridItemsProvider(List<Meeting> meetingList)
+    private async Task SetGridItemsProvider(List<Meeting> meetingList)
     {
+        foreach (var meeting in meetingList)
+        {
+            await ReleaseRoom(meeting);
+        }
         var result = GridItemsProviderResult.From<Meeting>(items: meetingList!, totalItemCount: meetingList.Count);
         gridItemsProvider = req => ValueTask.FromResult(result);
     }
@@ -128,10 +132,10 @@
         return Room!;
     }
 
-    private void GetClientView(List<Meeting> meetingList)
+    private async Task GetClientView(List<Meeting> meetingList)
     {
         var Roles = AppDb.Roles.ToList();
-        var UserID = UserManager.GetUserId(claimsPrincipal);
+        var UserID = UserManager.GetUserId(claimsPrincipal!);
         var UserRoles = AppDb.UserRoles.Where(r => r.UserId == UserID).ToList();
         roles = new List<string>();
 
@@ -166,28 +170,32 @@
                 var ID = Int32.Parse(role.Substring(7));
                 MeetingIds!.Add(ID);
                 var newMeeting = meetingList.FirstOrDefault(m => m.Id == ID);
-                if (!meetings.Contains(newMeeting))
+                if (!meetings.Contains(newMeeting!))
                 {
                     meetings!.Add(newMeeting!);
                 }
             }
         }
         //Set the client view
-        SetGridItemsProvider(meetings);
+        await SetGridItemsProvider(meetings);
     }
     private async Task ReleaseRoom(Meeting meeting)
     {
         using var MeetingContext = MeetingDbFactory.CreateDbContext();
 
-        //Get the meetings currently ongoing
-        var Meetings = MeetingContext.Meeting.Where(m => m.Date == meeting!.Date && m.Time.AddHours(meeting!.Duration) >= meeting.Time).ToList();
-        if (!Meetings.Contains(meeting))
+        DateOnly CurrDate = DateOnly.FromDateTime(DateTime.Now);
+        TimeOnly CurrTime = TimeOnly.FromDateTime(DateTime.Now);
+
+        if (meeting.Date < CurrDate || meeting.Time.AddHours(meeting.Duration) < CurrTime)
         {
-            //Get the room from the meeting ID and release it
             using var context = MeetingDbFactory.CreateDbContext();
             var meetingRoom = context.Room.FirstOrDefault(r => r.MeetingId == meeting!.Id);
-            meetingRoom!.MeetingId = 0;             //Release the room
-            await context.SaveChangesAsync();
+            if (meetingRoom is not null)
+            {
+                meetingRoom!.MeetingId = 0;             //Release the room
+                await context.SaveChangesAsync();
+            }
+            
         } 
     }
 

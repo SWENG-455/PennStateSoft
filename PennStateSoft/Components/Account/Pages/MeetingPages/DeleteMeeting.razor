@@ -10,7 +10,7 @@
 @inject IdentityErrorDescriber IdentityErrorDescriber
 @inject ILookupNormalizer KeyNormalizer
 
-@attribute [Authorize]
+@attribute [Authorize(Roles= "Client")]
 
 <PageTitle>Delete</PageTitle>
 
@@ -92,8 +92,13 @@
     {
         using var context = MeetingDbFactory.CreateDbContext();
         var meetingRoom = context.Room.FirstOrDefault(r => r.MeetingId == meeting!.Id);
-        meetingRoom!.MeetingId = 0;             //Release the room
-        await context.SaveChangesAsync();
+        //If room hasn't been auto released
+        if (meetingRoom is not null)
+        {
+            meetingRoom!.MeetingId = 0;             //Release the room
+            await context.SaveChangesAsync();
+        }
+       
     }
     private async Task RemoveRole()
     {
@@ -102,19 +107,6 @@
         var Users = UserManager.GetUsersInRoleAsync("Creator" + meeting.Id).Result;
         var result = await RoleManager.DeleteAsync(Role!);
 
-        /*
-        using var context = MeetingDbFactory.CreateDbContext();
-        var members = context.Members.ToList();
-
-        if (members is not null)
-        {
-            foreach (var member in members)
-            {
-                User = Users.FirstOrDefault(u => u.Id == member.UserId);
-                break;
-            }
-        }
-        */
 
         //Check if UserRole was added successfully
         if (!result.Succeeded)

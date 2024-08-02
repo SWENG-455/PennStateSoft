@@ -172,6 +172,7 @@
     private void OnAddClicked()
     {
         AddMembersClicked = !AddMembersClicked;
+        statusMessage = "";
     }
     public void Cancel()
     {
@@ -181,8 +182,7 @@
     private async Task OnRemoveClicked(ApplicationUser member)
     {
         using var context = MeetingDbFactory.CreateDbContext();
-        var meetingMember = context.Members.FirstOrDefault(m => m.UserId == member.Id);
-        string role = "Creator" + meeting?.Id;
+        var meetingMember = context.Members.FirstOrDefault(m => m.UserId == member.Id && m.MeetingId == meeting!.Id);
 
         if (meetingMember is not null)
         {
@@ -190,6 +190,7 @@
             await context.SaveChangesAsync();
             MemberRemovedNotification = $"{member.UserName} has been removed.";
             MemberRemovedNotify = true;
+            SetGridItemsProvider();
         }
     }
     private void SetGridItemsProvider()
@@ -237,14 +238,24 @@
             //Only add users not in any meetings currently
             return;
         }
-
-        var member = new MeetingMember();
-        member.UserId = user.Id;
-        member.MeetingId = meeting!.Id;
-        MemberContext.Add(member);
-        await MemberContext.SaveChangesAsync();
-        statusMessage = "";
-        memberAdded = true;
+        //Add members that have not been added already
+        if (MemberContext.Members.FirstOrDefault(m => m.UserId == user.Id && m.MeetingId == meeting!.Id) is null)
+        {
+            var member = new MeetingMember();
+            member.UserId = user.Id;
+            member.MeetingId = meeting!.Id;
+            MemberContext.Add(member);
+            await MemberContext.SaveChangesAsync();
+            statusMessage = "";
+            memberAdded = true;
+            SetGridItemsProvider();
+        }
+        else
+        {
+            statusMessage = $"Error: {UserName} has already been added to {meeting!.Name}";
+            memberAdded = false;
+        }
+        //statusMessage = "";
     }
     private bool IsMemberInAMeeting(string UserName)
     {
@@ -265,9 +276,13 @@
                 {
                     if (members.FirstOrDefault(m => m.MeetingId == _meeting.Id) is not null)
                     {
-                        statusMessage = $"Error: Cannot add {UserName} to {meeting!.Name}. {UserName} has a conflicting schedule.";
-                        memberAdded = false;
-                        return true;
+                        //Show error if the planned meeting conflicts with current meetings
+                        if (meeting!.Date == CurrDate && meeting.Time.AddHours(meeting.Duration) >= CurrTime)
+                        {
+                            statusMessage = $"Error: Cannot add {UserName} to {meeting!.Name}. {UserName} has a conflicting schedule.";
+                            memberAdded = false;
+                            return true;
+                        }
                     }
                 }
             }
@@ -279,7 +294,7 @@
         DateOnly CurrDate = DateOnly.FromDateTime(DateTime.Now);
         TimeOnly CurrTime = TimeOnly.FromDateTime(DateTime.Now);
 
-        if (meeting!.Date < CurrDate || meeting.Time.AddHours(meeting.Duration) < CurrTime)
+        if (meeting!.Date < CurrDate || (meeting!.Date == CurrDate && meeting.Time.AddHours(meeting.Duration) < CurrTime))
         {
             hasEnded = true;
         }

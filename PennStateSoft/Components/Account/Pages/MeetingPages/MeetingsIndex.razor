@@ -30,7 +30,7 @@
                     <option value="@filtr">@filtr</option>
                 }
             </InputSelect>
-            <button type="submit" class="btn-secondary ms-1" style="width:8%;" @onclick="@(()=>SetGridItemsProvider(meetings))">Search</button>
+            <button type="submit" class="btn-sm ms-1" style="width:8%;" @onclick="@(()=>SetGridItemsProvider(meetings))">Search</button>
         </div>
     </div>
 </AuthorizeView>
@@ -84,7 +84,6 @@
     </TemplateColumn>
 </QuickGrid>
 
-
 @code{
     private GridItemsProvider<Meeting>? gridItemsProvider;
     private Room? Room { get; set; }
@@ -95,7 +94,6 @@
     private List<string>? roles { get; set; }
     private List<int>? MeetingIds { get; set; } = new List<int>();
     private string[] filters = {" ", "Day", "Date", "Room", "Member", "Time" };
-    private bool filterChosen = false;
 
     [SupplyParameterFromForm]
     private string? filter { get; set; } = "";
@@ -251,7 +249,7 @@
         DateOnly CurrDate = DateOnly.FromDateTime(DateTime.Now);
         TimeOnly CurrTime = TimeOnly.FromDateTime(DateTime.Now);
 
-        if (meeting.Date < CurrDate || meeting.Time.AddHours(meeting.Duration) < CurrTime)
+        if (meeting.Date < CurrDate || (meeting.Date == CurrDate && meeting.Time.AddHours(meeting.Duration) < CurrTime))
         {
             using var context = MeetingDbFactory.CreateDbContext();
             var meetingRoom = context.Room.FirstOrDefault(r => r.MeetingId == meeting!.Id);
@@ -260,7 +258,6 @@
                 meetingRoom!.MeetingId = 0;             //Release the room
                 await context.SaveChangesAsync();
             }
-
         } 
     }
 
@@ -271,9 +268,5 @@
     private void OnDeleteClicked(int Id)
     {
         NavigationManager.NavigateTo($"Account/Meetings/Delete?id={Id}");
-    }
-    private void OnFilterChosen()
-    {
-        filterChosen = true;
     }
 }

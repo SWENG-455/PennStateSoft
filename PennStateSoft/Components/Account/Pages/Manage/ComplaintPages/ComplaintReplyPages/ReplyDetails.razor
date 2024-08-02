@@ -13,14 +13,15 @@
         }
         else
         {
-            <div class="mt-5 m-3">
+            <div class="mt-3 m-3">
                 <div class="m-3">
                     <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
                     <label class=" form-label m-2 me-5 text-black-50"> @ComplaintReply.Username </label>
                     <label class="ms-5 form-label text-black-50"> @ComplaintReply.Created.ToLongDateString() at 
                         @ComplaintReply.Created.ToShortTimeString() </label>
                     <div class="m-1">
-                        <textarea class="text-black text-wrap border-top-0 border-start-0 border-end-0" cols="100" disabled>
+                        <textarea class="text-black text-wrap" cols="100"
+                                  style="border:none; background-color:Window;" disabled>
                             @Encoding.ASCII.GetString(ComplaintReply!.Description!)
                         </textarea>
                     </div>
@@ -38,8 +39,6 @@
 @code {
     [CascadingParameter]
     Complaint? complaint { get; set; } = default!;
-
-    //GridItemsProvider<ComplaintReply>? ComplaintReplyGridProvider;
 
     [SupplyParameterFromQuery]
     public int replyId { get; set; }
@@ -61,9 +60,5 @@
         {
             NavigationManager.NavigateTo("notfound");
         }
-
-        //var rows = response?.AsEnumerable<ComplaintReply>().ToList<ComplaintReply>();
-        //var result = GridItemsProviderResult.From<ComplaintReply>(items: rows, totalItemCount: rows.Count);
-        //ComplaintReplyGridProvider = req => ValueTask.FromResult(result);
     }
 }

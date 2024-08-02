@@ -3,7 +3,7 @@
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> DbFactory
 @inject NavigationManager NavigationManager
 
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Client")]
 
 <PageTitle>Edit Meeting</PageTitle>
 
@@ -102,8 +102,13 @@ else
     {
         using var context = DbFactory.CreateDbContext();
         var meetingRoom = context.Room.FirstOrDefault(r => r.MeetingId == meeting!.Id);
-        meetingRoom!.MeetingId = 0;             //Release the room
-        await context.SaveChangesAsync();
+
+        //Release room if it has been claimed
+        if (meetingRoom is not null)
+        {
+            meetingRoom!.MeetingId = 0;             //Release the room
+            await context.SaveChangesAsync();
+        }
     }
     private async Task AddSelectedRoom(string RoomName)
     {
@@ -114,11 +119,16 @@ else
             using var context = DbFactory.CreateDbContext();
             var meetingRoom = context.Room.FirstOrDefault(r => r.MeetingId == meeting!.Id);
 
+            statusMessage = $"Error: {newRoom.Name} is currently in use by another meeting.";
+
             if (meetingRoom!.Id == newRoom.Id)
             {
-                NavigationManager.NavigateTo($"Account/Meetings/Details?id={meeting!.Id}");
+                meeting!.Duration = 1;
+                meeting!.RoomId = newRoom!.Id;   //Set the meeting room
+                room = newRoom;
+                ClaimRoom();                  //Reclaim new room
+                statusMessage = "";
             }
-            statusMessage = $"Error: {newRoom.Name} is currently in use by another meeting.";
         }
         else
         {

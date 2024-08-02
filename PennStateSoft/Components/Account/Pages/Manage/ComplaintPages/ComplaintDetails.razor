@@ -17,14 +17,14 @@
         <h3>@complaint!.Subject</h3>
         <hr />
         <div class="border border-light border-start-0 border-end-0 border-bottom-0 
-               border-top-0">
-             <div class="m-3">
+               border-top-0" >
+             <div class="m-1">
                 <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
-                <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username </label>
+                <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username</label>
                 <label class="ms-5 form-label text-black-50"> @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() </label>
             </div>
             <div class="m-1">
-                <textarea class="text-black text-wrap" style="border:none" cols="100"
+                <textarea class="text-black text-wrap" style="border:none; background-color:Window" cols="100"
                           rows="@UIhelper.Rows" disabled>
                     @Encoding.ASCII.GetString(complaint.Description!)
                 </textarea>
@@ -32,7 +32,7 @@
         </div>
         <AuthorizeView Roles="Client">
             <div class="ms-3">
-                <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class=" m-2 text-decoration-none">Edit</a> |
+                <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class="m-2 text-decoration-none">Edit</a> |
                 <a class=" m-2 text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a> |
                 <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a>
             </div>
@@ -80,11 +80,8 @@
             using var replyContext = ComplaintsDbFactory.CreateDbContext();
             complaint.ComplaintReplies = replyContext.ComplaintReply.Where(c => c.ComplaintId == Id).ToList<ComplaintReply>();
             
-            if (complaint.Description is not null)
-            {
-                Description = Encoding.ASCII.GetString(complaint.Description);
-                UIhelper.CalculateSize(Description);
-            }
+            Description = Encoding.ASCII.GetString(complaint.Description!);
+            UIhelper.CalculateSize(Description);
         }
     }
 }

@@ -53,19 +53,17 @@
 </div>
 
 @code {
-    Meeting? meeting;
-
     [SupplyParameterFromForm]
     private string? selectedUser { get; set; }
-    private string? role { get; set; }
-
+    
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
+    Meeting? meeting;
+    private string? role { get; set; }
     private Room? room { get; set; }
     private List<string>? roles { get; set; }
     private ClaimsPrincipal? claimsPrincipal { get; set; }
-    private bool hasEnded = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,9 +93,12 @@
 
             using var roomContext = MeetingDbFactory.CreateDbContext();
             room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
+            
+            //Check if the meeting has started
+            HasStarted();
+
             //Check if the meeting is over
             HasEnded();
-            HasStarted();
         }
         else
         {
@@ -111,12 +112,13 @@
             }
         }
     }
+    private bool hasEnded = false;
     private void HasEnded()
     {
         DateOnly CurrDate = DateOnly.FromDateTime(DateTime.Now);
         TimeOnly CurrTime = TimeOnly.FromDateTime(DateTime.Now);
 
-        if (meeting!.Date < CurrDate || meeting.Time.AddHours(meeting.Duration) < CurrTime)
+        if (meeting!.Date < CurrDate || (meeting!.Date == CurrDate && meeting.Time.AddHours(meeting.Duration) < CurrTime))
         {
             hasEnded = true;
         }

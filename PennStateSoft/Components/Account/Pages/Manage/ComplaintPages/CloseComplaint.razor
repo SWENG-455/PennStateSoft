@@ -21,20 +21,20 @@
         <hr/>
         <div class="forms-control border border-light border-start-0 border-end-0 border-bottom-0
                border-top-0" cols="80">
-            <div class="m-3">
+            <div>
                  <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
                 <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username </label>
                 <label class="ms-5 form-label text-black-50"> @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() </label>
             </div>
             <div class="mt-3 mb-4">
-                <textarea class="text-black text-wrap" style="border:none" cols="100"
-                          rows="@uIHelper.Rows" disabled>
+                <textarea class="text-black text-wrap" style="border:none; background-color:Window" cols="100"
+                          rows="4" disabled>
                     @Encoding.ASCII.GetString(complaint.Description!)
                 </textarea>
             </div>
         </div>
         <EditForm method="post" Model="complaint" OnValidSubmit="DeleteComplaint" FormName="delete" Enhance>
-            <button type="submit" class="btn btn-danger ms-4" disabled="@(complaint is null)">Resolve</button>
+            <button type="submit" class="btn btn-danger ms-3" disabled="@(complaint is null)">Resolve</button>
             <a class="btn btn-secondary ms-2" href="Account/Manage/Complaints">
                 Cancel
             </a>

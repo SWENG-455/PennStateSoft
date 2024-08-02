@@ -10,7 +10,7 @@ namespace PennStateSoft
         public void CalculateSize(string value)
         {
             Rows = Math.Max(value.Split('\n').Length, value.Split('\r').Length);
-            Rows = Math.Max(Rows, 4);
+            Rows = Math.Max(Rows, 3);
         }
     }
 }

@@ -14,7 +14,7 @@
 @inject ILookupNormalizer KeyNormalizer
 @rendermode InteractiveServer
 
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Client")]
 <PageTitle>Create</PageTitle>
 
 <h3>Create Meeting</h3>

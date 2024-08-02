@@ -40,7 +40,7 @@
         </CascadingValue>
        
         <div>
-            @if (roles is not null && roles.Count() > 0)
+            @if ((roles is not null && roles.Count() > 0) && !hasEnded)
             {
                 <a class="text-decoration-none me-2" href="@($"Account/Meetings/Edit?id={meeting.Id}")">
                     Edit
@@ -65,6 +65,7 @@
     private Room? room { get; set; }
     private List<string>? roles { get; set; }
     private ClaimsPrincipal? claimsPrincipal { get; set; }
+    private bool hasEnded = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -94,6 +95,8 @@
 
             using var roomContext = MeetingDbFactory.CreateDbContext();
             room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
+            //Check if the meeting is over
+            HasEnded();
         }
         else
         {
@@ -105,6 +108,16 @@
             {
                 var source = navEx.Source;
             }
+        }
+    }
+    private void HasEnded()
+    {
+        DateOnly CurrDate = DateOnly.FromDateTime(DateTime.Now);
+        TimeOnly CurrTime = TimeOnly.FromDateTime(DateTime.Now);
+
+        if (meeting!.Date < CurrDate || meeting.Time.AddHours(meeting.Duration) < CurrTime)
+        {
+            hasEnded = true;
         }
     }
 }

@@ -9,7 +9,7 @@
     <div style="text-align:right;">
         @if (!AddMembersClicked)
         {
-            @if (roles is not null && roles.Count() > 0)
+            @if ((roles is not null && roles.Count() > 0) && !hasEnded)
             {
                 <button style="background-color:#4969ee; color:white; border-radius:0.25rem;"
                         @onclick="OnAddClicked">
@@ -83,7 +83,7 @@
             </div>
         </TemplateColumn>
         <TemplateColumn Context="member">
-            @if (roles is not null && roles.Count() > 0)
+            @if ((roles is not null && roles.Count() > 0) && !hasEnded)
             {
                 <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
                         margin:0.25rem 0.5rem;"
@@ -134,7 +134,7 @@
 
     private Room? room { get; set; }
     private bool AddMembersClicked = false;
-
+    private bool hasEnded = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -154,6 +154,8 @@
 
             //Get all roles
             AdminRole = AppDb.Roles.FirstOrDefault(r => r.Name == "Admin");
+
+            HasEnded();
         }
         else
         {
@@ -180,16 +182,7 @@
     {
         using var context = MeetingDbFactory.CreateDbContext();
         var meetingMember = context.Members.FirstOrDefault(m => m.UserId == member.Id);
-
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        claimsPrincipal = authState.User;
-
-        if (member.Id == UserManager.GetUserId(claimsPrincipal))
-        {
-            MemberRemovedError = $"Error: {member.UserName} cannot be removed. Consider deleting the meeting instead";
-            RemoveErrorNotify = true;
-            return;
-        }
+        string role = "Creator" + meeting?.Id;
 
         if (meetingMember is not null)
         {
@@ -281,5 +274,15 @@
             }
         }
         return false;
+    }
+    private void HasEnded()
+    {
+        DateOnly CurrDate = DateOnly.FromDateTime(DateTime.Now);
+        TimeOnly CurrTime = TimeOnly.FromDateTime(DateTime.Now);
+
+        if (meeting!.Date < CurrDate || meeting.Time.AddHours(meeting.Duration) < CurrTime)
+        {
+            hasEnded = true;
+        }
     }
 }

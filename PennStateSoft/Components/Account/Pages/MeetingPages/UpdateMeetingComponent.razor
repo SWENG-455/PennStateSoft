@@ -255,10 +255,9 @@
             //Get the meetings currently ongoing
             var Meetings = MeetingContext.Meeting.ToList<Meeting>();
             var CurrDate = DateOnly.FromDateTime(DateTime.Now);
-            var StartTime = TimeOnly.FromDateTime(DateTime.Now);
-            var EndTime = TimeOnly.FromDateTime(DateTime.Now).AddHours(meeting!.Duration);
+            var CurrTime = TimeOnly.FromDateTime(DateTime.Now);
 
-            Meetings = Meetings.Where(m => m.Date == CurrDate && m.Time <= EndTime).ToList<Meeting>();
+            Meetings = Meetings.Where(m => m.Date == CurrDate && m.Time.AddHours(meeting!.Duration) >= CurrTime).ToList<Meeting>();
 
             if (Meetings.Count() > 0)
             {

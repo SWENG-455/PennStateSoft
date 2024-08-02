@@ -40,7 +40,7 @@
         </CascadingValue>
        
         <div>
-            @if ((roles is not null && roles.Count() > 0) && !hasEnded)
+            @if ((roles is not null && roles.Count() > 0) && !hasEnded && !hasStarted)
             {
                 <a class="text-decoration-none me-2" href="@($"Account/Meetings/Edit?id={meeting.Id}")">
                     Edit
@@ -97,6 +97,7 @@
             room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
             //Check if the meeting is over
             HasEnded();
+            HasStarted();
         }
         else
         {
@@ -118,6 +119,17 @@
         if (meeting!.Date < CurrDate || meeting.Time.AddHours(meeting.Duration) < CurrTime)
         {
             hasEnded = true;
+        }
+    }
+    private bool hasStarted = false;
+    private void HasStarted()
+    {
+        DateOnly CurrDate = DateOnly.FromDateTime(DateTime.Now);
+        TimeOnly CurrTime = TimeOnly.FromDateTime(DateTime.Now);
+
+        if (meeting!.Date == CurrDate && meeting.Time <= CurrTime)
+        {
+            hasStarted = true;
         }
     }
 }

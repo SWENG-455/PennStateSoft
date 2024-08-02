@@ -4,7 +4,7 @@ A meeting scheduling system.
 ### Getting Started
 Type **Update-Database -context ApplicationDbContext** in your NuGet Package Manager console in visual studio.
 
-Also type **Update-Database -context UserComplaints** and **Update-Database -context ComplaintReplies**.
+Also type **Update-Database -context UserComplaints**.
 
 Do the same for additional database contexts such as MeetingContext. 
 

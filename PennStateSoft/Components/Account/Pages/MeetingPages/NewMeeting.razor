@@ -254,7 +254,8 @@ else
             using var MeetingContext = MeetingDbFactory.CreateDbContext();
 
             //Get the meetings currently ongoing
-            var Meetings = MeetingContext.Meeting.Where(m => m.Date == meeting!.Date && m.Time.AddHours(meeting!.Duration) >= meeting.Time).ToList();
+            var Meetings = MeetingContext.Meeting.Where(m => m.Date == meeting!.Date && m.Time <= meeting.Time &&
+                m.Time.AddHours(meeting!.Duration) >= meeting.Time).ToList();
 
             if (Meetings.Count() > 0)
             {

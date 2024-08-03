@@ -268,7 +268,8 @@
             var CurrDate = DateOnly.FromDateTime(DateTime.Now);
             var CurrTime = TimeOnly.FromDateTime(DateTime.Now);
 
-            Meetings = Meetings.Where(m => m.Date == CurrDate && m.Time.AddHours(meeting!.Duration) >= CurrTime).ToList<Meeting>();
+            Meetings = Meetings.Where(m => m.Date == CurrDate && m.Time <= CurrTime &&
+                m.Time.AddHours(meeting!.Duration) >= CurrTime).ToList<Meeting>();
 
             if (Meetings.Count() > 0)
             {

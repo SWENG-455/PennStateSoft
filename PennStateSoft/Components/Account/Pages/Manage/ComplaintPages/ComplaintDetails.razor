@@ -2,6 +2,8 @@
 
 @inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
 @rendermode InteractiveServer
 
 @attribute [Authorize]
@@ -30,28 +32,30 @@
                 </textarea>
             </div>
         </div>
-        <AuthorizeView Roles="Client">
-            <div class="ms-3">
+        <div class="ms-3">
+            <AuthorizeView Roles="Client">
                 <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class="m-2 text-decoration-none">Edit</a> |
                 <a class=" m-2 text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a> |
                 <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a>
-            </div>
-        </AuthorizeView>
-       
-         <AuthorizeView Roles="Admin">
-            <div>
-                <a href="@($"/account/manage/complaints")" class="text-decoration-none ms-3">Back</a>
+            </AuthorizeView>
+        </div>
+
+        <div>
+            <AuthorizeView Roles="Admin">
+                <button id="back" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
+                        @onclick="OnBackClicked">
+                    Back
+                </button> |
                 <CascadingValue Value="complaint">
-                    <CreateReply />
+                    <CreateReply OnSaveNewReplyCallback="OnReplied" />
                 </CascadingValue>
-            </div>
-        </AuthorizeView>
+            </AuthorizeView>  
+        </div>
         <div>
             <CascadingValue Value="complaint">
-                <ReplyIndex /> 
+                <ReplyIndex />
             </CascadingValue>
-        </div>
-        
+        </div>   
     }
 </div>
 
@@ -79,9 +83,17 @@
         {
             using var replyContext = ComplaintsDbFactory.CreateDbContext();
             complaint.ComplaintReplies = replyContext.ComplaintReply.Where(c => c.ComplaintId == Id).ToList<ComplaintReply>();
-            
+
             Description = Encoding.ASCII.GetString(complaint.Description!);
             UIhelper.CalculateSize(Description);
         }
+    }
+    private void OnReplied()
+    {
+
+    }
+    private void OnBackClicked()
+    {
+        NavigationManager.NavigateTo("/account/manage/complaints");
     }
 }

@@ -1,64 +1,182 @@
 ﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
 
 @attribute [Authorize]
 
 <PageTitle>Reply Details</PageTitle>
 
-<AuthorizeView>
-    <div>
-        @if (ComplaintReply is null)
-        {
-            <p><em>Loading...</em></p>
-        }
-        else
-        {
-            <div class="mt-3 m-3">
-                <div class="m-3">
-                    <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
-                    <label class=" form-label m-2 me-5 text-black-50"> @ComplaintReply.Username </label>
-                    <label class="ms-5 form-label text-black-50"> @ComplaintReply.Created.ToLongDateString() at 
-                        @ComplaintReply.Created.ToShortTimeString() </label>
+<div>
+    @if (ComplaintReply is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <div class="mt-3 m-3">
+            <div class="m-3">
+                <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
+                <label class=" form-label m-2 me-5 text-black-50"> @ComplaintReply.Username </label>
+                <label class="ms-5 form-label text-black-50">
+                    @ComplaintReply.Created.ToLongDateString() at
+                    @ComplaintReply.Created.ToShortTimeString()
+                </label>
+                @if (!EditClicked)
+                {
                     <div class="m-1">
                         <textarea class="text-black text-wrap" cols="100"
                                   style="border:none; background-color:Window;" disabled>
                             @Encoding.ASCII.GetString(ComplaintReply!.Description!)
-                        </textarea>
+                                                    </textarea>
                     </div>
+                }
+                @if (!UserName!.Equals(ComplaintReply.Username) && !EditClicked)
+                {
                     <div>
-                        <CascadingValue Value="complaint">
-                            <CreateReply />
+                        <CascadingValue Value="complaint" IsFixed="true">
+                            <CreateReply OnSaveNewReplyCallback="OnSaveClicked" />
                         </CascadingValue>
                     </div>
-                </div>
+                }
+                @if (UserName!.Equals(ComplaintReply.Username) && !EditClicked)
+                {
+                    <div>
+                        <button id="edit" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
+                                @onclick="OnEditClicked">
+                            Edit
+                        </button> |
+
+                        <button id="delete" type="submit" class="btn btn-danger text-danger" disabled="@(ComplaintReply is null)"
+                                style="border:none; background:inherit;" @onclick="DeleteComplaintReply">
+                            Delete
+                        </button>
+                    </div>
+                }
+                @if (EditClicked)
+                {
+                    <EditForm method="post" Model="ComplaintReply" OnValidSubmit="UpdateComplaintReply" FormName="edit" Enhance>
+                        <DataAnnotationsValidator />
+                        <div class="m-1">
+                            <textarea id="description" @bind="Description" @bind:event="oninput" class="text-black text-wrap" cols="100"
+                                      style="border:none; background-color:Window;" autofocus>
+                                @Encoding.ASCII.GetString(ComplaintReply!.Description!)
+                                        </textarea>
+                        </div>
+                        <div class="m-1">
+                            <button type="submit" class="btn btn-primary">Save </button>
+                            <button type="button" class="btn btn-secondary" @onclick="OnEditClicked">Cancel</button>
+                        </div>
+                    </EditForm>
+                }
             </div>
-        }
-    </div>
-</AuthorizeView>
+        </div>
+    }
+</div>
 
 @code {
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnSaveCallback { get; set; }
+
     [CascadingParameter]
     Complaint? complaint { get; set; } = default!;
 
     [SupplyParameterFromQuery]
     public int replyId { get; set; }
 
+    [SupplyParameterFromForm]
+    private string? Description { get; set; }
+
     [CascadingParameter]
     public ComplaintReply? ComplaintReply { get; set; } = default!;
 
     private UIHelper UIhelper = new();
 
-    private bool ReplyClicked { get; set; } = false;
-
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    public bool EditClicked { get; set; } = default!;
 
-    protected override void OnInitialized()
+
+    private ClaimsPrincipal? claimsPrincipal { get; set; }
+    private bool IsAdmin = false;
+    private string? UserName { get; set; }
+
+    protected override async Task OnInitializedAsync()
     {
-
         if (ComplaintReply is null)
         {
-            NavigationManager.NavigateTo("notfound");
+            try
+            {
+                NavigationManager.NavigateTo("/Account/NotFound");
+            }
+            catch (NavigationException ex)
+            {
+                var source = ex.Source;
+            }
         }
+        else
+        {
+            //Get the logged in user
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            claimsPrincipal = authState.User;
+            IsAdmin = claimsPrincipal.IsInRole("Admin");
+            UserName = claimsPrincipal.Identity.Name;
+        }
+    }
+    private void OnEditClicked()
+    {
+        EditClicked = !EditClicked;
+        /*
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        reply.IsEdited = !reply.IsEdited;
+        context.Attach(reply!).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+    */
+    }
+    private async Task OnSaveClicked()
+    {
+        await OnSaveCallback.InvokeAsync();
+    }
+    public async Task UpdateComplaintReply()
+    {
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        context.Attach(ComplaintReply!).State = EntityState.Modified;
+
+        if (Description is not null)
+        {
+            ComplaintReply!.Description = Encoding.ASCII.GetBytes(Description);
+        }
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ComplaintReplyExists(ComplaintReply!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+        OnEditClicked();
+        await OnSaveCallback.InvokeAsync();
+    }
+    public async Task DeleteComplaintReply()
+    {
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        context.ComplaintReply.Remove(ComplaintReply!);
+        context.Attach(complaint!).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+        OnEditClicked();
+        await OnSaveCallback.InvokeAsync();
+    }
+
+    bool ComplaintReplyExists(int id)
+    {
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        return context.ComplaintReply.Any(e => e.Id == id);
     }
 }

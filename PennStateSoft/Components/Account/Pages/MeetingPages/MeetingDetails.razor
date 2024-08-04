@@ -32,8 +32,8 @@
             <dd class="col-sm-10">@room!.Name</dd>
         </dl>
         <CascadingValue Value="Id">
-            <CascadingValue Value="meeting">
-                <CascadingValue Value="roles">
+            <CascadingValue Value="meeting" IsFixed="true">
+                <CascadingValue Value="roles" IsFixed="true">
                     <UpdateMeetingComponent />
                 </CascadingValue>
             </CascadingValue>
@@ -64,6 +64,9 @@
     private Room? room { get; set; }
     private List<string>? roles { get; set; }
     private ClaimsPrincipal? claimsPrincipal { get; set; }
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

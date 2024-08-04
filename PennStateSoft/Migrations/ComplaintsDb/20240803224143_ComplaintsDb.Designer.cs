@@ -12,7 +12,7 @@ using PennStateSoft.Data;
 namespace PennStateSoft.Migrations
 {
     [DbContext(typeof(UserComplaints))]
-    [Migration("20240729191242_ComplaintsDb")]
+    [Migration("20240803224143_ComplaintsDb")]
     partial class ComplaintsDb
     {
         /// <inheritdoc />

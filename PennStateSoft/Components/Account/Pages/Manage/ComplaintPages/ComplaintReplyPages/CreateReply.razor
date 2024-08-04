@@ -4,24 +4,25 @@
 @inject AuthenticationStateProvider AuthStateProvider
 
 @attribute [Authorize]
-
-<button type="submit" class="ms-3 btn btn-primary" @onclick="OnReplyClicked">Reply</button>
+<button id="reply" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
+        @onclick="OnReplyClicked">
+    Reply
+</button>
 <div class="mt-3">
     <div class="m-3" style="text-align:right; width:80%">
         @if (ReplyClicked)
         {
-            <EditForm method="post" Model="ComplaintReply" FormName="create" Enhance>
-                <AntiforgeryToken />
+            <EditForm method="post" Model="ComplaintReply" OnValidSubmit="OnSubmitClickedAsync" FormName="createreply" Enhance>
                 <DataAnnotationsValidator />
                 <InputTextArea id="replydescription" @bind-Value="ReplyDescription" class="form-control text-wrap"
                                rows="@uIHelper.Rows" @onchange="@(()=> uIHelper.CalculateSize(ReplyDescription))" autofocus>
                 </InputTextArea>
                 <ValidationMessage For="() => ReplyDescription" class="text-danger" />
+                <div class="m-2" style="text-align:right; width:99%">
+                    <button type="reset" class="btn btn-secondary" @onclick="OnCancelClicked">Cancel</button>
+                    <button type="submit" class="btn btn-primary" >Reply</button>
+                </div>
             </EditForm>
-            <div class="m-2" style="text-align:right; width:99%">
-                <button type="reset" class="btn btn-secondary" @onclick="OnCancelClicked">Cancel</button>
-                <button type="submit" class="btn btn-primary" @onclick="OnSubmitClicked">Reply</button>
-            </div>
         }
     </div>  
 </div>
@@ -37,18 +38,21 @@
     public Complaint? complaint { get; set; } = default!;
 
     [SupplyParameterFromForm]
-    public ComplaintReply ComplaintReply { get; set; } = new();
+    public ComplaintReply? ComplaintReply { get; set; } = new();
 
     private ClaimsPrincipal? claimsPrincipal { get; set; }
 
     [CascadingParameter]
     public int Id { get; set; }
 
-    private bool ReplyClicked { get; set; } = false;
+    private bool ReplyClicked = false;
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnSaveNewReplyCallback { get; set; }
 
     private  ApplicationUser user = default!;
-    private DateTime expiry;
 
+    private string? currentUrl;
 
     protected override void OnInitialized()
     {
@@ -56,18 +60,10 @@
         {
             complaint.ComplaintReplies = new List<ComplaintReply>();
         }
-
-        if (ReplyDescription is not null)
-        {
-            ComplaintReply.Description = Encoding.ASCII.GetBytes(ReplyDescription);
-        }
-
     }
-    private Task OnReplyClicked()
+    private void OnReplyClicked()
     {
         ReplyClicked = true;
-
-        return Task.CompletedTask;
     }
     private Task OnCancelClicked()
     {
@@ -76,12 +72,8 @@
 
         return Task.CompletedTask;
     }
-    private async Task OnSubmitClicked()
-    {
-        await OnValidSubmitAsync();
-        await OnCancelClicked();
-    }
-    private async Task OnValidSubmitAsync()
+
+    private async Task OnSubmitClickedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         claimsPrincipal = authState.User;
@@ -103,10 +95,9 @@
             }
         }
 
-        ComplaintReply.Username = user.UserName;
-        ComplaintReply.Created = DateTime.UtcNow;
-        expiry = DateTime.UtcNow.AddDays(7);
-        ComplaintReply.Closed = expiry;
+        ComplaintReply.Username = user!.UserName;
+        ComplaintReply.Created = DateTime.Now;
+        ComplaintReply.Closed = DateTime.Now.AddDays(7);
         ComplaintReply.Subject = complaint?.Subject;
         ComplaintReply.ComplaintId = complaint!.Id;
 
@@ -121,14 +112,16 @@
         }
 
         await AddComplaintReply();
-        NavigationManager.Refresh(true);
+        ComplaintReply = new ComplaintReply();
     }
 
     public async Task AddComplaintReply()
     {
         using var context = ComplaintsDbFactory.CreateDbContext();
         context.ComplaintReply.Add(ComplaintReply);
-        complaint?.ComplaintReplies!.Add(ComplaintReply);
+        context.Attach(complaint!).State = EntityState.Modified;
         await context.SaveChangesAsync();
+        await OnCancelClicked();
+        await OnSaveNewReplyCallback.InvokeAsync();
     }
 }

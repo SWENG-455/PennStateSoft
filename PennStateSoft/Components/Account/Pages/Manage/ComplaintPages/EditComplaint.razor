@@ -63,7 +63,6 @@ else
 @code {
     private string? message;
     private ApplicationUser user = default!;
-    private DateTime expiry;
 
     [SupplyParameterFromQuery]
     public int Id { get; set; }
@@ -77,6 +76,12 @@ else
     private ClaimsPrincipal? claimsPrincipal { get; set; }
 
     protected UIHelper uIHelper = new();
+
+    private static DateTime Created;
+    private static DateTime? Closed;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,6 +101,12 @@ else
         }
         else
         {
+            if (Closed is null)
+            {
+                Created = Complaint.Created;
+                Closed = Complaint.Closed;
+            }
+
             var authenticationState = await AuthStateProvider.GetAuthenticationStateAsync();
             claimsPrincipal = authenticationState.User;
 
@@ -108,9 +119,6 @@ else
                 Complaint.Username = await UserManager.GetUserNameAsync(user);
             }
 
-            Complaint.Created = DateTime.UtcNow;
-            expiry = DateTime.UtcNow.AddDays(7);
-            Complaint.Closed = expiry;
             if (Complaint.Description is not null)
             {
                 Description = @Encoding.ASCII.GetString(Complaint.Description);
@@ -123,9 +131,8 @@ else
     // For more details, see https://aka.ms/RazorPagesCRUD.
     public async Task UpdateComplaint()
     {
-        Complaint!.Created = DateTime.UtcNow;
-        expiry = DateTime.UtcNow.AddDays(7);
-        Complaint.Closed = expiry;
+        Complaint!.Created = Created;
+        Complaint.Closed = Closed;
 
         if (Complaint.Subject is null || Complaint.Subject.Length < 1)
         {

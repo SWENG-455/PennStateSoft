@@ -8,7 +8,6 @@
         public string? Subject { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Closed { get; set; }
-
         public byte[]? Description { get; set; }
     }
 }

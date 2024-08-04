@@ -1,16 +1,16 @@
 ﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
-
 @attribute [Authorize]
 
 <PageTitle>Index</PageTitle>
 
 <QuickGrid ItemsProvider="@ComplaintReplyGridProvider" Class="table" Theme="chat">
     <TemplateColumn Context="complaintreply" Align="Align.Right">
-        <CascadingValue Value="Complaint">
-            <CascadingValue Value="@complaintreply">
-                <ReplyDetails />
+        <CascadingValue Value="Complaint" IsFixed="true">
+            <CascadingValue Value="@complaintreply" IsFixed="true">
+                <ReplyDetails OnSaveCallback="UpdateGridProvider" />
             </CascadingValue>
         </CascadingValue>
+        
     </TemplateColumn>
 </QuickGrid>
 
@@ -28,9 +28,17 @@
         if (Complaint is not null)
         {
             var rows = Complaint.ComplaintReplies;
-            var result = GridItemsProviderResult.From<ComplaintReply>(items: rows!, totalItemCount: rows!.Count);
-            ComplaintReplyGridProvider = req => ValueTask.FromResult(result);
+            UpdateGridProvider(rows);
+
         }
-     }
-    
+    }
+    private void UpdateGridProvider(SaveChangesEventArgs eventArgs)
+    {
+        UpdateGridProvider(Complaint.ComplaintReplies);
+    }
+    private void UpdateGridProvider(List<ComplaintReply> replies)
+    {
+        var result = GridItemsProviderResult.From<ComplaintReply>(items: replies!, totalItemCount: replies!.Count);
+        ComplaintReplyGridProvider = req => ValueTask.FromResult(result);
+    }
 }

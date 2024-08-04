@@ -64,6 +64,9 @@
 
     private Room[]? Rooms;
 
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
     protected override void OnInitialized()
     {
         using var context = MeetingDbFactory.CreateDbContext();

@@ -1,5 +1,4 @@
 ﻿@page "/Account/Meetings/Create"
-@using Microsoft.EntityFrameworkCore.ChangeTracking
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject PennStateSoft.Data.ApplicationDbContext AppDb
@@ -136,6 +135,9 @@ else
     public string? statusMessage { get; set; } = "";
 
     private ClaimsPrincipal? claimsPrincipal { get; set; }
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

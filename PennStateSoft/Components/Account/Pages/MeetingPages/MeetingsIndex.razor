@@ -100,6 +100,9 @@
     [SupplyParameterFromForm]
     private string filteredSearch { get; set; } = "";
 
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();

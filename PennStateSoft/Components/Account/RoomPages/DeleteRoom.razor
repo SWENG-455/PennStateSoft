@@ -64,6 +64,9 @@
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
         using var context = MeetingDbFactory.CreateDbContext();

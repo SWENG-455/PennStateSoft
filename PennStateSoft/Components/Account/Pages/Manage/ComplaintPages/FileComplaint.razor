@@ -60,7 +60,6 @@
 
     private string? message;
     private ApplicationUser user = default!;
-    private DateTime expiry;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -71,9 +70,8 @@
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         complaint.Username = await UserManager.GetUserNameAsync(user);
-        complaint.Created = DateTime.UtcNow;
-        expiry = DateTime.UtcNow.AddDays(7);
-        complaint.Closed = expiry;
+        complaint.Created = DateTime.Now;
+        complaint.Closed = DateTime.Now.AddDays(7);
         uIHelper.CalculateSize(Description);
     }
 

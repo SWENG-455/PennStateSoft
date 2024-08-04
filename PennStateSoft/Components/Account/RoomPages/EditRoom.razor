@@ -54,6 +54,9 @@ else
     [SupplyParameterFromForm]
     public Room? Room { get; set; }
 
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
         using var context = MeetingDbFactory.CreateDbContext();

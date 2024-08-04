@@ -7,3 +7,8 @@
 @inject IdentityRedirectManager RedirectManager
 
 @attribute [Authorize(Roles = "Admin")]
+
+@code{
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+}

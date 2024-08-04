@@ -51,6 +51,9 @@
 
     protected UIHelper uIHelper = new();
 
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
         using var context = ComplaintsDbFactory.CreateDbContext();

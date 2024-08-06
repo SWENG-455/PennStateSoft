@@ -17,11 +17,15 @@
 
 .top-row {
     height: 3.5rem;
+    background-image: linear-gradient(180deg, rgb(5, 39, 103) 20%, #00359f 100%);
     background-color: rgba(0,0,0,0.4);
 }
 
 .navbar-brand {
-    font-size: 1.1rem;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
 
 .bi {
@@ -67,7 +71,7 @@
 }
 
 .nav-item {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     padding-bottom: 0.5rem;
 }
 
@@ -80,29 +84,37 @@
     }
 
     .nav-item ::deep .nav-link {
-        color: midnightblue;
+        color: lightslategray; /*#d7d7d7; */
         background: none;
         border: none;
         border-radius: 4px;
-        height: 3rem;
+        height: 2.8rem;
         display: flex;
         align-items: center;
         line-height: 3rem;
-        width: 100%;
+        width: 80%;
     }
 
-.nav-item ::deep a.active {
-    background-color: rgb(222, 217, 217);
-    color: midnightblue;
-}
+    .nav-item ::deep a.active {
+        background-color: rgba(111,168,220,0.37);
+        color: midnightblue;
+    }
 
-.nav-item ::deep .nav-link:hover {
-    background-color: rgb(201, 196, 196);
-    color: midnightblue;
-}
+    .nav-item ::deep .nav-link:hover {
+        background-image: linear-gradient(180deg, rgba(69,180,197,0.1) 20%, rgba(255, 255, 255, 0.5) 100%);
+        background-color: rgba(69,180,197,0.1);
+        color: lightskyblue;
+        font-weight: bold;
+    }
 
 .nav-scrollable {
     display: none;
+    border-right: 2.9px solid #eeeeee;
+    background-image: url('bgPicture3.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: contain;
 }
 
 .navbar-toggler:checked ~ .nav-scrollable {

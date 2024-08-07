@@ -1,5 +1,7 @@
 ﻿@page "/"
 
+@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
+
 <PageTitle>Home</PageTitle>
 
 <div3 class="page">
@@ -23,33 +25,30 @@
                             <div class="card2">
                                 <h2>
                                     Meetings:
-                                    <b><a href="default.asp" target="_blank">View all › </a></b>
+                                    <b><a href="Account/Meetings" target="_blank">View all › </a></b>
                                 </h2>
                                 <div class="grid-container">
                                     <div class="grid-item item1">
                                         <div class="mainList">
                                             <h3>Upcoming Meetings</h3>
-                                            <article class="meeting">
-                                                <img src="/test3.svg" alt="Meeting Icon" class="meetingImage">
-                                                <span class="meetingName">Meeting 1</span>
-                                                <span class="meetingInfo">Date. Time. <span>Room.</span></span>
-                                            </article>
-                                            <article class="meeting">
-                                                <img src="/test3.svg" alt="Meeting Icon" class="meetingImage">
-                                                <span class="meetingName">Meeting 2</span>
-                                                <span class="meetingInfo">Date. Time. <span>Room.</span></span>
-                                            </article>
-                                            <article class="meeting">
-                                                <img src="/test3.svg" alt="Meeting Icon" class="meetingImage">
-                                                <span class="meetingName">Meeting 3</span>
-                                                <span class="meetingInfo">Date. Time. <span>Room.</span></span>
-                                            </article>
+                                            @if (upcomingMeetings != null){
+                                                @foreach (var meeting in upcomingMeetings){
+                                                    <article class="meeting">
+                                                        <img src="/test3.svg" alt="Meeting Icon" class="meetingImage">
+                                                        <a href="Account/Meetings/Details?id=@meeting.Id" class="meetingName">@meeting.Name</a>
+                                                        <span class="meetingInfo">@meeting.Date.ToShortDateString() @meeting.Time.ToShortTimeString() <span>@GetMeetingRoom(meeting.RoomId).Name</span></span>
+                                                    </article>
+                                                }
+                                            }
                                         </div>
                                     </div>
                                     <div class="grid-item item2">
-                                        <button class="btn-labeled btn-newMeeting">
-                                            <div class="btn-label"><i class="icon1"></i></div>Schedule a Meeting
-                                        </button>
+                                        <NavLink style="text-decoration:none" href="Account/Meetings/Create">
+                                            <button class="btn-labeled btn-newMeeting">
+                                                <div class="btn-label"><i class="icon1"></i></div>
+                                                    <p2>Schedule a New Meeting</p2>
+                                            </button>
+                                        </NavLink>
                                     </div>
                                 </div>
                             </div>
@@ -58,7 +57,7 @@
                             <div class="grid-container">
                                 <div class="card2">
                                     <div class="header">
-                                        <div class="month">July</div>
+                                        <div class="month">August</div>
                                         <div class="year">2024</div>
                                     </div>
                                     <div class="calendar">
@@ -77,7 +76,7 @@
                                         <div class="day">6</div>
                                         <div class="day">7</div>
                                         <div class="day">8</div>
-                                        <div class="day">9</div>
+                                        <div class="day today">9</div>
                                         <div class="day">10</div>
                                         <div class="day">11</div>
                                         <div class="day">12</div>
@@ -98,7 +97,7 @@
                                         <div class="day">27</div>
                                         <div class="day">28</div>
                                         <div class="day">29</div>
-                                        <div class="day today">30</div>
+                                        <div class="day">30</div>
                                         <div class="day">31</div>
                                     </div>
                                 </div>
@@ -113,7 +112,7 @@
                                         </p3>
                                         <div class="grid-container">
                                             <div class="grid-item2 itemButton1">
-                                                <b><a href="default.asp" target="_blank">View all › </a></b>
+                                                <b><a href="Account/Meetings" target="_blank">View all › </a></b>
                                             </div>
                                         </div>
                                     </div>
@@ -125,9 +124,11 @@
                                         </p3>
                                         <div class="grid-container">
                                             <div class="grid-item2 itemButton1">
+                                                <NavLink style="text-decoration:none" href="Account/Manage/Complaints">
                                                 <button class="button4">
                                                     <p1>File a Complaint</p1>
                                                 </button>
+                                                </NavLink>
                                             </div>
                                         </div>
                                     </div>
@@ -140,3 +141,33 @@
         </div>
     </body>
 </AuthorizeView>
+
+@code {
+    private List<Meeting>? upcomingMeetings;
+    private List<Room>? Rooms { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUpcomingMeetings();
+    }
+
+    private async Task LoadUpcomingMeetings()
+    {
+        using var context = MeetingDbFactory.CreateDbContext();
+        var allMeetings = await context.Meeting.ToListAsync();
+        Rooms = await context.Room.ToListAsync();
+
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+        upcomingMeetings = allMeetings
+            .Where(m => m.Date >= today)
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Time)
+            .ToList();
+    }
+
+    private Room GetMeetingRoom(int roomId)
+    {
+        return Rooms!.FirstOrDefault(r => r.Id == roomId)!;
+    }
+}

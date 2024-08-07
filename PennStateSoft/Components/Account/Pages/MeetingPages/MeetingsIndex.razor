@@ -11,15 +11,22 @@
 
 <PageTitle>Meetings</PageTitle>
 
-<h3>Meetings</h3>
 
-<AuthorizeView Roles="Client">
-    <div class="nav-item px-3" style="text-align:right; width:95%">
-        <NavLink style="text-decoration:none" href="Account/Meetings/Create">
-            New
-        </NavLink>
-    </div>
-</AuthorizeView>
+<div class="header-container">
+    <h3>Meetings</h3>
+    <AuthorizeView Roles="Client">
+        <div class="nav-item px-3">
+            <button class="btn-labeled btn-newMeeting">
+                <div class="btn-label"><i class="icon1"></i></div>
+                <NavLink style="text-decoration:none" href="Account/Meetings/Create">
+                    <p1>New Meeting</p1>
+                </NavLink>
+            </button>
+        </div>
+    </AuthorizeView>
+</div>
+
+
 <AuthorizeView Roles="Admin">
     <div class="container mb-5">
         <div class="row">

@@ -75,15 +75,13 @@
         </div>
     </TemplateColumn>
     <TemplateColumn Context="meeting" Title="Actions">
-        <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
-                        margin:0.25rem 0.5rem;"
+        <button class="custom-button"
                 @onclick="@(()=> OnViewClicked(meeting.Id))">
             View
         </button>
         @if (roles is not null && roles.Count() > 0 && MeetingIds!.Contains(meeting.Id))
         {
-            <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
-                        margin:0.25rem 0.5rem;"
+            <button class="custom-button"
                     @onclick="@(()=> OnDeleteClicked(meeting.Id))">
                 Delete
             </button>

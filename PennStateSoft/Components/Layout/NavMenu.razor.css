@@ -84,7 +84,7 @@
     }
 
     .nav-item ::deep .nav-link {
-        color: lightslategray; /*#d7d7d7; */
+        color: #6c6d76;
         background: none;
         border: none;
         border-radius: 4px;
@@ -101,16 +101,16 @@
     }
 
     .nav-item ::deep .nav-link:hover {
-        background-image: linear-gradient(180deg, rgba(69,180,197,0.1) 20%, rgba(255, 255, 255, 0.5) 100%);
+        background-image: linear-gradient(180deg, rgb(46, 71, 188, 0.10) 20%, rgba(255, 255, 255, 0.5) 100%);
         background-color: rgba(69,180,197,0.1);
-        color: lightskyblue;
+        color: rgb(3, 60, 165);
         font-weight: bold;
     }
 
 .nav-scrollable {
     display: none;
     border-right: 2.9px solid #eeeeee;
-    background-image: url('bgPicture3.png');
+    background-image: url('bgPic7.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

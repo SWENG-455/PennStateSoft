@@ -137,7 +137,6 @@ h3 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.2em;
 }
 
 .mainList {
@@ -215,8 +214,6 @@ span {
 }
 
 .btn-labeled {
-    padding-top: 0;
-    padding-bottom: 0;
     background-color: #2264d4;
     border: none;
     color: white;

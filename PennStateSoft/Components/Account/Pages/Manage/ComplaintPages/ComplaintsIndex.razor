@@ -7,15 +7,19 @@
 
 <PageTitle>Complaints</PageTitle>
 
-<h3>Complaints</h3>
-
-<AuthorizeView Roles="Client">
-    <div class="nav-item px-3" style="text-align:right; width:95%">
-        <NavLink style="text-decoration:none" href="Account/Manage/Complaints/Create">
-             New
-        </NavLink>
-    </div>
-</AuthorizeView>
+<div class="header-container">
+    <h3>Complaints</h3>
+    <AuthorizeView Roles="Client">
+        <div class="nav-item px-3">
+            <button class="btn-labeled btn-newMeeting">
+                <div class="btn-label"><i class="icon1"></i></div>
+                <NavLink style="text-decoration:none" href="Account/Manage/Complaints/Create">
+                    <p1>New Complaint</p1>
+                </NavLink>
+            </button>
+        </div>
+    </AuthorizeView>
+</div>
 
 <div class="grid" tabindex="-1">
     <QuickGrid ItemsProvider="@complaintProvider" Class="table">

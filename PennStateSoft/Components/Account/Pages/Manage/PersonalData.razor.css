@@ -1,0 +1,23 @@
+﻿h3 {
+    padding-bottom: 15px;
+    font-weight: bold;
+    font-family: 'Tahoma';
+    background: linear-gradient(to bottom, #003366, #0073e6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+button{
+    border-color: #0073e6;
+}
+
+.container1 {
+    display: flex;
+    justify-content: start;
+    align-items: start;
+    padding-top: 5px;
+    padding-bottom: 25px;
+    margin-left: -7.5px;
+}

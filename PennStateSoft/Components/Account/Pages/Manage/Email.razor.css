@@ -1,0 +1,10 @@
+﻿h3 {
+    padding-bottom: 15px;
+    font-weight: bold;
+    font-family: 'Tahoma';
+    background: linear-gradient(to bottom, #003366, #0073e6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}

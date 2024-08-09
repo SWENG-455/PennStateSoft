@@ -80,7 +80,7 @@ else
                     <ValidationMessage For="() => SelectedUser" class="text-danger" />
                     @if (!memberAdded)
                     {
-                        <button id="add" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
+                        <button id="add" type="button" class="btn btn-primary"
                         @onclick="@(()=> AddSelectedMember(selectedUser!))">
                             Add
                         </button>

@@ -1,0 +1,49 @@
+﻿h3 {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-weight: bold;
+    font-family: 'Tahoma';
+    background: linear-gradient(to bottom, #003366, #0073e6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+#add {
+    border: 2px solid #0073e6;
+    background-color: white;
+    color: #0073e6;
+    padding: 1px 8px;
+    margin-top: 18px;
+    margin-left: 1px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+    #add:hover {
+        background-color: #0073e6;
+        color: #ffffff;
+    }
+
+.row{
+    padding-bottom: 20px;
+}
+
+.btn-primary{
+    border-color: #2894ff;
+}
+
+    .btn-primary:hover {
+        background-color: #0072ff;
+    }
+
+.btn-secondary {
+    border-color: #bcbcbc;
+}
+
+    .btn-secondary:hover {
+        background-color: #9b9b9b;
+    }

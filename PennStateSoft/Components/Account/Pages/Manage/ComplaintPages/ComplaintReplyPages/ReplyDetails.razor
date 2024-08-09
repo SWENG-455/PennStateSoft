@@ -97,7 +97,7 @@
 
 
     private ClaimsPrincipal? claimsPrincipal { get; set; }
-    private bool IsAdmin = false;
+    //private bool IsAdmin = false;
     private string? UserName { get; set; }
 
     protected override async Task OnInitializedAsync()
@@ -118,7 +118,7 @@
             //Get the logged in user
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             claimsPrincipal = authState.User;
-            IsAdmin = claimsPrincipal.IsInRole("Admin");
+            //IsAdmin = claimsPrincipal.IsInRole("Admin");
             UserName = claimsPrincipal.Identity.Name;
         }
     }

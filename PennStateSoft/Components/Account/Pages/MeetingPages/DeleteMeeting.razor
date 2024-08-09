@@ -54,7 +54,6 @@
 </div>
 
 @code {
-    private IEnumerable<IdentityError>? identityErrors;
     private ApplicationRoleManager? RoleManager;
     private IdentityRole? Role;
 
@@ -109,14 +108,6 @@
         Role = await RoleManager.FindByNameAsync("Creator" + meeting!.Id).ConfigureAwait(false);
         var Users = UserManager.GetUsersInRoleAsync("Creator" + meeting.Id).Result;
         var result = await RoleManager.DeleteAsync(Role!);
-
-
-        //Check if UserRole was added successfully
-        if (!result.Succeeded)
-        {
-            identityErrors = result.Errors;
-            return;
-        }
     }
 
     public async Task DeleteThisMeeting()

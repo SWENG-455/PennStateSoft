@@ -87,7 +87,7 @@
             identityErrors = result.Errors;
             return;
         }
-
+         
         //Create Client Role
         RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
         Role = await RoleManager.FindByNameAsync("Client").ConfigureAwait(false);
@@ -105,7 +105,6 @@
             identityErrors = result.Errors;
             return;
         }
-
         Logger.LogInformation("User created a new account with password.");
 
         var userId = await UserManager.GetUserIdAsync(user);

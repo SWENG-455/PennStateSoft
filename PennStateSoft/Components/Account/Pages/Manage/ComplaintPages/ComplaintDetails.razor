@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IdentityRedirectManager IdentityRedirectManager
 @rendermode InteractiveServer
 
 @attribute [Authorize]
@@ -16,46 +17,53 @@
         <p><em>Loading...</em></p>
     }
     else {
-        <h3>@complaint!.Subject</h3>
-        <hr />
-        <div class="border border-light border-start-0 border-end-0 border-bottom-0 
-               border-top-0" >
-             <div class="m-1">
-                <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
-                <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username</label>
-                <label class="ms-5 form-label text-black-50"> @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() </label>
+        @if (userName == complaint.Username || IsAdmin)
+        {
+            <h3>@complaint!.Subject</h3>
+            <hr />
+            <div class="border border-light border-start-0 border-end-0 border-bottom-0
+               border-top-0">
+                <div class="m-1">
+                    <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
+                    <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username</label>
+                    <label class="ms-5 form-label text-black-50"> @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() </label>
+                </div>
+                <div class="m-1">
+                    <textarea class="text-black text-wrap" style="border:none; background-color:Window" cols="100"
+                              rows="@UIhelper.Rows" disabled>
+                        @Encoding.ASCII.GetString(complaint.Description!)
+                        </textarea>
+                </div>
             </div>
-            <div class="m-1">
-                <textarea class="text-black text-wrap" style="border:none; background-color:Window" cols="100"
-                          rows="@UIhelper.Rows" disabled>
-                    @Encoding.ASCII.GetString(complaint.Description!)
-                </textarea>
+            <div class="ms-3">
+                <AuthorizeView Roles="Client">
+                    <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class="m-2 text-decoration-none">Edit</a> |
+                    <a class=" m-2 text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a> |
+                    <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a>
+                </AuthorizeView>
             </div>
-        </div>
-        <div class="ms-3">
-            <AuthorizeView Roles="Client">
-                <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class="m-2 text-decoration-none">Edit</a> |
-                <a class=" m-2 text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a> |
-                <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a>
-            </AuthorizeView>
-        </div>
 
-        <div>
-            <AuthorizeView Roles="Admin">
-                <button id="back" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
-                        @onclick="OnBackClicked">
-                    Back
-                </button> |
+            <div>
+                <AuthorizeView Roles="Admin">
+                    <button id="back" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
+                            @onclick="OnBackClicked">
+                        Back
+                    </button> |
+                    <CascadingValue Value="complaint">
+                        <CreateReply OnSaveNewReplyCallback="OnReplied" />
+                    </CascadingValue>
+                </AuthorizeView>
+            </div>
+            <div>
                 <CascadingValue Value="complaint">
-                    <CreateReply OnSaveNewReplyCallback="OnReplied" />
+                    <ReplyIndex />
                 </CascadingValue>
-            </AuthorizeView>  
-        </div>
-        <div>
-            <CascadingValue Value="complaint">
-                <ReplyIndex />
-            </CascadingValue>
-        </div>   
+            </div>
+        }
+        else
+        {
+            <Not_Found/>
+        }
     }
 </div>
 
@@ -69,6 +77,9 @@
     public string? Description { get; set; }
 
     private UIHelper UIhelper = new();
+    private string? userName;
+    private ApplicationUser? User;
+    private bool IsAdmin = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -81,6 +92,11 @@
         }
         else
         {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            userName = user.Identity?.Name;
+            User = await UserManager.GetUserAsync(user);
+            IsAdmin = await UserManager.IsInRoleAsync(User!, "Admin");
             using var replyContext = ComplaintsDbFactory.CreateDbContext();
             complaint.ComplaintReplies = replyContext.ComplaintReply.Where(c => c.ComplaintId == Id).ToList<ComplaintReply>();
 

@@ -11,51 +11,61 @@
 
 <PageTitle>Meeting Details</PageTitle>
 
-<div>
-    <h4>Meeting Details</h4>
-    <hr />
-    @if (meeting is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">Name</dt>
-            <dd class="col-sm-10">@meeting.Name</dd>
-            <dt class="col-sm-2">Date</dt>
-            <dd class="col-sm-10">@meeting.Date.ToLongDateString()</dd>
-            <dt class="col-sm-2">Time</dt>
-            <dd class="col-sm-10">@meeting.Time</dd>
-            <dt class="col-sm-2">Duration</dt>
-            <dd class="col-sm-10">@meeting.Duration hr </dd>
-            <dt class="col-sm-2">Room</dt>
-            <dd class="col-sm-10">@room!.Name</dd>
-        </dl>
-        <CascadingValue Value="Id">
-            <CascadingValue Value="meeting" IsFixed="true">
-                <CascadingValue Value="roles" IsFixed="true">
-                    <UpdateMeetingComponent />
+@if (IsCreator || IsAdmin || IsInvited)
+{
+    <div>
+        <h4>Meeting Details</h4>
+        <hr />
+        @if (meeting is null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+            <dl class="row">
+                <dt class="col-sm-2">Name</dt>
+                <dd class="col-sm-10">@meeting.Name</dd>
+                <dt class="col-sm-2">Date</dt>
+                <dd class="col-sm-10">@meeting.Date.ToLongDateString()</dd>
+                <dt class="col-sm-2">Time</dt>
+                <dd class="col-sm-10">@meeting.Time</dd>
+                <dt class="col-sm-2">Duration</dt>
+                <dd class="col-sm-10">@meeting.Duration hr </dd>
+                <dt class="col-sm-2">Room</dt>
+                <dd class="col-sm-10">@room!.Name</dd>
+            </dl>
+            <CascadingValue Value="Id">
+                <CascadingValue Value="meeting" IsFixed="true">
+                    <CascadingValue Value="roles" IsFixed="true">
+                        <CascadingValue Value="IsCreator" IsFixed="true">
+                            <UpdateMeetingComponent />
+                        </CascadingValue>
+                    </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
-        </CascadingValue>
-       
-        <div>
-            @if ((roles is not null && roles.Count() > 0) && !hasEnded && !hasStarted)
-            {
-                <a class="text-decoration-none me-2" href="@($"Account/Meetings/Edit?id={meeting.Id}")">
-                    Edit
-                </a> <span class="me-2">  | </span>
-            }
 
-            <a class="text-decoration-none" href="@($"Account/Meetings")">Back</a>
-        </div>
-    }
-</div>
+            <div>
+                @if (IsCreator && !hasEnded && !hasStarted)
+                {
+                    <a class="text-decoration-none me-2" href="@($"Account/Meetings/Edit?id={meeting.Id}")">
+                        Edit
+                    </a> <span class="me-2">  | </span>
+                }
+
+                <a class="text-decoration-none" href="@($"Account/Meetings")">Back</a>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <Not_Found />
+}
 
 @code {
     [SupplyParameterFromForm]
     private string? selectedUser { get; set; }
-    
+
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
@@ -64,6 +74,9 @@
     private Room? room { get; set; }
     private List<string>? roles { get; set; }
     private ClaimsPrincipal? claimsPrincipal { get; set; }
+    private bool IsCreator = false;
+    private bool IsAdmin = false;
+    private bool IsInvited = false;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -77,21 +90,17 @@
 
         if (meeting is not null)
         {
-            var Roles = AppDb.Roles.ToList();
-            var UserRoles = AppDb.UserRoles.Where(r => r.UserId == UserManager.GetUserId(claimsPrincipal)).ToList();
-            roles = new List<string>();
-
-            //Get only the roles claimed by the current user
-            foreach (var userRole in UserRoles)
+            if (claimsPrincipal is not null)
             {
-                var role = Roles.FirstOrDefault(r => r.Id == userRole.RoleId);
-                if (role is not null)
+                var user = await UserManager.GetUserAsync(claimsPrincipal);
+
+                if (user is not null)
                 {
-                    if (role.Name!.Contains("Creator" + meeting.Id))
-                    {
-                        roles.Add(role.Name!);
-                    }
+                    IsCreator = await UserManager.IsInRoleAsync(user, "Creator" + meeting.Id);
+                    IsInvited = await UserManager.IsInRoleAsync(user, "Invitee" + meeting.Id);
+                    IsAdmin = await UserManager.IsInRoleAsync(user, "Admin");
                 }
+
             }
 
             using var roomContext = MeetingDbFactory.CreateDbContext();

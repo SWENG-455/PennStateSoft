@@ -2,64 +2,73 @@
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
 
 @attribute [Authorize(Roles = "Client")]
 
 <PageTitle>Edit Meeting</PageTitle>
 
-<h4>Edit Meeting</h4>
-<hr />
-<p class="text-danger">
-    @statusMessage
-</p>
-@if (meeting is null)
+@if (IsCreator)
 {
-    <p><em>Loading...</em></p>
+    <h4>Edit Meeting</h4>
+    <hr />
+    <p class="text-danger">@statusMessage</p>
+
+    @if (meeting is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-4">
+                <EditForm method="post" Model="meeting" OnValidSubmit="@(() => UpdateMeeting(selectedRoom!))" FormName="edit" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <input type="hidden" name="meeting.Id" value="@meeting.Id" />
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name:</label>
+                        <InputText id="name" @bind-Value="meeting.Name" class="form-control" />
+                        <ValidationMessage For="() => meeting.Name" class="text-danger" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date:</label>
+                        <InputDate id="date" @bind-Value="meeting.Date" class="form-control" />
+                        <ValidationMessage For="() => meeting.Date" class="text-danger" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="time" class="form-label">Time:</label>
+                        <InputDate Type="InputDateType.Time" id="time" @bind-Value="meeting.Time" class="form-control" />
+                        <ValidationMessage For="() => meeting.Time" class="text-danger" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="room" class="form-label">Room:</label>
+                        <InputSelect id="room" @bind-Value="selectedRoom" class="form-select">
+                            @if (rooms is not null)
+                            {
+                                foreach (var room in rooms)
+                                {
+                                    <option value="@room.Name">@room.Name</option>
+                                }
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="() => meeting.RoomId" class="text-danger" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <a class="btn btn-secondary ms-2" href="Account/Meetings">
+                        Cancel
+                    </a>
+                </EditForm>
+            </div>
+        </div>
+    }
 }
 else
 {
-    <div class="row">
-        <div class="col-md-4">
-            <EditForm method="post" Model="meeting" OnValidSubmit="@(() => UpdateMeeting(selectedRoom!))" FormName="edit" Enhance>
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-                <input type="hidden" name="meeting.Id" value="@meeting.Id" />
-                <div class="mb-3">
-                    <label for="name" class="form-label">Name:</label>
-                    <InputText id="name" @bind-Value="meeting.Name" class="form-control" />
-                    <ValidationMessage For="() => meeting.Name" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="date" class="form-label">Date:</label>
-                    <InputDate id="date" @bind-Value="meeting.Date" class="form-control" />
-                    <ValidationMessage For="() => meeting.Date" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="time" class="form-label">Time:</label>
-                    <InputDate Type="InputDateType.Time" id="time" @bind-Value="meeting.Time" class="form-control" />
-                    <ValidationMessage For="() => meeting.Time" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="room" class="form-label">Room:</label>
-                    <InputSelect id="room" @bind-Value="selectedRoom" class="form-select">
-                        @if (rooms is not null)
-                        {
-                            foreach (var room in rooms)
-                            {
-                                <option value="@room.Name">@room.Name</option>
-                            }
-                        }
-                    </InputSelect>
-                    <ValidationMessage For="() => meeting.RoomId" class="text-danger" />
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a class="btn btn-secondary ms-2" href="Account/Meetings">
-                    Cancel
-                </a>
-            </EditForm>
-        </div>
-    </div>
+    <Not_Found />
 }
+
 @code {
     [SupplyParameterFromQuery]
     public int Id { get; set; }
@@ -80,10 +89,17 @@ else
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
+    private ClaimsPrincipal? claimsPrincipal { get; set; }
+
+    private bool IsCreator = false;
+
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
         meeting ??= await context.Meeting.FirstOrDefaultAsync(m => m.Id == Id);
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        claimsPrincipal = authState.User;
 
         if (meeting is null)
         {
@@ -91,6 +107,17 @@ else
         }
         else
         {
+            if (claimsPrincipal is not null)
+            {
+                var user = await UserManager.GetUserAsync(claimsPrincipal);
+
+                if (user is not null)
+                {
+                    IsCreator = await UserManager.IsInRoleAsync(user, "Creator" + meeting.Id);
+                }
+
+            }
+
             using var RoomContext = DbFactory.CreateDbContext();
             rooms = RoomContext.Room.AsEnumerable<Room>().ToArray();
 
@@ -137,7 +164,7 @@ else
         {
             //Release current room
             await ReleaseRoom();
-
+            meeting!.Duration = 1;
             meeting!.RoomId = newRoom!.Id;   //Set the meeting room
             room = newRoom;
             ClaimRoom();                  //Claim new room

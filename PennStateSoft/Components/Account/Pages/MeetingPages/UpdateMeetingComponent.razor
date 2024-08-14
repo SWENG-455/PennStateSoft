@@ -3,13 +3,19 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
+@inject IRoleStore<IdentityRole> RoleStore
+@inject IRoleValidator<IdentityRole> RoleValidator
+@inject IEnumerable<RoleValidator<IdentityRole>> RoleValidators
+@inject ILogger<RoleManager<IdentityRole>> RoleLogger
+@inject IdentityErrorDescriber IdentityErrorDescriber
+@inject ILookupNormalizer KeyNormalizer
 @rendermode InteractiveServer
 
 <dl class="row" style="width:55%;">
     <div style="text-align:right;">
         @if (!AddMembersClicked)
         {
-            @if ((roles is not null && roles.Count() > 0) && !hasEnded)
+            @if (IsCreator && !hasEnded)
             {
                 <button style="background-color:#4969ee; color:white; border-radius:0.25rem;"
                         @onclick="OnAddClicked">
@@ -37,14 +43,11 @@
                         <label for="user" class="form-label">Add people to the meeting:</label>
                     </div>
                     <InputSelect id="user" @bind-Value="selectedUser" class="form-select">
-                        @if (users is not null)
+                        @if (_users is not null)
                         {
-                            foreach (var appUser in users)
+                            foreach (var appUser in _users)
                             {
-                                if (UserRoles!.FirstOrDefault(u => u.UserId == appUser.Id && u.RoleId == AdminRole!.Id) is null)
-                                {
-                                    <option value="@appUser">@appUser.UserName</option>
-                                }
+                                <option value="@appUser">@appUser.UserName</option>
                             }
                         }
                     </InputSelect>
@@ -83,7 +86,7 @@
             </div>
         </TemplateColumn>
         <TemplateColumn Context="member">
-            @if ((roles is not null && roles.Count() > 0) && !hasEnded)
+            @if (IsCreator && !hasEnded)
             {
                 <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
                         margin:0.25rem 0.5rem;"
@@ -95,7 +98,8 @@
     </QuickGrid>
 </dl>
 
-@code {
+@code 
+{
     [CascadingParameter]
     Meeting? meeting { get; set; }
 
@@ -107,11 +111,15 @@
     [CascadingParameter]
     public int Id { get; set; }
 
+    private IEnumerable<IdentityError>? identityErrors;
+    private ApplicationRoleManager? RoleManager;
+    private IdentityRole? Role;
     private IdentityRole? AdminRole;
     private IdentityUserRole<string>[]? UserRoles { get; set; }
     private List<MeetingMember>? members { get; set; }
     private List<ApplicationUser>? Members { get; set; }
     private List<ApplicationUser>? users { get; set; }
+    private List<ApplicationUser>? _users { get; set; }
     private ApplicationUser? user { get; set; }
     private ApplicationUser? member { get; set; }
     private ClaimsPrincipal? claimsPrincipal { get; set; }
@@ -124,6 +132,9 @@
 
     [SupplyParameterFromQuery]
     public int RoomId { get; set; }
+
+    [CascadingParameter]
+    private bool IsCreator { get; set; } = default!;
 
     private bool memberAdded { get; set; } = false;
     private string? statusMessage { get; set; } = "";
@@ -144,17 +155,28 @@
 
             using var roomContext = MeetingDbFactory.CreateDbContext();
             room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
-            SetGridItemsProvider();
+
 
             //Get all registered app users
             users = AppDb.Users.AsEnumerable<ApplicationUser>().ToList();
+            _users = new List<ApplicationUser>();
 
             //Get all userRoles
             UserRoles = AppDb.UserRoles.AsEnumerable<IdentityUserRole<string>>().ToArray();
 
-            //Get all roles
+            //Get admin role object
             AdminRole = AppDb.Roles.FirstOrDefault(r => r.Name == "Admin");
 
+            foreach (var user in users)
+            {
+                //Add non-admin members to the dropdown list of members
+                if (UserRoles!.FirstOrDefault(u => u.UserId == user.Id && u.RoleId == AdminRole!.Id) is null)
+                {
+                    _users.Add(user);
+                }
+            }
+
+            SetGridItemsProvider();
             HasEnded();
         }
         else
@@ -188,6 +210,7 @@
         {
             context.Remove<MeetingMember>(meetingMember!);
             await context.SaveChangesAsync();
+            await RemoveFromRole(member, "Invitee" + meeting!.Id);
             MemberRemovedNotification = $"{member.UserName} has been removed.";
             MemberRemovedNotify = true;
             SetGridItemsProvider();
@@ -225,7 +248,7 @@
         if (user is null)
         {
             //Get the first user in the dropdown if user wasn't selected
-            user = users!.First();
+            user = _users!.First();
             UserName = user.UserName!;
         }
 
@@ -246,6 +269,7 @@
             member.MeetingId = meeting!.Id;
             MemberContext.Add(member);
             await MemberContext.SaveChangesAsync();
+            await AddToRole(user, "Invitee" + meeting.Id);
             statusMessage = "";
             memberAdded = true;
             SetGridItemsProvider();
@@ -255,7 +279,6 @@
             statusMessage = $"Error: {UserName} has already been added to {meeting!.Name}";
             memberAdded = false;
         }
-        //statusMessage = "";
     }
     private bool IsMemberInAMeeting(string UserName)
     {
@@ -289,6 +312,48 @@
             }
         }
         return false;
+    }
+    private async Task AddToRole(ApplicationUser authUser, string roleName)
+    {
+        //Create the Role
+        RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
+        Role = await RoleManager.FindByNameAsync(roleName).ConfigureAwait(false);
+
+        if (Role == null)
+        {
+            Role = new IdentityRole(roleName);
+            var roleResult = await RoleManager.CreateAsync(Role);
+        }
+        var result = await UserManager.AddToRoleAsync(authUser, Role.Name!);
+
+        //Check if UserRole was added successfully
+        if (!result.Succeeded)
+        {
+            identityErrors = result.Errors;
+            return;
+        }
+    }
+    private async Task RemoveFromRole(ApplicationUser authUser, string roleName)
+    {
+        //Create the Role
+        RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
+        Role = await RoleManager.FindByNameAsync(roleName).ConfigureAwait(false);
+
+        if (Role != null)
+        {
+            var result = await UserManager.RemoveFromRoleAsync(authUser, Role.Name!);
+
+            //Check if UserRole was removed successfully
+            if (!result.Succeeded)
+            {
+                identityErrors = result.Errors;
+                return;
+            }
+        }
+        else
+        {
+            return;
+        }  
     }
     private void HasEnded()
     {

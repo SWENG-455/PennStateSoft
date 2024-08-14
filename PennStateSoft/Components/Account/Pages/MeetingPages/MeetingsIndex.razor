@@ -26,68 +26,88 @@
     </AuthorizeView>
 </div>
 
+@if (meetings is null || gridItemsProvider is null)
+{
+    <p>loading...</p>
+}
+else
+{
+    <AuthorizeView Roles="Admin">
+        <div class="container mb-5">
+            <div class="row">
+                <InputText typeof="search" @bind-Value="filteredSearch" class="form-control" style="justify-content:center; width:50%" />
+                <InputSelect id="filter" @bind-Value="filter" class="form-select ms-1" style="width:10%;">
+                    @foreach (var filtr in filters)
+                    {
+                        <option value="@filtr">@filtr</option>
+                    }
+                </InputSelect>
+                <button type="submit" class="btn-sm ms-1" style="width:8%;" @onclick="@(()=>SetGridItemsProvider(meetings!))">Search</button>
+            </div>
+        </div>
+    </AuthorizeView>
 
-<AuthorizeView Roles="Admin">
-    <div class="container mb-5">
-        <div class="row">
-            <InputText typeof="search" @bind-Value="filteredSearch" class="form-control" style="justify-content:center; width:50%"/>
-            <InputSelect id="filter" @bind-Value="filter" class="form-select ms-1" style="width:10%;">
-                @foreach (var filtr in filters)
-                {
-                    <option value="@filtr">@filtr</option>
-                }
-            </InputSelect>
-            <button type="submit" class="btn-sm ms-1" style="width:8%;" @onclick="@(()=>SetGridItemsProvider(meetings))">Search</button>
-        </div>
-    </div>
-</AuthorizeView>
-
-<QuickGrid Class="table" ItemsProvider="@gridItemsProvider">
-    <TemplateColumn Context="meeting" Title="Name" Sortable="true">
-        <div class="flex items-center mt-1">
-            <nobr>
-                @meeting.Name
-            </nobr>
-        </div>
-    </TemplateColumn>
-    <TemplateColumn Context="meeting" Title="Date">
-        <div class="flex items-center mt-1">
-            <nobr>
-                @meeting.Date.ToLongDateString().Substring(@meeting.Date.ToLongDateString().IndexOf(',') + 2)
-            </nobr>
-        </div>
-    </TemplateColumn>
-    <TemplateColumn Context="meeting" Title="Time">
-        <div class="flex items-center mt-1">
-            <nobr>
-                @meeting.Time
-            </nobr>
-        </div>
-    </TemplateColumn>
-    <TemplateColumn Context="meeting" Title="Room">
-        <div class="flex items-center mt-1" >
-            <nobr>
-                @if (Rooms is not null)
-                {
-                    @GetMeetingRoom(meeting.RoomId).Name
-                }
-            </nobr>
-        </div>
-    </TemplateColumn>
-    <TemplateColumn Context="meeting" Title="Actions">
-        <button class="custom-button"
+    <QuickGrid Class="table" ItemsProvider="@gridItemsProvider">
+        <TemplateColumn Context="meeting" Title="Name" Sortable="true">
+            <div class="flex items-center mt-1">
+                <nobr>
+                    @if (meeting is not null)
+                    {
+                        @meeting.Name
+                    }
+                </nobr>
+            </div>
+        </TemplateColumn>
+        <TemplateColumn Context="meeting" Title="Date">
+            <div class="flex items-center mt-1">
+                <nobr>
+                    @if (meeting is not null)
+                    {
+                        @meeting.Date.ToLongDateString().Substring(@meeting.Date.ToLongDateString().IndexOf(',') + 2)
+                    }
+                </nobr>
+            </div>
+        </TemplateColumn>
+        <TemplateColumn Context="meeting" Title="Time">
+            <div class="flex items-center mt-1">
+                <nobr>
+                    @if (meeting is not null)
+                    {
+                        @meeting.Time
+                    }
+                </nobr>
+            </div>
+        </TemplateColumn>
+        <TemplateColumn Context="meeting" Title="Room">
+            <div class="flex items-center mt-1">
+                <nobr>
+                    @if (Rooms is not null && meeting is not null)
+                    {
+                        @GetMeetingRoom(meeting.RoomId).Name
+                    }
+                </nobr>
+            </div>
+        </TemplateColumn>
+        <TemplateColumn Context="meeting" Title="Actions">
+            @if (meeting is not null)
+            {
+                <button class="custom-button"
                 @onclick="@(()=> OnViewClicked(meeting.Id))">
-            View
-        </button>
-        @if (roles is not null && roles.Count() > 0 && MeetingIds!.Contains(meeting.Id))
-        {
-            <button class="custom-button"
+                    View
+                </button>
+                @if (roles is not null && roles.Count() > 0 && MeetingIds!.Contains(meeting.Id))
+                {
+                    <button class="custom-button"
                     @onclick="@(()=> OnDeleteClicked(meeting.Id))">
-                Delete
-            </button>
-        }      
-    </TemplateColumn>
-</QuickGrid>
+                        Delete
+                    </button>
+                }
+
+            }
+        </TemplateColumn>
+    </QuickGrid>
+}
+
 
 @code{
     private GridItemsProvider<Meeting>? gridItemsProvider;
@@ -104,9 +124,6 @@
     private string? filter { get; set; } = "";
     [SupplyParameterFromForm]
     private string filteredSearch { get; set; } = "";
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,18 +145,17 @@
         {
 
             using var context = MeetingDbFactory.CreateDbContext();
-            var response = context.Meeting.ToList<Meeting>();
-            meetings = response;
+            meetings = context.Meeting.Where(m => !m.Equals(null)).AsEnumerable<Meeting>().ToList();
             using var RoomContext = MeetingDbFactory.CreateDbContext();
             Rooms = RoomContext.Room.AsEnumerable<Room>().ToList();
 
             if (claimsPrincipal.IsInRole("Admin"))
             {
-                await SetGridItemsProvider(response);
+                await SetGridItemsProvider(meetings);
             }
             else
             {
-                await GetClientView(response);
+                await GetClientView(meetings);
             }
         }
     }
@@ -149,6 +165,7 @@
         {
             await ReleaseRoom(meeting);
         }
+
         if (!filter!.Equals(""))
         {
             var MeetingContext = MeetingDbFactory.CreateDbContext();
@@ -178,7 +195,7 @@
                         var members = _context.Members.Where(m => m.UserId == user.Id);
                         if (members is not null)
                         {
-                            
+
                             foreach (var member in members)
                             {
                                 listOfMeetings.Add(meetings.FirstOrDefault(m => m.Id == member.MeetingId));
@@ -213,19 +230,17 @@
         //Get only the roles claimed by the current user
         foreach (var userRole in UserRoles)
         {
-            var role = Roles.FirstOrDefault(r => r.Id == userRole.RoleId);
+            var role = Roles.FirstOrDefault(r => r.Id == userRole.RoleId && userRole.UserId == UserID);
             if (role is not null)
             {
-                if (role.Name!.Contains("Creator"))
-                {
-                    roles.Add(role.Name!);
-                }
+                roles.Add(role.Name!);
             }
         }
 
+
         using var context = MeetingDbFactory.CreateDbContext();
         Members = context.Members.Where(m => m.UserId == UserID).ToList();
-        meetings = new List<Meeting>();
+        var _meetings = new List<Meeting>();
 
         if (UserID is not null && Members is not null)
         {
@@ -233,22 +248,26 @@
             {
                 //Get the meetings current App user has attended/been invited to
                 var newMeeting = meetingList.FirstOrDefault(m => m.Id == member.MeetingId);
-                meetings!.Add(newMeeting!);
+                _meetings!.Add(newMeeting!);
             }
             //Get the meetings current user has created
             foreach (var role in roles!)
             {
-                var ID = Int32.Parse(role.Substring(7));
-                MeetingIds!.Add(ID);
-                var newMeeting = meetingList.FirstOrDefault(m => m.Id == ID);
-                if (!meetings.Contains(newMeeting!))
-                {
-                    meetings!.Add(newMeeting!);
-                }
+                if (role.Contains("Creator")){
+                    var ID = Int32.Parse(role.Substring(7));
+                    MeetingIds!.Add(ID);
+
+                    var newMeeting = meetingList.FirstOrDefault(m => m.Id == ID);
+
+                    if (!_meetings.Contains(newMeeting!))
+                    {
+                        _meetings!.Add(newMeeting!);
+                    }
+                } 
             }
         }
         //Set the client view
-        await SetGridItemsProvider(meetings);
+        await SetGridItemsProvider(_meetings);
     }
     private async Task ReleaseRoom(Meeting meeting)
     {
@@ -256,17 +275,20 @@
 
         DateOnly CurrDate = DateOnly.FromDateTime(DateTime.Now);
         TimeOnly CurrTime = TimeOnly.FromDateTime(DateTime.Now);
-
-        if (meeting.Date < CurrDate || (meeting.Date == CurrDate && meeting.Time.AddHours(meeting.Duration) < CurrTime))
+        if (meeting is not null)
         {
-            using var context = MeetingDbFactory.CreateDbContext();
-            var meetingRoom = context.Room.FirstOrDefault(r => r.MeetingId == meeting!.Id);
-            if (meetingRoom is not null)
+            if (meeting.Date < CurrDate || (meeting.Date == CurrDate && meeting.Time.AddHours(meeting.Duration) < CurrTime))
             {
-                meetingRoom!.MeetingId = 0;             //Release the room
-                await context.SaveChangesAsync();
+                using var context = MeetingDbFactory.CreateDbContext();
+                var meetingRoom = context.Room.FirstOrDefault(r => r.MeetingId == meeting!.Id);
+                if (meetingRoom is not null)
+                {
+                    meetingRoom!.MeetingId = 0;             //Release the room
+                    await context.SaveChangesAsync();
+                }
             }
-        } 
+        }
+        
     }
 
     private void OnViewClicked(int Id)

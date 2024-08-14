@@ -9,10 +9,7 @@
 
   <ItemGroup>
     <Content Remove="Components\Account\Pages\Manage\AdminLogin.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="images\cover.png" />
+    <Content Remove="Components\Account\Pages\Manage\ComplaintPages\ComplaintReplyPages\EditComplaintForm.razor" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,11 +34,20 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\AdminLogin.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\ComplaintPages\ComplaintReplyPages\EditComplaintForm.razor" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Migrations\ApplicationDb\" />
     <Folder Include="Migrations\Meeting\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Components\Account\Pages\Manage\ComplaintPages\ComplaintReplyPages\EditComplaintForm.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Components\Account\Pages\Manage\ComplaintPages\EditComplaintForm.razor" />
   </ItemGroup>
 
 </Project>

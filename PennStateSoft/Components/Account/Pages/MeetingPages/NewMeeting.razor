@@ -120,14 +120,14 @@ else
     [SupplyParameterFromForm]
     private string? selectedUser { get; set; }
 
-    private ApplicationUser? SelectedUser { get; set; }
-    private ApplicationUser? applicationUser { get; set; }
+    private ApplicationUser? SelectedUser;
+    private ApplicationUser? applicationUser;
 
-    private ApplicationUser[]? Users { get; set; }
-    private IdentityUserRole<string>[]? UserRoles { get; set; }
-    private IdentityRole[]? Roles { get; set; }
+    private ApplicationUser[]? Users;
+    private IdentityUserRole<string>[]? UserRoles;
+    private IdentityRole[]? Roles;
 
-    private Room? room { get; set; }
+    private Room? room;
 
     [Parameter]
     public bool memberAdded { get; set; } = false;
@@ -135,7 +135,7 @@ else
     [Parameter]
     public string? statusMessage { get; set; } = "";
 
-    private ClaimsPrincipal? claimsPrincipal { get; set; }
+    private ClaimsPrincipal? claimsPrincipal;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -184,15 +184,15 @@ else
             applicationUser = AppDb.Users.FirstOrDefault(l => l.Id == userId);
         }
     }
-    private async Task CreateRole(ApplicationUser authUser)
+    private async Task CreateRole(ApplicationUser authUser, string roleName)
     {
-        //Create Creator Role
+        //Create the Role
         RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
-        Role = await RoleManager.FindByNameAsync("Creator" + meeting!.Id.ToString()).ConfigureAwait(false);
+        Role = await RoleManager.FindByNameAsync(roleName).ConfigureAwait(false);
 
         if (Role == null)
         {
-            Role = new IdentityRole("Creator" + meeting!.Id.ToString());
+            Role = new IdentityRole(roleName);
             var roleResult = await RoleManager.CreateAsync(Role);
         }
         var result = await UserManager.AddToRoleAsync(authUser, Role.Name!);
@@ -205,7 +205,7 @@ else
         }
     }
 
-    private void AddSelectedMember(string UserName)
+    private async Task AddSelectedMember(string UserName)
     {
         //Check if user is in any other meetings.
         using var MemberContext = MeetingDbFactory.CreateDbContext();
@@ -217,6 +217,7 @@ else
             //Get the first user in the dropdown if user wasn't selected
             SelectedUser = Users!.First();
             UserName = SelectedUser.UserName!;
+            await CreateRole(SelectedUser, "Invitee" + meeting!.Id);
         }
 
         //Get the meeting members that match selected user
@@ -246,7 +247,7 @@ else
             statusMessage = $"Error: {UserName} has already been added {meeting!.Name}.";
             return;
         }
-        
+
         statusMessage = "";
         memberAdded = true;
     }
@@ -328,9 +329,19 @@ else
 
         if (!statusMessage!.Contains("Error"))
         {
+            //Create roles for meeting invitees
+            if (meeting!.Members is not null)
+            {
+                foreach (var member in meeting!.Members)
+                {
+                    var user = AppDb.Users.FirstOrDefault(u => u.Id == member.UserId);
+                    await CreateRole(user!, "Invitee" + meeting.Id.ToString());
+                }
+            }
+
             //Add the meeting to the DB to get the meeting ID
             await context.SaveChangesAsync();
-            await CreateRole(applicationUser!);
+            await CreateRole(applicationUser!, "Creator" + meeting!.Id.ToString());
             ClaimRoom();
             NavigationManager.NavigateTo("Account/Meetings");
         }

@@ -1,8 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.ComponentModel.DataAnnotations;
-
-namespace PennStateSoft.Data.Models
+﻿namespace PennStateSoft.Data.Models
 {
     public class Complaint
     {
@@ -13,6 +9,5 @@ namespace PennStateSoft.Data.Models
         public DateTime? Closed { get; set; }
         public byte[]? Description { get; set; }
         public List<ComplaintReply>? ComplaintReplies { get; set; }
-
     }
 }

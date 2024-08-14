@@ -1,0 +1,155 @@
+﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
+@inject NavigationManager NavigationManager
+
+<h3>Edit Complaint</h3>
+<StatusMessage Message="@message" />
+<hr />
+
+@if (Complaint is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="w-100 col-md-4">
+            <EditForm method="post" Model="Complaint" OnValidSubmit="UpdateComplaint" FormName="edit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Complaint.Id" value="@Complaint.Id" />
+                <div class="mb-3">
+                    <label for="Username" class="form-label">Username:</label>
+                    <InputText id="username" @bind-Value="@Complaint.Username" class="form-control" disabled />
+                    <ValidationMessage For="() => Complaint.Username" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="subject" class="form-label">Subject:</label>
+                    <InputText id="subject" @bind-Value="@Complaint.Subject" class="form-control" />
+                    <ValidationMessage For="() => Complaint.Subject" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="datecreated" class="form-label">Created:</label>
+                    <InputDate id="datecreated" @bind-Value="@Complaint.Created" class="form-control" disabled />
+                    <ValidationMessage For="() => Complaint.Created" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="dateclosed" class="form-label" hidden>Closed:</label>
+                    <InputDate id="dateclosed" @bind-Value="@Complaint.Closed" class="form-control" hidden disabled />
+                    <ValidationMessage For="() => Complaint.Closed" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputTextArea id="description" @bind-Value="@Description" class="form-control text-wrap"
+                                   rows="@uIHelper.Rows" oninput="uIHelper.CalculateSize(Description)" />
+                    <ValidationMessage For="() => Complaint.Description" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a class="btn btn-secondary ms-2" href="Account/Manage/Complaints">
+                    Cancel
+                </a>
+            </EditForm>
+        </div>
+    </div>
+
+}
+@code 
+{
+    private string? message;
+
+    [CascadingParameter]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Complaint? Complaint { get; set; }
+
+    [SupplyParameterFromForm]
+    private string? Username { get; set; } = "";
+
+    [SupplyParameterFromForm]
+    private string? Description { get; set; }
+
+    protected UIHelper uIHelper = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        Complaint = await context.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Complaint is null)
+        {
+            try
+            {
+                NavigationManager.NavigateTo("Account/NotFound");
+            }
+            catch (NavigationException ex)
+            {
+                var source = ex.Source;
+            }
+        }
+        else
+        {
+            if (Complaint.Description is not null && Description is null)
+            {
+                Description = @Encoding.ASCII.GetString(Complaint.Description);
+            }
+
+            uIHelper.CalculateSize(Description!);
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateComplaint()
+    {
+        if (Complaint?.Subject is null || Complaint.Subject.Length < 1)
+        {
+            message = $"Error: {string.Join(", ", "Subject is required.")}";
+            return;
+        }
+        else if (Complaint.Subject.Length < 3)
+        {
+            message = $"Error: {string.Join(", ", "Subject should be at least 3 characters long.")}";
+            return;
+        }
+        if (Description is null || Description.Length < 1)
+        {
+            message = $"Error: {string.Join(", ", "Description is required.")}";
+            return;
+        }
+        else if (Description.Length < 8)
+        {
+            message = $"Error: {string.Join(", ", "Description is too short.")}";
+            return;
+        }
+
+        Complaint.Description = Encoding.ASCII.GetBytes(Description);
+
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        
+        context.Attach(Complaint!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ComplaintExists(Complaint!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/account/manage/complaints");
+    }
+
+    bool ComplaintExists(int id)
+    {
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        return context.Complaint.Any(e => e.Id == id);
+    }
+}  

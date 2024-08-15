@@ -225,8 +225,15 @@ else
                     var fromTimeTicks = FromTime.Ticks;
                     var toTimeTicks = ToTime.Ticks;
 
-                    meetingList = meetings.Where(m => (m.Time.Ticks >= fromTimeTicks && m.Time.Ticks <= beforeMidNightTicks)
+                    if (toTimeTicks - fromTimeTicks >= 0)
+                    {
+                        meetingList = meetings.Where(m => m.Time.Ticks >= fromTimeTicks && m.Time.Ticks <= toTimeTicks).ToList();
+                    }
+                    else
+                    {
+                        meetingList = meetings.Where(m => (m.Time.Ticks >= fromTimeTicks && m.Time.Ticks <= beforeMidNightTicks)
                     || (m.Time.Ticks >= fromMidnightTicks && m.Time.Ticks <= toTimeTicks)).ToList();
+                    }
                     break;
             }
         }

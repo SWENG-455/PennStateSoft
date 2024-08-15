@@ -35,13 +35,25 @@ else
     <AuthorizeView Roles="Admin">
         <div class="container mb-5">
             <div class="row">
-                <InputText typeof="search" @bind-Value="filteredSearch" class="form-control" style="justify-content:center; width:50%" />
+                @if (filter != "Time")
+                {
+                    <InputText typeof="search" @bind-Value="filteredSearch" class="form-control" style="justify-content:center; width:50%;"/>
+                }
                 <InputSelect id="filter" @bind-Value="filter" class="form-select ms-1" style="width:10%;">
                     @foreach (var filtr in filters)
                     {
                         <option value="@filtr">@filtr</option>
                     }
                 </InputSelect>
+                @if (filter == "Time")
+                {
+                    <label for="time" class="form-label ms-2" style="justify-content:center; width:5%;">From:</label>
+                    <InputDate Type="InputDateType.Time" id="time" @bind-Value="@FromTime" class="form-control"
+                               style="justify-content:center; width:15%;" />
+                    <label for="time" class="form-label ms-2" style="justify-content:center; width:4%;">To:</label>
+                    <InputDate Type="InputDateType.Time" id="time" @bind-Value="@ToTime" class="form-control"
+                               style="justify-content:center; width:15%;" />
+                }
                 <button type="submit" class="btn-sm ms-1" style="width:8%;" @onclick="@(()=>SetGridItemsProvider(meetings!))">Search</button>
             </div>
         </div>
@@ -124,7 +136,8 @@ else
     private string? filter { get; set; } = "";
     [SupplyParameterFromForm]
     private string filteredSearch { get; set; } = "";
-
+    private TimeOnly FromTime { get; set; }
+    private TimeOnly ToTime { get; set; }
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -205,7 +218,15 @@ else
                     }
                     break;
                 case "Time":
-                    meetingList = meetings.Where(m => m.Time.ToString() == filter || (m.Time.AddHours(m.Duration).ToString().CompareTo(filteredSearch) < 0)).ToList();
+                    var midNight = new TimeOnly(0, 0, 0);
+                    var minBeforeMidnight = midNight.AddMinutes(-1);
+                    var beforeMidNightTicks = minBeforeMidnight.Ticks;
+                    var fromMidnightTicks = midNight.Ticks;
+                    var fromTimeTicks = FromTime.Ticks;
+                    var toTimeTicks = ToTime.Ticks;
+
+                    meetingList = meetings.Where(m => (m.Time.Ticks >= fromTimeTicks && m.Time.Ticks <= beforeMidNightTicks)
+                    || (m.Time.Ticks >= fromMidnightTicks && m.Time.Ticks <= toTimeTicks)).ToList();
                     break;
             }
         }

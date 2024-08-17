@@ -55,7 +55,8 @@ h1 {
 .card {
     width: 100%;
     max-width: 400px;
-    background-color: #f7f7f7;
+    background-color: #ffffff;
+    border:hidden;
     padding: 5px;
     height: contain;
 }

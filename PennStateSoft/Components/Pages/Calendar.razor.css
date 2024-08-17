@@ -1,0 +1,69 @@
+﻿.shadow-effect {
+    transition: 0.3s
+}
+
+.shadow-effect:hover {
+    -webkit-box-shadow: 0px 4px 15px -6px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 4px 15px -6px rgba(0,0,0,0.75);
+    box-shadow: 0px 4px 15px -6px rgba(0,0,0,0.75);
+ }
+.calendar {
+    margin: 7px;
+    width: 100%;
+    text-align:center;
+}
+
+.calendar .prev_day {
+    text-align: center;
+    padding: 3px;
+    border-radius: 4px;
+    background-color: #fafafa;
+    color: darkgrey;
+}
+
+.calendar .day {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    padding: 3px;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    cursor:pointer;
+
+}
+.calendar .day.header {
+    font-weight: bold;
+    background-color: transparent;
+
+}
+.calendar .day.today {
+    background-image: linear-gradient(#186dff, #183369);
+    color: white;
+
+}
+.calendar .day.selected {
+    background-image: linear-gradient(#79a3eb, #0242c3);
+    color: white;
+
+}
+.calendar td {
+    padding: 3px;
+}
+.card2 .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-top: 5px;
+}
+
+ .card2 .header .month {
+     font-size: 1.25em;
+     font-weight: bold;
+
+ }
+.card2 .header .year {
+    font-size: 1em;
+    color: #666;
+
+}

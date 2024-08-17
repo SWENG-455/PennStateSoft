@@ -1,0 +1,105 @@
+﻿
+<div class="container ms-3">
+    <div class="row header">
+        @Month @Year
+    </div>
+</div>
+<table class="calendar">
+    <thead>
+        <tr>
+            <td>Sun</td>
+            <td>Mon</td>
+            <td>Tue</td>
+            <td>Wed</td>
+            <td>Thu</td>
+            <td>Fri</td>
+            <td>Sat</td>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int r = 0; r < CalendarMonthRows; r++)
+        {
+            <tr>
+                @foreach (var cell in CalendarDays.Skip(r * 7).Take(7))
+                {
+                    <td>@DayTemplate(cell)</td>
+                }
+            </tr>
+        }
+        
+    </tbody>
+</table>
+
+
+@code {
+    [Parameter]
+    public RenderFragment<CalendarDay> DayTemplate { get; set; }
+
+    [Parameter]
+    public string? Month { get; set; }
+
+    [Parameter]
+    public string? Year { get; set; }
+
+    private List<CalendarDay>? CalendarDays = new List<CalendarDay>();
+    public DateOnly? DateToday = DateOnly.FromDateTime(DateTime.Now);
+    public string? Date = DateOnly.FromDateTime(DateTime.Now).ToLongDateString();
+    public string? date;
+    int CalendarMonthRows;
+
+    protected override void OnInitialized()
+    {
+        var index = Date.IndexOf(',') + 1;
+        var length = Date.LastIndexOf(',');
+        date = Date.Substring(length - 2, 2);
+        Month = Date.Substring(index, length - index - 3);
+        Year = Date.Substring(length + 1);
+        UpdateCalendar();
+    }
+
+    private void UpdateCalendar()
+    {
+        CalendarDays = new List<CalendarDay>();
+        var firstDateOfMonth = new DateTime(DateToday!.Value.Year, DateToday.Value.Month, 1);
+        var dayOfWeek = (int)firstDateOfMonth.DayOfWeek;
+        int numOfDaysNotInThisMonth = 0;
+
+        if (dayOfWeek == 7)
+        {
+            numOfDaysNotInThisMonth = 0;
+        }
+        else
+        {
+            numOfDaysNotInThisMonth = dayOfWeek;
+        }
+
+        for (int i = 0; i < numOfDaysNotInThisMonth; i++)
+        {
+            CalendarDays.Add(new CalendarDay
+            {
+                Day = 0,
+                IsInThisMonth = false
+            });
+        }
+
+        int daysInThisMonth = DateTime.DaysInMonth(DateToday!.Value.Year, DateToday.Value.Month);
+
+        for (int i = 0; i < daysInThisMonth; i++)
+        {
+            CalendarDays.Add(new CalendarDay
+            {
+                Day = i + 1,
+                IsInThisMonth = true,
+                Date = new DateTime(DateToday!.Value.Year, DateToday.Value.Month, i + 1)
+            });
+        }
+
+        //Get the number of rows in the Calendar month
+        CalendarMonthRows = CalendarDays.Count / 7;
+
+        if (CalendarDays.Count % 7 != 0)
+        {
+            CalendarMonthRows += 1;
+        }
+    }
+}

@@ -71,7 +71,7 @@
 }
 
 .nav-item {
-    font-size: 1.1rem;
+    font-size: 1.0rem;
     padding-bottom: 0.5rem;
 }
 
@@ -92,7 +92,7 @@
         display: flex;
         align-items: center;
         line-height: 3rem;
-        width: 80%;
+        width: 100%;
     }
 
     .nav-item ::deep a.active {

@@ -1,6 +1,10 @@
 ﻿@page "/"
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
+@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
@@ -53,57 +57,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div class ="grid-item1 secondItem">
+                        <div class="grid-item1 secondItem">
                             <div class="grid-container">
                                 <div class="card2">
-                                    <div class="header">
-                                        <div class="month">August</div>
-                                        <div class="year">2024</div>
-                                    </div>
-                                    <div class="calendar">
-                                        <div class="day header">Sun</div>
-                                        <div class="day header">Mon</div>
-                                        <div class="day header">Tue</div>
-                                        <div class="day header">Wed</div>
-                                        <div class="day header">Thu</div>
-                                        <div class="day header">Fri</div>
-                                        <div class="day header">Sat</div>
-                                        <div class="prev_day">28</div>
-                                        <div class="prev_day">29</div>
-                                        <div class="prev_day">30</div>
-                                        <div class="prev_day">31</div>
-                                        <div class="day">1</div>
-                                        <div class="day">2</div>
-                                        <div class="day">3</div>
-                                        <div class="day">4</div>
-                                        <div class="day">5</div>
-                                        <div class="day">6</div>
-                                        <div class="day">7</div>
-                                        <div class="day">8</div>
-                                        <div class="day today">9</div>
-                                        <div class="day">10</div>
-                                        <div class="day">11</div>
-                                        <div class="day">12</div>
-                                        <div class="day">13</div>
-                                        <div class="day">14</div>
-                                        <div class="day">15</div>
-                                        <div class="day">16</div>
-                                        <div class="day">17</div>
-                                        <div class="day">18</div>
-                                        <div class="day">19</div>
-                                        <div class="day">20</div>
-                                        <div class="day">21</div>
-                                        <div class="day">22</div>
-                                        <div class="day">23</div>
-                                        <div class="day">24</div>
-                                        <div class="day">25</div>
-                                        <div class="day">26</div>
-                                        <div class="day">27</div>
-                                        <div class="day">28</div>
-                                        <div class="day">29</div>
-                                        <div class="day">30</div>
-                                        <div class="day">31</div>
-                                    </div>
+                                    <Calendar>
+                                        <DayTemplate Context="day">
+                                            @{
+                                                string currentDay = day.Date == DateTime.Now.Date ? "today" : "";
+                                                string selectedDay = SelectedDay == day.Day ? "selected" : "";
+                                            }
+                                            @if (day.IsInThisMonth)
+                                            {
+                                                <div class="day shadow-effect @selectedDay @currentDay" @onclick="@(()=>OnDayClicked(day.Day))">@day.Day</div>
+                                            }
+                                        </DayTemplate>
+                                    </Calendar>
                                 </div>
                             </div>
                         </div>
@@ -146,9 +114,16 @@
     </body>
 </AuthorizeView>
 
-@code {
+@code 
+{
     private List<Meeting>? upcomingMeetings;
     private List<Room>? Rooms { get; set; }
+    private List<IdentityRole>? Roles { get; set; }
+    private ClaimsPrincipal? claimsPrincipal;
+    private bool IsAdmin = false;
+    private int SelectedDay = 0;
+    [Parameter]
+    public string? Month { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -160,16 +135,70 @@
         using var context = MeetingDbFactory.CreateDbContext();
         var allMeetings = await context.Meeting.ToListAsync();
         Rooms = await context.Room.ToListAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        claimsPrincipal = authState.User;
 
-        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+        if (claimsPrincipal.Identity.IsAuthenticated)
+        {
+            var user = await UserManager.GetUserAsync(claimsPrincipal);
+            using var AppContext = await AppDbFactory.CreateDbContextAsync();
+            var userRoles = AppContext.UserRoles.Where(ur => ur.UserId == user!.Id);
+            Roles = new List<IdentityRole>();
+            upcomingMeetings = new List<Meeting>();
 
-        upcomingMeetings = allMeetings
-            .Where(m => m.Date >= today)
-            .OrderBy(m => m.Date)
-            .ThenBy(m => m.Time)
-            .ToList();
+            foreach (var userRole in userRoles)
+            {
+                var role = await AppContext.Roles.FirstOrDefaultAsync(r => r.Id == userRole.RoleId);
+                if (!role.Name.Contains("Client"))
+                {
+                    Roles.Add(role);
+                }
+            }
+            foreach (var role in Roles)
+            {
+                if (role.Name.Equals("Admin"))
+                {
+                    IsAdmin = true;
+                    break;
+                }
+                else
+                {
+                    //Get meetings where user is either a creator or an invitee
+                    int meetingId;
+                    Int32.TryParse(role.Name.Substring(role.Name.Length - 2), out meetingId);
+                    var meeting = allMeetings.FirstOrDefault(m => m.Id == meetingId);
+
+                    if (meeting is not null)
+                    {
+                        upcomingMeetings.Add(meeting);
+                    }
+                }
+            }
+
+            DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+            if (IsAdmin)
+            {
+                upcomingMeetings = allMeetings
+                .Where(m => m.Date >= today)
+                .OrderBy(m => m.Date)
+                .ThenBy(m => m.Time)
+                .ToList();
+            }
+            else
+            {
+                upcomingMeetings = upcomingMeetings
+                .Where(m => m.Date >= today)
+                .OrderBy(m => m.Date)
+                .ThenBy(m => m.Time)
+                .ToList();
+            }
+        }
+
     }
-
+    private void OnDayClicked(int index)
+    {
+        SelectedDay = index;
+    }
     private Room GetMeetingRoom(int roomId)
     {
         return Rooms!.FirstOrDefault(r => r.Id == roomId)!;

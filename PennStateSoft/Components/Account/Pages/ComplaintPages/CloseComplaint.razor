@@ -124,7 +124,6 @@ else
                 result = await RoleManager.DeleteAsync(Role!);
             }
         }
-
     }
     private async Task CreateNotification()
     {
@@ -140,18 +139,34 @@ else
 
         await AddNotification();
     }
-    public async Task AddNotification()
+    private async Task AddNotification()
     {
+        //Add notifications to alert admins of the closure of this complaint
         using var context = NotificationsDbFactory.CreateDbContext();
         context.Notification.Add(notification!);
         await context.SaveChangesAsync();
     }
-    public async Task DeleteComplaint()
+    private async Task DeleteNotifications()
+    {
+        //Delete the notifications created by Admin replies to this complaint
+        using var context = NotificationsDbFactory.CreateDbContext();
+        var notifications = context.Notification.Where(n => n.ReferenceID == complaint.Id && n.Author != user.UserName);
+        if (notifications is not null && notifications.Count() > 0)
+        {
+            foreach (var notification in notifications)
+            {
+                context.Notification.Remove(notification);
+                await context.SaveChangesAsync();
+            }
+        }
+    }
+    private async Task DeleteComplaint()
     {
         using var context = ComplaintsDbFactory.CreateDbContext();
         context.Complaint.Remove(complaint!);
         await CreateNotification();
         await RemoveRoles();
+        await  DeleteNotifications();
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/Account/Complaints");
     }

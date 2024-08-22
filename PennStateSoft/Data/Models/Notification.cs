@@ -10,5 +10,6 @@
         public string? Link { get; set; }
         public bool IsAuthor { get; set; }
         public bool IsReferenceOwner { get; set; }
+        public DateTime Created { get; set; } = DateTime.Now;
     }
 }

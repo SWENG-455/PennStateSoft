@@ -33,6 +33,27 @@ else
                         </strong>
                         @notification.Message
                         <span><a href="@(notification.Link)">@notification.LinkTo</a></span>
+                        @{
+                            TimeSinceCreated = DateTime.Now - notification.Created;
+                            if (TimeSinceCreated.Days > 0)
+                            {
+                                NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
+                            }
+                            else if (TimeSinceCreated.Hours > 0)
+                            {
+                                NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
+                            }
+                            else if (TimeSinceCreated.Minutes > 0)
+                            {
+                                NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
+                            }
+                            else
+                            {
+                                NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
+                            }
+                        }
+                        @NotificationDuration
+
                         <button type="submit" class="btn btn-danger ms-3" disabled="@(notification is null)"
                                 @onclick=@(()=>DeleteNotification(notification!))>
                             X
@@ -65,6 +86,11 @@ else
     List<IdentityRole>? MeetingCreatorRoles;
     List<IdentityRole>? InviteeRoles;
     IdentityRole? ComplaintAuthor, ComplaintReplyAuthor;
+
+    [Parameter]
+    public TimeSpan TimeSinceCreated { get; set; }
+
+    private string? NotificationDuration;
 
     [Parameter]
     public EventCallback<SaveChangesEventArgs> OnDeleteCallback { get; set; }

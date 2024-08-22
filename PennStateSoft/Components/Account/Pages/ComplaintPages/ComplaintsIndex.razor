@@ -76,7 +76,7 @@
             response = context.Complaint;
         }
 
-        var rows = response.AsEnumerable<Complaint>().ToList<Complaint>();
+        var rows = response.AsEnumerable<Complaint>().OrderByDescending(c => c.Created).ToList<Complaint>();
         var result = GridItemsProviderResult.From<Complaint>(items: rows, totalItemCount:rows.Count);
         complaintProvider = req => ValueTask.FromResult(result);
     }

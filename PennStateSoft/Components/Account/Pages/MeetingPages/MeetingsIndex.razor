@@ -157,6 +157,7 @@ else
 
             using var context = MeetingDbFactory.CreateDbContext();
             meetings = context.Meeting.Where(m => !m.Equals(null)).AsEnumerable<Meeting>().ToList();
+            meetings = meetings.OrderByDescending(m => m.Id).ToList();
             using var RoomContext = MeetingDbFactory.CreateDbContext();
             Rooms = RoomContext.Room.AsEnumerable<Room>().ToList();
 

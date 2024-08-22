@@ -25,45 +25,14 @@ else
     {
         <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
             <TemplateColumn Context="notification">
-                @if (notification.IsReferenceOwner && notification.Author != UserName || IsAdmin && notification.Author != UserName)
-                {
-                    <div class="mt-2 mb-3">
-                        <strong>
-                            @notification.Author
-                        </strong>
-                        @notification.Message
-                        <span><a href="@(notification.Link)">@notification.LinkTo</a></span>
-                        @{
-                            TimeSinceCreated = DateTime.Now - notification.Created;
-                            if (TimeSinceCreated.Days > 0)
-                            {
-                                NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
-                            }
-                            else if (TimeSinceCreated.Hours > 0)
-                            {
-                                NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
-                            }
-                            else if (TimeSinceCreated.Minutes > 0)
-                            {
-                                NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
-                            }
-                            else
-                            {
-                                NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
-                            }
-                        }
-                        @NotificationDuration
-
-                        <button type="submit" class="btn btn-danger ms-3" disabled="@(notification is null)"
-                                @onclick=@(()=>DeleteNotification(notification!))>
-                            X
-                        </button>
-                    </div>
-                }
+                <CascadingValue Value="notification">
+                    <CascadingValue Value="notifications">
+                        <NotificationDetails OnDeleteCallback="UpdateGridProvider" />
+                    </CascadingValue>
+                </CascadingValue>
             </TemplateColumn>
         </QuickGrid>
-    }
-    
+    }  
 }
 
 @code {
@@ -72,12 +41,8 @@ else
 
     private string? UserName;
     private bool IsAdmin = false;
-    private bool IsMeetingCreator = false;
-    private bool IsInvited = false;
     private bool IsComplaintAuthor = false;
-    private bool IsComplaintReplyAuthor = false;
     private ClaimsPrincipal? ClaimsPrincipal;
-    private Complaint? complaint;
     private ComplaintReply? complaintReply;
     private ApplicationUser? User;
     List<IdentityRole>? Roles;
@@ -86,14 +51,6 @@ else
     List<IdentityRole>? MeetingCreatorRoles;
     List<IdentityRole>? InviteeRoles;
     IdentityRole? ComplaintAuthor, ComplaintReplyAuthor;
-
-    [Parameter]
-    public TimeSpan TimeSinceCreated { get; set; }
-
-    private string? NotificationDuration;
-
-    [Parameter]
-    public EventCallback<SaveChangesEventArgs> OnDeleteCallback { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,10 +100,11 @@ else
                     Contains("ComplaintReplyAuthor" + notification.ReferenceID + "_")).ToList();
                 await SetUserState(notification);
             }
+            notifications = notifications.Where(n => n.IsAuthor == false && n.Author != User.UserName && (n.IsReferenceOwner == true || IsAdmin)).ToList();
+            notifications = notifications.OrderByDescending(n => n.Created).ToList();
+            var Result = GridItemsProviderResult.From<Notification>(items: notifications, totalItemCount: notifications.Count);
+            NotificationsProvider = request => ValueTask.FromResult(Result);
         }
-        notifications = notifications.Where(n => n.IsAuthor == false).ToList();
-        var Result = GridItemsProviderResult.From<Notification>(items: notifications, totalItemCount: notifications.Count);
-        NotificationsProvider = request => ValueTask.FromResult(Result);
     }
 
     private async Task SetUserState(Notification notification)
@@ -243,17 +201,14 @@ else
         return context.Notification.Any(e => e.Id == id);
     }
 
-    public async Task DeleteNotification(Notification notification)
+    private void UpdateGridProvider()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Notification.Remove(notification!);
-        await context.SaveChangesAsync();
-        var Notifications = context.Notification.ToList<Notification>();
-        await OnDeleteCallback.InvokeAsync();
+        UpdateGridProvider(notifications!);
     }
-    private void Delete()
+    private void UpdateGridProvider(List<Notification> notifications)
     {
-        
+        var result = GridItemsProviderResult.From<Notification>(items: notifications!, totalItemCount: notifications!.Count);
+        NotificationsProvider = req => ValueTask.FromResult(result);
     }
 }
 

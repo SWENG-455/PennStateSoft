@@ -1,0 +1,73 @@
+﻿@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@if (notification is null)
+{
+    <p>loading...</p>
+}
+else
+{
+    <div class="mt-2 mb-3">
+        <strong>
+            @notification.Author
+        </strong>
+        @notification.Message
+        <span><a href="@(notification.Link)">@notification.LinkTo</a></span>
+        @{
+            TimeSinceCreated = DateTime.Now - notification.Created;
+            if (TimeSinceCreated.Days > 0)
+            {
+                NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
+            }
+            else if (TimeSinceCreated.Hours > 0)
+            {
+                NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
+            }
+            else if (TimeSinceCreated.Minutes > 0)
+            {
+                NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
+            }
+            else
+            {
+                NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
+            }
+        }
+        @NotificationDuration
+
+        <button type="submit" class="btn btn-danger ms-3" disabled="@(notification is null)"
+                @onclick="DeleteNotification">
+            X
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnDeleteCallback { get; set; }
+
+    [CascadingParameter]
+    public Notification notification { get; set; } = default!;
+
+    [CascadingParameter]
+    public List<Notification> notifications { get; set; } = default!;
+
+    private TimeSpan TimeSinceCreated;
+
+    private string? NotificationDuration;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (notifications is null || notification is null)
+        {
+            NavigationManager.NavigateTo("NotFound");
+        }
+    }
+    public async Task DeleteNotification()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Notification.Remove(notification!);
+        await context.SaveChangesAsync();
+        notifications.Remove(notification);
+        await OnDeleteCallback.InvokeAsync();
+    }
+}

@@ -1,7 +1,14 @@
 ﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
+@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> NotificationsDbFactory
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IRoleStore<IdentityRole> RoleStore
+@inject IRoleValidator<IdentityRole> RoleValidator
+@inject IEnumerable<RoleValidator<IdentityRole>> RoleValidators
+@inject ILogger<RoleManager<IdentityRole>> RoleLogger
+@inject IdentityErrorDescriber IdentityErrorDescriber
+@inject ILookupNormalizer KeyNormalizer
 
 @attribute [Authorize]
 <button id="reply" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
@@ -14,6 +21,8 @@
         {
             <EditForm method="post" Model="ComplaintReply" OnValidSubmit="OnSubmitClickedAsync" FormName="createreply" Enhance>
                 <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+
                 <InputTextArea id="replydescription" @bind-Value="ReplyDescription" class="form-control text-wrap"
                                rows="@uIHelper.Rows" @onchange="@(()=> uIHelper.CalculateSize(ReplyDescription))" autofocus>
                 </InputTextArea>
@@ -46,6 +55,7 @@
     public int Id { get; set; }
 
     private bool ReplyClicked = false;
+    private Notification? notification;
 
     [Parameter]
     public EventCallback<SaveChangesEventArgs> OnSaveNewReplyCallback { get; set; }
@@ -53,6 +63,10 @@
     private  ApplicationUser user = default!;
 
     private string? currentUrl;
+
+    private IEnumerable<IdentityError>? identityErrors;
+    private ApplicationRoleManager? RoleManager;
+    private IdentityRole? Role;
 
     protected override void OnInitialized()
     {
@@ -114,6 +128,45 @@
         await AddComplaintReply();
         ComplaintReply = new ComplaintReply();
     }
+    private async Task CreateRole(ApplicationUser authUser, string roleName)
+    {
+        //Create the Role
+        RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
+        Role = await RoleManager.FindByNameAsync(roleName).ConfigureAwait(false);
+
+        if (Role == null)
+        {
+            Role = new IdentityRole(roleName);
+            var roleResult = await RoleManager.CreateAsync(Role);
+        }
+        var result = await UserManager.AddToRoleAsync(authUser, Role.Name!);
+
+        //Check if UserRole was added successfully
+        if (!result.Succeeded)
+        {
+            identityErrors = result.Errors;
+            return;
+        }
+    }
+    private async Task CreateNotification()
+    {
+        notification = new Notification
+        {
+            ReferenceID = complaint.Id,
+                Author = user!.UserName,
+            Message = "replied to ",
+            Link = $"/Account/Complaints/Details?id={complaint.Id}",
+            LinkTo = $"{complaint.Subject}",
+        };
+
+        await AddNotification();
+    }
+    public async Task AddNotification()
+    {
+        using var context = NotificationsDbFactory.CreateDbContext();
+        context.Notification.Add(notification!);
+        await context.SaveChangesAsync();
+    }
 
     public async Task AddComplaintReply()
     {
@@ -121,6 +174,8 @@
         context.ComplaintReply.Add(ComplaintReply);
         context.Attach(complaint!).State = EntityState.Modified;
         await context.SaveChangesAsync();
+        await CreateRole(user!, "ComplaintReplyAuthor" + complaint.Id + "_" + ComplaintReply!.Id.ToString());
+        await CreateNotification();
         await OnCancelClicked();
         await OnSaveNewReplyCallback.InvokeAsync();
     }

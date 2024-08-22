@@ -1,4 +1,4 @@
-﻿@page "/Account/Manage/Complaints/Details"
+﻿@page "/Account/Complaints/Details"
 
 @inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
@@ -37,9 +37,9 @@
             </div>
             <div class="ms-3">
                 <AuthorizeView Roles="Client">
-                    <a href="@($"/account/manage/complaints/edit?id={complaint.Id}")" class="m-2 text-decoration-none">Edit</a> |
-                    <a class=" m-2 text-decoration-none" href="@($"account/manage/complaints/delete?id={complaint.Id}")">Close</a> |
-                    <a href="@($"/account/manage/complaints")" class="text-decoration-none">Back</a>
+                    <a href="@($"/Account/Complaints/Edit?id={complaint.Id}")" class="m-2 text-decoration-none">Edit</a> |
+                    <a class=" m-2 text-decoration-none" href="@($"Account/Complaints/Delete?id={complaint.Id}")">Close</a> |
+                    <a href="@($"/Account/Complaints")" class="text-decoration-none">Back</a>
                 </AuthorizeView>
             </div>
 
@@ -80,7 +80,7 @@
     private string? userName;
     private ApplicationUser? User;
     private bool IsAdmin = false;
-
+    private Notification? notification;
     protected override async Task OnInitializedAsync()
     {
         using var context = ComplaintsDbFactory.CreateDbContext();
@@ -106,11 +106,11 @@
     }
     private void OnReplied()
     {
-        //Add processing for the OnSaveNewReplyCallback.Updates to the specific complaint alert this complaint with the Callback.
-        //Examples may include adding notifications for each new reply
+       //Additional processing can be added here for Complaint Details Specific logic
+
     }
     private void OnBackClicked()
     {
-        NavigationManager.NavigateTo("/account/manage/complaints");
+        NavigationManager.NavigateTo("/Account/Complaints");
     }
 }

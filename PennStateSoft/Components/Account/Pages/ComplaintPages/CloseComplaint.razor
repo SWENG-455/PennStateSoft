@@ -1,9 +1,17 @@
-﻿@page "/Account/Manage/Complaints/Delete"
+﻿@page "/Account/Complaints/Delete"
 
 @inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
+@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> NotificationsDbFactory
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
+@inject IRoleStore<IdentityRole> RoleStore
+@inject IRoleValidator<IdentityRole> RoleValidator
+@inject IEnumerable<RoleValidator<IdentityRole>> RoleValidators
+@inject ILogger<RoleManager<IdentityRole>> RoleLogger
+@inject IdentityErrorDescriber IdentityErrorDescriber
+@inject ILookupNormalizer KeyNormalizer
+
 
 @attribute [Authorize(Roles = "Client")]
 
@@ -39,7 +47,7 @@
             </div>
             <EditForm method="post" Model="complaint" OnValidSubmit="DeleteComplaint" FormName="delete" Enhance>
                 <button type="submit" class="btn btn-danger ms-3" disabled="@(complaint is null)">Resolve</button>
-                <a class="btn btn-secondary ms-2" href="Account/Manage/Complaints">
+                <a class="btn btn-secondary ms-2" href="Account/Complaints">
                     Cancel
                 </a>
             </EditForm>
@@ -67,6 +75,9 @@ else
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
+    private ApplicationRoleManager? RoleManager;
+    private IdentityRole? Role;
+    private Notification? notification;
     protected override async Task OnInitializedAsync()
     {
         using var context = ComplaintsDbFactory.CreateDbContext();
@@ -94,12 +105,54 @@ else
 
         uIHelper.CalculateSize(@Encoding.ASCII.GetString(complaint!.Description!));
     }
+    private async Task RemoveRoles()
+    {
+        RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
+        Role = await RoleManager.FindByNameAsync("ComplaintAuthor" + complaint!.Id).ConfigureAwait(false);
+        //var Users = UserManager.GetUsersInRoleAsync("MeetingCreator" + meeting.Id).Result;
 
+        var result = await RoleManager.DeleteAsync(Role!);
+
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        var complaintReplies = context.ComplaintReply.Where(cr => cr.ComplaintId == complaint.Id).ToList();
+
+        if (complaintReplies is not null)
+        {
+            foreach (var complaintReply in complaintReplies)
+            {
+                Role = await RoleManager.FindByNameAsync("ComplaintReplyAuthor" + complaint!.Id + "_" + complaintReply.Id).ConfigureAwait(false);
+                result = await RoleManager.DeleteAsync(Role!);
+            }
+        }
+
+    }
+    private async Task CreateNotification()
+    {
+        notification = new Notification
+            {
+                ReferenceID = complaint.Id,
+                Author = user!.UserName,
+                Message = "closed the complaint, ",
+                Link = $"/Account/Complaints/Details?id={complaint.Id}",
+                LinkTo = $"{complaint.Subject}",
+                IsAuthor = true
+            };
+
+        await AddNotification();
+    }
+    public async Task AddNotification()
+    {
+        using var context = NotificationsDbFactory.CreateDbContext();
+        context.Notification.Add(notification!);
+        await context.SaveChangesAsync();
+    }
     public async Task DeleteComplaint()
     {
         using var context = ComplaintsDbFactory.CreateDbContext();
         context.Complaint.Remove(complaint!);
+        await CreateNotification();
+        await RemoveRoles();
         await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/account/manage/complaints");
+        NavigationManager.NavigateTo("/Account/Complaints");
     }
 }

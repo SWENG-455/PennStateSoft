@@ -217,7 +217,6 @@ else
             //Get the first user in the dropdown if user wasn't selected
             SelectedUser = Users!.First();
             UserName = SelectedUser.UserName!;
-            await CreateRole(SelectedUser, "Invitee" + meeting!.Id);
         }
 
         //Get the meeting members that match selected user
@@ -329,19 +328,19 @@ else
 
         if (!statusMessage!.Contains("Error"))
         {
-            //Create roles for meeting invitees
-            if (meeting!.Members is not null)
-            {
-                foreach (var member in meeting!.Members)
-                {
-                    var user = AppDb.Users.FirstOrDefault(u => u.Id == member.UserId);
-                    await CreateRole(user!, "Invitee" + meeting.Id.ToString());
-                }
-            }
-
             //Add the meeting to the DB to get the meeting ID
             await context.SaveChangesAsync();
-            await CreateRole(applicationUser!, "Creator" + meeting!.Id.ToString());
+            await CreateRole(applicationUser!, "MeetingCreator" + meeting!.Id.ToString());
+
+            //Create roles for meeting invitees
+            if (meeting.Members is not null)
+            {
+                foreach (var member in meeting.Members)
+                {
+                    var user = await AppDb.Users.FirstOrDefaultAsync(u => u.Id == member.UserId);
+                    await CreateRole(user!, "Invitee" + meeting!.Id.ToString());
+                }
+            }
             ClaimRoom();
             NavigationManager.NavigateTo("Account/Meetings");
         }

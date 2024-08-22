@@ -1,21 +1,21 @@
-﻿@page "/Account/Manage/Complaints"
+﻿@page "/Account/Complaints"
 
 @inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
 
-
+@attribute [Authorize]
 <PageTitle>Complaints</PageTitle>
 
 <div class="header-container">
     <h3>Complaints</h3>
     <AuthorizeView Roles="Client">
         <div class="nav-item px-3">
-            <button class="btn-labeled btn-newMeeting">
-                <div class="btn-label"><i class="icon1"></i></div>
-                <NavLink style="text-decoration:none" href="Account/Manage/Complaints/Create">
-                    <p1>New Complaint</p1>
-                </NavLink>
+            <button class="btn btn-labeled btn-newMeeting" type="button"
+                    @onclick="OnMouseClicked">
+                <i class="icon1" ></i>
             </button>
         </div>
     </AuthorizeView>
@@ -25,7 +25,7 @@
     <QuickGrid ItemsProvider="@complaintProvider" Class="table">
         <TemplateColumn Context="complaint">
             <div class="mt-3">
-                <a class="text-nowrap" href="@($"account/manage/complaints/details?id={complaint.Id}")">@(complaint.Subject)</a>
+                <a class="text-nowrap" href="@($"Account/Complaints/Details?id={complaint.Id}")">@(complaint.Subject)</a>
             </div>
             <div class="mt-2 mb-3">
                 @Encoding.ASCII.GetString(complaint.Description!)
@@ -53,6 +53,11 @@
 
     private ApplicationUser user = default!;
 
+    [Parameter]
+    public string NewComplaint { get; set; } = "New Complaint";
+
+    private bool showDescription = false;
+
     private ClaimsPrincipal? claimsPrincipal { get; set; }
 
     [CascadingParameter]
@@ -70,9 +75,21 @@
         if (await UserManager.IsInRoleAsync(user, "Admin")){
             response = context.Complaint;
         }
-       
+
         var rows = response.AsEnumerable<Complaint>().ToList<Complaint>();
         var result = GridItemsProviderResult.From<Complaint>(items: rows, totalItemCount:rows.Count);
         complaintProvider = req => ValueTask.FromResult(result);
+    }
+    private void OnMouseOver()
+    {
+        showDescription = true;
+    }
+    private void OnMouseOut()
+    {
+        showDescription = false;
+    }
+    private void OnMouseClicked()
+    {
+        NavigationManager.NavigateTo("/Account/Complaints/Create");
     }
 }

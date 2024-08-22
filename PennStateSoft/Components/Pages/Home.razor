@@ -46,14 +46,17 @@
                                             }
                                         </div>
                                     </div>
-                                    <div class="grid-item item2">
-                                        <NavLink style="text-decoration:none" href="Account/Meetings/Create">
-                                            <button class="btn-labeled btn-newMeeting">
-                                                <div class="btn-label"><i class="icon1"></i></div>
+                                    @if (!IsAdmin)
+                                    {
+                                        <div class="grid-item item2">
+                                            <NavLink style="text-decoration:none" href="Account/Meetings/Create">
+                                                <button class="btn-labeled btn-newMeeting">
+                                                    <div class="btn-label"><i class="icon1"></i></div>
                                                     <p2>Schedule a New Meeting</p2>
-                                            </button>
-                                        </NavLink>
-                                    </div>
+                                                </button>
+                                            </NavLink>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -84,27 +87,30 @@
                                         </p3>
                                         <div class="grid-container">
                                             <div class="grid-item2 itemButton1">
-                                                <b><a href="Account/Meetings" target="_blank">View all › </a></b>
+                                                <a href="/Account/Notifications">View all › </a>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="grid-item3 itemCard2">
-                                    <div class="card2">
-                                        <p3>
-                                            Complaints:
-                                        </p3>
-                                        <div class="grid-container">
-                                            <div class="grid-item2 itemButton1">
-                                                <NavLink style="text-decoration:none" href="Account/Manage/Complaints">
-                                                <button class="button4">
-                                                    <p1>File a Complaint</p1>
-                                                </button>
-                                                </NavLink>
+                                @if (!IsAdmin)
+                                {
+                                    <div class="grid-item3 itemCard2">
+                                        <div class="card2">
+                                            <p3>
+                                                Complaints:
+                                            </p3>
+                                            <div class="grid-container">
+                                                <div class="grid-item2 itemButton1">
+                                                    <NavLink style="text-decoration:none" href="Account/Complaints/Create">
+                                                        <button class="button4">
+                                                            <p1>File a Complaint</p1>
+                                                        </button>
+                                                    </NavLink>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                }
                             </div>
                         </div>
                     </div>

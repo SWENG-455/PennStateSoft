@@ -96,7 +96,7 @@ else
 
                 if (user is not null)
                 {
-                    IsCreator = await UserManager.IsInRoleAsync(user, "Creator" + meeting.Id);
+                    IsCreator = await UserManager.IsInRoleAsync(user, "MeetingCreator" + meeting.Id);
                     IsInvited = await UserManager.IsInRoleAsync(user, "Invitee" + meeting.Id);
                     IsAdmin = await UserManager.IsInRoleAsync(user, "Admin");
                 }

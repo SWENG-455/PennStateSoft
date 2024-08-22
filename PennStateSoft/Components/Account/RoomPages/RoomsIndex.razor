@@ -12,9 +12,9 @@
 
 
 <div class="nav-item px-3 ms-5" style="text-align:right; width:55%">
-    <NavLink style="text-decoration:none" href="Account/Rooms/Create">
-        New
-    </NavLink>
+    <button class="btn icon1" type="button"
+            style="text-align:justify;" @onclick="OnMouseClicked">
+    </button>
 </div>
 <div class="ms-5" style="width:55%;">
     <QuickGrid Class="table" ItemsProvider="@RoomProvider">
@@ -67,6 +67,10 @@
     private void OnViewClicked(int Id)
     {
         NavigationManager.NavigateTo($"Account/Rooms/Details?id={Id}");
+    }
+    private void OnMouseClicked()
+    {
+        NavigationManager.NavigateTo("Account/Rooms/Create");
     }
     private void OnDeleteClicked(int Id)
     {

@@ -16,11 +16,9 @@
     <h3>Meetings</h3>
     <AuthorizeView Roles="Client">
         <div class="nav-item px-3">
-            <button class="btn-labeled btn-newMeeting">
-                <div class="btn-label"><i class="icon1"></i></div>
-                <NavLink style="text-decoration:none" href="Account/Meetings/Create">
-                    <p1>New Meeting</p1>
-                </NavLink>
+            <button class="btn btn-labeled btn-newMeeting me-5" type="button"
+                    style="text-align:justify;" @onclick="OnMouseClicked">
+                <i class="icon1"></i>
             </button>
         </div>
     </AuthorizeView>
@@ -281,8 +279,9 @@ else
             //Get the meetings current user has created
             foreach (var role in roles!)
             {
-                if (role.Contains("Creator")){
-                    var ID = Int32.Parse(role.Substring(7));
+                if (role.Contains("MeetingCreator")){
+                    int ID;
+                    Int32.TryParse(role.Substring(14), out ID);
                     MeetingIds!.Add(ID);
 
                     var newMeeting = meetingList.FirstOrDefault(m => m.Id == ID);
@@ -317,6 +316,10 @@ else
             }
         }
         
+    }
+    private void OnMouseClicked()
+    {
+        NavigationManager.NavigateTo("Account/Meetings/Create");
     }
 
     private void OnViewClicked(int Id)

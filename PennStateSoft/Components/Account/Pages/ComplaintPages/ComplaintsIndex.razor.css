@@ -1,0 +1,84 @@
+﻿
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    padding-bottom: 25px;
+    padding-left: 5px;
+}
+
+    .header-container h3 {
+        margin: 0;
+    }
+
+
+.btn-label {
+    position: relative;
+    left: -6px;
+    border-radius: 0.25rem;
+    margin-top: -6px;
+    margin-bottom: -6.5px;
+    display: inline-block;
+    padding: 8px 12px 5px 12px;
+    background-color: #1b4ea3;
+}
+
+.btn-labeled {
+    display: flex;
+    align-items: center;
+    padding: 0.4rem 0.4rem;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    background-color: #2264d4;
+    cursor: pointer;
+    background-image: linear-gradient(#2264d4, #1b4ea3);
+}
+
+    .btn-labeled:focus,
+    .btn-labeled:hover {
+        background: rgb(0, 101, 255);
+        text-decoration: inherit;
+        transition-duration: 0s, 0.15s;
+        color: white;
+    }
+
+        .btn-labeled:hover .btn-label {
+            background-color: rgb(0, 83, 210);
+        }
+
+.btn {
+    margin-bottom: 40px;
+}
+
+.icon1 {
+    display: inline-block;
+    width: 2.0em;
+    height: 1.8em;
+    margin-top: -1px;
+    background-image: url("newComplaintIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+
+.btn-newMeeting a {
+    color: white;
+    text-decoration: none;
+}
+
+p1 {
+    color: white;
+}
+
+h3 {
+    font-weight: bold;
+    font-family: 'Tahoma';
+    background: linear-gradient(to bottom, #003366, #0073e6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}

@@ -8,8 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Components\Account\Pages\Manage\ComplaintPages\**" />
+    <Content Remove="Components\Account\Pages\Manage\ComplaintPages\**" />
+    <EmbeddedResource Remove="Components\Account\Pages\Manage\ComplaintPages\**" />
+    <None Remove="Components\Account\Pages\Manage\ComplaintPages\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="Components\Account\Pages\Manage\AdminLogin.razor" />
-    <Content Remove="Components\Account\Pages\Manage\ComplaintPages\ComplaintReplyPages\EditComplaintForm.razor" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,15 +26,15 @@
     <PackageReference Include="FluentEmail.Mailgun" Version="3.0.2" />
     <PackageReference Include="Microsoft.AspNet.Identity.Core" Version="2.2.4" />
     <PackageReference Include="Microsoft.AspNet.Identity.Owin" Version="2.2.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.7">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.4" />
     <PackageReference Include="RestSharp" Version="111.4.0" />
   </ItemGroup>
 
@@ -38,7 +44,6 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\AdminLogin.razor" />
-    <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\ComplaintPages\ComplaintReplyPages\EditComplaintForm.razor" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,15 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <UpToDateCheckInput Remove="Components\Account\Pages\Manage\ComplaintPages\ComplaintReplyPages\EditComplaintForm.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="Components\Pages\Calendar.razor.css" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Components\Account\Pages\Manage\ComplaintPages\EditComplaintForm.razor" />
   </ItemGroup>
 
 </Project>

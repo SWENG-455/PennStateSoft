@@ -9,6 +9,8 @@ using BlazorSample.Components.Account;
 using PennStateSoft.Data.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContextFactory<NotificationContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("NotificationContext") ?? throw new InvalidOperationException("Connection string 'NotificationContext' not found.")));
 builder.Services.AddDbContextFactory<MeetingContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MeetingContext") ?? throw new InvalidOperationException("Connection string 'MeetingContext' not found.")));
 builder.Services.AddDbContextFactory<UserComplaints>(options =>

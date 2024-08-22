@@ -3,6 +3,12 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
+@inject IRoleStore<IdentityRole> RoleStore
+@inject IRoleValidator<IdentityRole> RoleValidator
+@inject IEnumerable<RoleValidator<IdentityRole>> RoleValidators
+@inject ILogger<RoleManager<IdentityRole>> RoleLogger
+@inject IdentityErrorDescriber IdentityErrorDescriber
+@inject ILookupNormalizer KeyNormalizer
 
 @attribute [Authorize]
 
@@ -65,6 +71,7 @@
                 {
                     <EditForm method="post" Model="ComplaintReply" OnValidSubmit="UpdateComplaintReply" FormName="edit" Enhance>
                         <DataAnnotationsValidator />
+                        <ValidationSummary />
                         <div class="m-1">
                             <textarea id="description" @bind="Description" @bind:event="oninput" class="text-black text-wrap" cols="100"
                                       style="border:none; background-color:Window;" autofocus>
@@ -109,6 +116,9 @@
     private ClaimsPrincipal? claimsPrincipal { get; set; }
 
     private string? UserName { get; set; }
+
+    private ApplicationRoleManager? RoleManager;
+    private IdentityRole? Role;
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,12 +188,24 @@
         OnEditClicked();
         await OnSaveCallback.InvokeAsync();
     }
+    private async Task RemoveRole(ComplaintReply complaintReply)
+    {
+        RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
+
+        if (complaint is not null && complaintReply is not null)
+        {
+            Role = await RoleManager.FindByNameAsync("ComplaintReplyAuthor" + complaint!.Id + "_" + complaintReply.Id).ConfigureAwait(false);
+            var result = await RoleManager.DeleteAsync(Role!);
+        }
+    }
+
     public async Task DeleteComplaintReply()
     {
         using var context = ComplaintsDbFactory.CreateDbContext();
         context.ComplaintReply.Remove(ComplaintReply!);
         context.Attach(complaint!).State = EntityState.Modified;
         await context.SaveChangesAsync();
+        await RemoveRole(ComplaintReply!);
         OnEditClicked();
         await OnSaveCallback.InvokeAsync();
     }

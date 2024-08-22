@@ -108,7 +108,7 @@ else
 
                 if (user is not null)
                 {
-                    IsCreator = await UserManager.IsInRoleAsync(user, "Creator" + meeting.Id);
+                    IsCreator = await UserManager.IsInRoleAsync(user, "MeetingCreator" + meeting.Id);
                 }
 
             }
@@ -132,9 +132,11 @@ else
     private async Task RemoveRole()
     {
         RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
-        Role = await RoleManager.FindByNameAsync("Creator" + meeting!.Id).ConfigureAwait(false);
-        var Users = UserManager.GetUsersInRoleAsync("Creator" + meeting.Id).Result;
+        Role = await RoleManager.FindByNameAsync("MeetingCreator" + meeting!.Id).ConfigureAwait(false);
+        //var Users = UserManager.GetUsersInRoleAsync("MeetingCreator" + meeting.Id).Result;
         var result = await RoleManager.DeleteAsync(Role!);
+        Role = await RoleManager.FindByNameAsync("Invitee" + meeting!.Id).ConfigureAwait(false);
+        result = await RoleManager.DeleteAsync(Role!);
     }
 
     public async Task DeleteThisMeeting()

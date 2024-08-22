@@ -27,6 +27,36 @@
     align-items: center;
     height: 100%;
 }
+.complaintIcon {
+    display: inline-block;
+    width: 1.8em;
+    height: 1.8em;
+    margin-top: -1px;
+    background-image: url("ComplaintMenuIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+.meetingIcon {
+    display: inline-block;
+    width: 2.0em;
+    height: 1.8em;
+    margin-top: -1px;
+    background-image: url("MeetingIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+.meetingRoomIcon {
+    display: inline-block;
+    width: 2.0em;
+    height: 1.8em;
+    margin-top: -1px;
+    background-image: url("MeetingRoomIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
 
 .bi {
     display: inline-block;

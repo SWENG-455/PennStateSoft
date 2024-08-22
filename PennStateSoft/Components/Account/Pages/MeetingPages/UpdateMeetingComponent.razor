@@ -151,7 +151,7 @@
     {
         if (meeting is not null)
         {
-            role = "Creator" + meeting.Id.ToString();
+            role = "MeetingCreator" + meeting.Id.ToString();
 
             using var roomContext = MeetingDbFactory.CreateDbContext();
             room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);

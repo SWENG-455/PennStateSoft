@@ -9,14 +9,16 @@
 @attribute [Authorize]
 <PageTitle>Complaints</PageTitle>
 
-<div class="header-container">
+<div class="header-container me-5">
     <h3>Complaints</h3>
     <AuthorizeView Roles="Client">
-        <div class="nav-item px-3">
+        <div class="showHover nav-item px-3">
             <button class="btn btn-labeled btn-newMeeting" type="button"
-                    @onclick="OnMouseClicked">
+                    @onclick="OnMouseClicked" @onmouseenter="ShowButtonInfo" @onmouseleave="HideButtonInfo">
                 <i class="icon1" ></i>
             </button>
+            <div class="showHover" data-hover="@ButtonInfo" style="position:relative;">
+            </div>
         </div>
     </AuthorizeView>
 </div>
@@ -56,7 +58,10 @@
     [Parameter]
     public string NewComplaint { get; set; } = "New Complaint";
 
-    private bool showDescription = false;
+    [Parameter]
+    public string ButtonInfo { get; set; } = "";
+
+    private bool IsToolTipShowing = false;
 
     private ClaimsPrincipal? claimsPrincipal { get; set; }
 
@@ -80,16 +85,18 @@
         var result = GridItemsProviderResult.From<Complaint>(items: rows, totalItemCount:rows.Count);
         complaintProvider = req => ValueTask.FromResult(result);
     }
-    private void OnMouseOver()
-    {
-        showDescription = true;
-    }
-    private void OnMouseOut()
-    {
-        showDescription = false;
-    }
+
     private void OnMouseClicked()
     {
         NavigationManager.NavigateTo("/Account/Complaints/Create");
+    }
+    private void ShowButtonInfo()
+    {
+        ButtonInfo = "File New Complaint";
+    }
+    private void HideButtonInfo()
+    {
+        Task.Delay(3500);
+        ButtonInfo = "";
     }
 }

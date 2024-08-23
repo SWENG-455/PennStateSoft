@@ -157,6 +157,7 @@
             Message = "replied to ",
             Link = $"/Account/Complaints/Details?id={complaint.Id}",
             LinkTo = $"{complaint.Subject}",
+            Read = false
         };
 
         await AddNotification();

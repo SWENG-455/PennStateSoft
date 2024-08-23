@@ -1,19 +1,12 @@
-﻿@page "/Account/Notifications"
-
+﻿
 @inject IDbContextFactory<PennStateSoft.Data.NotificationContext> DbFactory
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
 @inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
-@inject UserManager<ApplicationUser> UserManager
-@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 @attribute [Authorize]
-
-<PageTitle>Notifications</PageTitle>
-
-<h3>Notifications</h3>
  
 @if (NotificationsProvider is null)
 {
@@ -23,15 +16,22 @@ else
 {
     @if (IsComplaintAuthor || IsAdmin)
     {
-        <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
-            <TemplateColumn Context="notification">
-                <CascadingValue Value="notification">
-                    <CascadingValue Value="notifications">
-                        <NotificationDetails OnDeleteCallback="UpdateGridProvider" />
+        @if (ExistingUnreadNotifications)
+        {
+            <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
+                <TemplateColumn Context="notification">
+                    <CascadingValue Value="notification">
+                        <CascadingValue Value="notifications">
+                            <NotificationDetails OnDeleteCallback="UpdateGridProvider" />
+                        </CascadingValue>
                     </CascadingValue>
-                </CascadingValue>
-            </TemplateColumn>
-        </QuickGrid>
+                </TemplateColumn>
+            </QuickGrid>
+        }
+        else
+        {
+            <p class="ms-1">Nothing new here.</p>
+        }
     }  
 }
 
@@ -42,9 +42,12 @@ else
     private string? UserName;
     private bool IsAdmin = false;
     private bool IsComplaintAuthor = false;
-    private ClaimsPrincipal? ClaimsPrincipal;
+    private bool ExistingUnreadNotifications = true;
     private ComplaintReply? complaintReply;
-    private ApplicationUser? User;
+
+    [CascadingParameter]
+    public ApplicationUser? User { get; set; } = default!;
+
     List<IdentityRole>? Roles;
     List<IdentityRole>? ComplaintAuthorRoles;
     List<IdentityRole>? ComplaintReplyAuthorRoles;
@@ -57,10 +60,6 @@ else
         using var context = DbFactory.CreateDbContext();
         var Notifications = context.Notification.ToList<Notification>();
         notifications = Notifications;
-
-        var AuthState = await AuthStateProvider.GetAuthenticationStateAsync();
-        ClaimsPrincipal = AuthState.User;
-        User = await UserManager.GetUserAsync(ClaimsPrincipal);
 
         if (User is not null)
         {
@@ -100,12 +99,14 @@ else
                     Contains("ComplaintReplyAuthor" + notification.ReferenceID + "_")).ToList();
                 await SetUserState(notification);
             }
-            notifications = notifications.Where(n => n.IsAuthor == false && n.Author != User.UserName && (n.IsReferenceOwner == true || IsAdmin)).ToList();
+            notifications = notifications.Where(n => n.IsAuthor == false && n.Author != User.UserName && (n.IsReferenceOwner == true || IsAdmin)
+                                                && n.Read == false).ToList();
             notifications = notifications.OrderByDescending(n => n.Created).ToList();
-            foreach (var notification in notifications)
+            notifications = notifications.Take(2).ToList();
+
+            if (notifications is null || notifications.Count <= 0)
             {
-                notification.Read = true;
-                await UpdateNotification(notification);
+                ExistingUnreadNotifications = false;
             }
             var Result = GridItemsProviderResult.From<Notification>(items: notifications, totalItemCount: notifications.Count);
             NotificationsProvider = request => ValueTask.FromResult(Result);

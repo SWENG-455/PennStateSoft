@@ -11,10 +11,12 @@
 <h3 class="ms-5">Meeting Rooms</h3>
 
 
-<div class="nav-item px-3 ms-5" style="text-align:right; width:55%">
+<div class="nav-item px-3" style="text-align:right; width:55%;">
     <button class="btn icon1" type="button"
-            style="text-align:justify;" @onclick="OnMouseClicked">
+            style="text-align:justify;" @onclick="OnMouseClicked" @onmouseenter="ShowButtonInfo" @onmouseleave="HideButtonInfo">
     </button>
+    <div class="showHover" data-hover="@ButtonInfo" style="position:relative;">
+    </div>
 </div>
 <div class="ms-5" style="width:55%;">
     <QuickGrid Class="table" ItemsProvider="@RoomProvider">
@@ -55,6 +57,9 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
+    [Parameter]
+    public string ButtonInfo { get; set; } = "";
+
     protected override void OnInitialized()
     {
         using var context = MeetingDbFactory.CreateDbContext();
@@ -63,6 +68,15 @@
         var rows = response.AsEnumerable<Room>().ToList<Room>();
         var result = GridItemsProviderResult.From<Room>(items: rows, totalItemCount: rows.Count);
         RoomProvider = req => ValueTask.FromResult(result);
+    }
+    private void ShowButtonInfo()
+    {
+        ButtonInfo = "Create New Room";
+    }
+    private void HideButtonInfo()
+    {
+        Task.Delay(3500);
+        ButtonInfo = "";
     }
     private void OnViewClicked(int Id)
     {

@@ -12,7 +12,7 @@ using PennStateSoft.Data;
 namespace PennStateSoft.Migrations.Notification
 {
     [DbContext(typeof(NotificationContext))]
-    [Migration("20240822130908_NotificationDb")]
+    [Migration("20240823071357_NotificationDb")]
     partial class NotificationDb
     {
         /// <inheritdoc />
@@ -53,6 +53,9 @@ namespace PennStateSoft.Migrations.Notification
 
                     b.Property<string>("Message")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Read")
+                        .HasColumnType("bit");
 
                     b.Property<int>("ReferenceID")
                         .HasColumnType("int");

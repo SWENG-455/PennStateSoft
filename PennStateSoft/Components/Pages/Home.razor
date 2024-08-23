@@ -2,9 +2,9 @@
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
+@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> NotificationDbFactory
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
-@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
@@ -86,9 +86,17 @@
                                             Notifications:
                                         </p3>
                                         <div class="grid-container">
-                                            <div class="grid-item2 itemButton1">
+                                            <div class="grid-item2 itemButton1" style="text-align:right;">
                                                 <a href="/Account/Notifications">View all › </a>
                                             </div>
+                                            @if (User is not null)
+                                            {
+                                                <div style="font-size:small;">
+                                                    <CascadingValue Value="@User" IsFixed=true>
+                                                        <NotificationsIndexPreview />
+                                                    </CascadingValue>
+                                                </div>
+                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -128,6 +136,7 @@
     private ClaimsPrincipal? claimsPrincipal;
     private bool IsAdmin = false;
     private int SelectedDay = 0;
+    private ApplicationUser? User;
     [Parameter]
     public string? Month { get; set; }
 
@@ -146,9 +155,9 @@
 
         if (claimsPrincipal.Identity.IsAuthenticated)
         {
-            var user = await UserManager.GetUserAsync(claimsPrincipal);
+            User = await UserManager.GetUserAsync(claimsPrincipal);
             using var AppContext = await AppDbFactory.CreateDbContextAsync();
-            var userRoles = AppContext.UserRoles.Where(ur => ur.UserId == user!.Id);
+            var userRoles = AppContext.UserRoles.Where(ur => ur.UserId == User!.Id);
             Roles = new List<IdentityRole>();
             upcomingMeetings = new List<Meeting>();
 

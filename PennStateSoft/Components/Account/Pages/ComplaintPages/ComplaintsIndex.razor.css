@@ -52,11 +52,19 @@
 .btn {
     margin-bottom: 40px;
 }
+.showHover::after {
+    content: attr(data-hover);
+    position: absolute;
+    top: calc(-30px - 100%);
+    left: 0;
+    background: whitesmoke;
+    color: midnightblue;
+}
 
 .icon1 {
     display: inline-block;
-    width: 2.0em;
-    height: 1.8em;
+    width: 1.6em;
+    height: 1.6em;
     margin-top: -1px;
     background-image: url("newComplaintIcon.svg");
     background-size: contain;

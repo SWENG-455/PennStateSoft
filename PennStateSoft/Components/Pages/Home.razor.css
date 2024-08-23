@@ -113,7 +113,7 @@ h2 {
 .grid-container {
     display: grid;
     background-color: none;
-    height: auto;
+    height: min-content;
 }
 
 .grid-item {

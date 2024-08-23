@@ -17,9 +17,11 @@
     <AuthorizeView Roles="Client">
         <div class="nav-item px-3">
             <button class="btn btn-labeled btn-newMeeting me-5" type="button"
-                    style="text-align:justify;" @onclick="OnMouseClicked">
+                    style="text-align:justify;" @onclick="OnMouseClicked" @onmouseenter="ShowButtonInfo" @onmouseleave="HideButtonInfo">
                 <i class="icon1"></i>
             </button>
+            <div class="showHover" data-hover="@ButtonInfo" style="position:relative;">
+            </div>
         </div>
     </AuthorizeView>
 </div>
@@ -136,6 +138,10 @@ else
     private string filteredSearch { get; set; } = "";
     private TimeOnly FromTime { get; set; }
     private TimeOnly ToTime { get; set; }
+
+    [Parameter]
+    public string ButtonInfo { get; set; } = "";
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -322,7 +328,15 @@ else
     {
         NavigationManager.NavigateTo("Account/Meetings/Create");
     }
-
+    private void ShowButtonInfo()
+    {
+        ButtonInfo = "Schedule New Meeting";
+    }
+    private void HideButtonInfo()
+    {
+        Task.Delay(3500);
+        ButtonInfo = "";
+    }
     private void OnViewClicked(int Id)
     {
         NavigationManager.NavigateTo($"Account/Meetings/Details?id={Id}");

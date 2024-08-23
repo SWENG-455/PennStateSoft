@@ -36,7 +36,7 @@ else
 
         <button type="submit" class="btn btn-danger ms-3" disabled="@(notification is null)"
                 @onclick="DeleteNotification">
-            X
+            🗙
         </button>
     </div>
 }
@@ -62,6 +62,27 @@ else
             NavigationManager.NavigateTo("NotFound");
         }
     }
+    public async Task UpdateNotification(Notification notification)
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(notification!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!NotificationExists(notification!.Id))
+            {
+                NavigationManager.NavigateTo("NotFound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+    }
     public async Task DeleteNotification()
     {
         using var context = DbFactory.CreateDbContext();
@@ -69,5 +90,10 @@ else
         await context.SaveChangesAsync();
         notifications.Remove(notification);
         await OnDeleteCallback.InvokeAsync();
+    }
+    bool NotificationExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Notification.Any(e => e.Id == id);
     }
 }

@@ -51,6 +51,9 @@ namespace PennStateSoft.Migrations.Notification
                     b.Property<string>("Message")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("Read")
+                        .HasColumnType("bit");
+
                     b.Property<int>("ReferenceID")
                         .HasColumnType("int");
 

@@ -148,7 +148,8 @@
                 Message = "filed a new complaint, ",
                 Link = $"/Account/Complaints/Details?id={complaint.Id}",
                 LinkTo = $"{complaint.Subject}",
-                IsAuthor = true
+                IsAuthor = true,
+                Read = false
             };
 
         await AddNotification();

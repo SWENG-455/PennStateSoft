@@ -12,7 +12,7 @@
     <main>
         <article class="content px-4">
             <div class="card">
-                <h1 class="text-color-animation" style="font-size:2.1vw;">Meeting Scheduling System (MSS)</h1>
+                <h1 class="text-color-animation" style="font-size:1.9vw;">Meeting Scheduling System (MSS)</h1>
             </div>
         </article>
     </main>
@@ -80,28 +80,56 @@
                         </div>
                         <div class="grid-item1 thirdItem">
                             <div class="grid-container2">
-                                <div class="grid-item3 itemCard1">
-                                    <div class="card2">
-                                        <div class="row">
-                                            <strong>
-                                                <p3>
-                                                    Notifications:
-                                                    <a href="/Account/Notifications">View all › </a>
-                                                </p3>
-                                            </strong>
-                                        </div>
-                                        <div class="grid-container">
-                                            @if (User is not null)
-                                            {
-                                                <div1 style="font-size:small;">
-                                                    <CascadingValue Value="@User" IsFixed=true>
-                                                        <NotificationsIndexPreview />
-                                                    </CascadingValue>
-                                                </div1>
-                                            }
+                                @if (!IsAdmin)
+                                {
+                                    <div class="grid-item3 itemCard1">
+                                        <div class="card2">
+                                            <div class="row">
+                                                <strong>
+                                                    <p3>
+                                                        Notifications:
+                                                        <a href="/Account/Notifications">View all › </a>
+                                                    </p3>
+                                                </strong>
+                                            </div>
+                                            <div class="grid-container">
+                                                @if (User is not null)
+                                                {
+                                                    <div1 style="font-size:small;">
+                                                        <CascadingValue Value="@User" IsFixed=true>
+                                                            <NotificationsIndexPreview />
+                                                        </CascadingValue>
+                                                    </div1>
+                                                }
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                }
+                                @if (IsAdmin)
+                                {
+                                    <div class="grid-item3 itemCardAdmin">
+                                        <div class="card2">
+                                            <div class="row">
+                                                <strong>
+                                                    <p3>
+                                                        Notifications:
+                                                        <a href="/Account/Notifications">View all › </a>
+                                                    </p3>
+                                                </strong>
+                                            </div>
+                                            <div class="grid-container">
+                                                @if (User is not null)
+                                                {
+                                                    <div1 style="font-size:small;">
+                                                        <CascadingValue Value="@User" IsFixed=true>
+                                                            <NotificationsIndexPreview />
+                                                        </CascadingValue>
+                                                    </div1>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
                                 @if (!IsAdmin)
                                 {
                                     <div class="grid-item3 itemCard2">
@@ -117,11 +145,6 @@
                                                             <p4>File a Complaint</p4>
                                                         </button>
                                                     </NavLink>
-                                                    @* <NavLink style="text-decoration:none" href="Account/Complaints/Create">
-                                                        <button class="button4">
-                                                            <p1>File a Complaint</p1>
-                                                        </button>
-                                                    </NavLink> *@
                                                 </div2>
                                             </div>
                                         </div>

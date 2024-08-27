@@ -34,7 +34,7 @@
                                 <div class="grid-container">
                                     <div class="grid-item item1">
                                         <div class="mainList">
-                                            <h3>Upcoming Meetings</h3>
+                                            <h3 class="header-with-line">Upcoming Meetings</h3>
                                             @if (upcomingMeetings != null){
                                                 @foreach (var meeting in upcomingMeetings){
                                                     <article class="meeting">
@@ -82,20 +82,22 @@
                             <div class="grid-container2">
                                 <div class="grid-item3 itemCard1">
                                     <div class="card2">
-                                        <p3>
-                                            Notifications:
-                                        </p3>
+                                        <div class="row">
+                                            <strong>
+                                                <p3>
+                                                    Notifications:
+                                                    <a href="/Account/Notifications">View all › </a>
+                                                </p3>
+                                            </strong>
+                                        </div>
                                         <div class="grid-container">
-                                            <div class="grid-item2 itemButton1" style="text-align:right;">
-                                                <a href="/Account/Notifications">View all › </a>
-                                            </div>
                                             @if (User is not null)
                                             {
-                                                <div style="font-size:small;">
+                                                <div1 style="font-size:small;">
                                                     <CascadingValue Value="@User" IsFixed=true>
                                                         <NotificationsIndexPreview />
                                                     </CascadingValue>
-                                                </div>
+                                                </div1>
                                             }
                                         </div>
                                     </div>
@@ -104,17 +106,23 @@
                                 {
                                     <div class="grid-item3 itemCard2">
                                         <div class="card2">
-                                            <p3>
-                                                Complaints:
-                                            </p3>
+                                            <div class="row1 header1">
+                                                <strong>Complaints:</strong>
+                                            </div>
                                             <div class="grid-container">
-                                                <div class="grid-item2 itemButton1">
+                                                <div2 class="grid-item2 itemButton2">
                                                     <NavLink style="text-decoration:none" href="Account/Complaints/Create">
+                                                        <button class="btn-labeled2 btn-newComplaint">
+                                                            <div class="btn-label2"><i class="iconComplaint"></i></div>
+                                                            <p4>File a Complaint</p4>
+                                                        </button>
+                                                    </NavLink>
+                                                    @* <NavLink style="text-decoration:none" href="Account/Complaints/Create">
                                                         <button class="button4">
                                                             <p1>File a Complaint</p1>
                                                         </button>
-                                                    </NavLink>
-                                                </div>
+                                                    </NavLink> *@
+                                                </div2>
                                             </div>
                                         </div>
                                     </div>

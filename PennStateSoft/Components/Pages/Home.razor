@@ -187,8 +187,18 @@
                 else
                 {
                     //Get meetings where user is either a creator or an invitee
-                    int meetingId;
-                    Int32.TryParse(role.Name.Substring(role.Name.Length - 2), out meetingId);
+                    int meetingId = -1, index;
+                    if (role.Name.Contains("Creator"))
+                    {
+                        index = role.Name.LastIndexOf("r");
+                        meetingId = Convert.ToInt32(role.Name.Substring(index + 1));
+                    }
+                    else if (role.Name.Contains("Invitee"))
+                    {
+                        index = role.Name.LastIndexOf("e");
+                        meetingId = Convert.ToInt32(role.Name.Substring(index + 1));
+                    }
+
                     var meeting = allMeetings.FirstOrDefault(m => m.Id == meetingId);
 
                     if (meeting is not null)

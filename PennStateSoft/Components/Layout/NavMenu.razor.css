@@ -140,7 +140,7 @@
 .nav-scrollable {
     display: none;
     border-right: 2.9px solid #eeeeee;
-    background-image: url('bgPic7.png');
+    /*background-image: url('bgPic7.png');*/
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

@@ -1,5 +1,11 @@
-﻿h3{
+﻿h3 {
     font-weight: bold;
+    font-family: 'Tahoma';
+    background: linear-gradient(to bottom, #003366, #0073e6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
 }
 
 .header-container {
@@ -28,7 +34,7 @@
 }
 
 .btn-labeled {
-    display: flex;
+    display: inline-block;
     align-items: center;
     padding: 0.4rem 0.4rem;
     color: white;

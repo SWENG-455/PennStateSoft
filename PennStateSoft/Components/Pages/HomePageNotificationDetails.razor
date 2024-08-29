@@ -13,34 +13,34 @@ else
         </strong>
         @notification.Message
         <span><a href="@(notification.Link)">@notification.LinkTo</a></span>
-        @{
-            TimeSinceCreated = DateTime.Now - notification.Created;
+            @{
+                TimeSinceCreated = DateTime.Now - notification.Created;
 
-            if (TimeSinceCreated.Days > 0)
-            {
-                if (TimeSinceCreated.Days == 1)
+                if (TimeSinceCreated.Days > 0)
                 {
-                    NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " day ago ";
+                    if (TimeSinceCreated.Days == 1)
+                    {
+                        NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " day ago ";
+                    }
+                    else
+                    {
+                        NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
+                    } 
+                }
+                else if (TimeSinceCreated.Hours > 0)
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
+                }
+                else if (TimeSinceCreated.Minutes > 0)
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
                 }
                 else
                 {
-                    NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
-                } 
+                    NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
+                }
             }
-            else if (TimeSinceCreated.Hours > 0)
-            {
-                NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
-            }
-            else if (TimeSinceCreated.Minutes > 0)
-            {
-                NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
-            }
-            else
-            {
-                NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
-            }
-        }
-        @NotificationDuration
+        <p>@NotificationDuration</p>
     </div>
 }
 

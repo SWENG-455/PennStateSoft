@@ -37,7 +37,8 @@ else
             <div class="row">
                 @if (filter != "Time")
                 {
-                    <InputText typeof="search" @bind-Value="filteredSearch" class="form-control" style="justify-content:center; width:50%;"/>
+                    <InputText typeof="search" @bind-Value="filteredSearch" class="form-control" 
+                               placeholder="Search Meetings by Day, Date, Room, Member, or Time" style="justify-content:center; width:50%;"/>
                 }
                 <InputSelect id="filter" @bind-Value="filter" class="form-select ms-1" style="width:10%;">
                     @foreach (var filtr in filters)
@@ -118,10 +119,12 @@ else
             }
         </TemplateColumn>
     </QuickGrid>
+    //<Paginator State="paginationState"/>
 }
 
 
 @code{
+    //private PaginationState paginationState = new PaginationState { ItemsPerPage = 1};
     private GridItemsProvider<Meeting>? gridItemsProvider;
     private Room? Room { get; set; }
     private List<Room>? Rooms { get; set; }
@@ -130,7 +133,7 @@ else
     private ClaimsPrincipal? claimsPrincipal { get; set; }
     private List<string>? roles { get; set; }
     private List<int>? MeetingIds { get; set; } = new List<int>();
-    private string[] filters = {" ", "Day", "Date", "Room", "Member", "Time" };
+    private string[] filters = {"Day", "Date", "Room", "Member", "Time" };
 
     [SupplyParameterFromForm]
     private string? filter { get; set; } = "";
@@ -163,7 +166,7 @@ else
 
             using var context = MeetingDbFactory.CreateDbContext();
             meetings = context.Meeting.Where(m => !m.Equals(null)).AsEnumerable<Meeting>().ToList();
-            meetings = meetings.OrderByDescending(m => m.Id).ToList();
+            meetings = meetings.OrderByDescending(m => m.Date).ToList();
             using var RoomContext = MeetingDbFactory.CreateDbContext();
             Rooms = RoomContext.Room.AsEnumerable<Room>().ToList();
 

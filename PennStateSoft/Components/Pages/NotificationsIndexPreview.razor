@@ -23,7 +23,9 @@ else
                 <TemplateColumn Context="notification">
                     <CascadingValue Value="notification">
                         <CascadingValue Value="notifications">
-                            <HomePageNotificationDetails OnDeleteCallback="UpdateGridProvider" />
+                                    <CascadingValue Value="User" IsFixed="true">
+                                        <HomePageNotificationDetails OnDeleteCallback="UpdateGridProvider" />
+                                    </CascadingValue>
                         </CascadingValue>
                     </CascadingValue>
                 </TemplateColumn>

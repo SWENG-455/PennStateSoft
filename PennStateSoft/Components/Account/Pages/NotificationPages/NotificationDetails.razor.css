@@ -4,12 +4,7 @@
     white-space: nowrap;
 }
 
-span.weak{
+span.weak {
     color: grey;
-    padding: 2px;
+    padding: 4px;
 }
-
-p {
-    color: grey;
-}
-

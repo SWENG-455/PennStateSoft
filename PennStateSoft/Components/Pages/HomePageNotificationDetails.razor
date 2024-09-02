@@ -1,4 +1,5 @@
 ﻿@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> DbFactory
+@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
 @inject NavigationManager NavigationManager
 
 @if (notification is null)
@@ -12,7 +13,8 @@ else
             @notification.Author
         </strong>
         @notification.Message
-        <span><a href="@(notification.Link)">@notification.LinkTo</a></span>
+        <span @onclick="@(()=>NotificationClicked(notification))">
+            <a href="@(notification.Link)">@notification.LinkTo</a></span>
             @{
                 TimeSinceCreated = DateTime.Now - notification.Created;
 
@@ -29,18 +31,47 @@ else
                 }
                 else if (TimeSinceCreated.Hours > 0)
                 {
+                    if (TimeSinceCreated.Hours == 1)
+                    {
+                    NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hour ago ";
+                    }
+                    else
+                    {
                     NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
+                    }
                 }
                 else if (TimeSinceCreated.Minutes > 0)
                 {
+                    if (TimeSinceCreated.Minutes == 1)
+                    {
+                    NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minute ago ";
+                    }
+                    else
+                    {
                     NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
+                    }
                 }
                 else
                 {
+                    if (TimeSinceCreated.Seconds == 1)
+                    {
+                    NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " second ago ";
+                    }
+                    else
+                    {
                     NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
+                    }
                 }
             }
-        <p>@NotificationDuration</p>
+        @if (IsAdmin)
+        {
+            <span class="weak">@NotificationDuration</span>
+        }
+        else
+        {
+            <p>@NotificationDuration</p>
+        }
+        
     </div>
 }
 
@@ -54,15 +85,45 @@ else
     [CascadingParameter]
     public List<Notification> notifications { get; set; } = default!;
 
+    [CascadingParameter]
+    private ApplicationUser user { get; set; } = default!;
+
     private TimeSpan TimeSinceCreated;
 
     private string? NotificationDuration;
+
+    private bool IsAdmin = false;
 
     protected override async Task OnInitializedAsync()
     {
         if (notifications is null || notification is null)
         {
             NavigationManager.NavigateTo("NotFound");
+        }
+        else
+        {
+            if (user is not null)
+            {
+                using var context = await AppDbFactory.CreateDbContextAsync();
+
+                //Get all user roles corresponding to the current user
+                var UserRoles = context.UserRoles.Where(ur => ur.UserId == user.Id);
+
+                //Get the admin role
+                var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+
+                if (adminRole is not null)
+                {
+                    //Get the admin user role
+                    var AdminUserRole = await UserRoles.FirstOrDefaultAsync(ur => ur.RoleId == adminRole.Id);
+
+                    //Check if the user is an admin
+                    if (AdminUserRole is not null)
+                    {
+                        IsAdmin = true;
+                    }
+                }
+            }
         }
     }
     public async Task UpdateNotification(Notification notification)
@@ -90,5 +151,10 @@ else
     {
         using var context = DbFactory.CreateDbContext();
         return context.Notification.Any(e => e.Id == id);
+    }
+    private async void NotificationClicked(Notification notification)
+    {
+        notification.Read = true;
+        await UpdateNotification(notification);
     }
 }

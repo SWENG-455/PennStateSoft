@@ -97,7 +97,6 @@ h1 {
     height: 100%;
     display: inline-block;
     max-height: 790px;
-
 }
 
 h2 {
@@ -139,8 +138,6 @@ h2 {
     background-color: rgba(255, 255, 255, 0.8);
     padding: 0.4em;
 }
-
-
 
 .item1 {
     grid-column: 1 / 3;

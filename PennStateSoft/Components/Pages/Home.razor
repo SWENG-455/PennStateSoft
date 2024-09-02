@@ -71,7 +71,7 @@
                                             }
                                             @if (day.IsInThisMonth)
                                             {
-                                                <div class="day shadow-effect @selectedDay @currentDay" @onclick="@(()=>OnDayClicked(day.Day))">@day.Day</div>
+                                                <div class="ms-2 day shadow-effect @selectedDay @currentDay" @onclick="@(()=>OnDayClicked(day.Day))">@day.Day</div>
                                             }
                                         </DayTemplate>
                                     </Calendar>

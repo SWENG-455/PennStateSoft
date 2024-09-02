@@ -12,9 +12,16 @@
 .calendar {
     margin: 7px;
     width: 100%;
+    border-collapse: collapse;
     text-align: center;
-    margin-left: 4px;
 }
+    .calendar td {
+        padding-left: 1px;
+        padding-right: 1px;
+        padding-bottom: 4px;
+        padding-top: 4px;
+        vertical-align: top;
+    }
 
 .calendar .prev_day {
     text-align: center;
@@ -89,20 +96,6 @@
         flex: 1;
         padding: 10px 0;
         font-weight: bold;
-    }
-
-.calendar {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: center;
-}
-
-    .calendar td {
-        padding-left: 1px;
-        padding-right: 1px;
-        padding-bottom:4px;
-        padding-top: 4px;
-        vertical-align: top;
     }
 
 .row {

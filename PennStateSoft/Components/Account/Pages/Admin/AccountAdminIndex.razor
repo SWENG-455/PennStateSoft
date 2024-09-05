@@ -9,14 +9,14 @@
 
 @attribute [Authorize(Roles = "Admin")]
 
-<PageTitle>Profile</PageTitle>
+<PageTitle>Admin Profile</PageTitle>
 
-<h3>Profile</h3>
+<h3>Admin Profile</h3>
 <StatusMessage />
 
 <div class="row">
     <div class="col-md-6">
-        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+        <EditForm Model="Input" FormName="admin-profile" OnValidSubmit="OnValidSubmitAsync" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
             <div class="form-floating mb-3">

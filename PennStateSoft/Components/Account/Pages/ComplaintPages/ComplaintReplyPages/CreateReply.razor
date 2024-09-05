@@ -11,15 +11,17 @@
 @inject ILookupNormalizer KeyNormalizer
 
 @attribute [Authorize]
+
 <button id="reply" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
         @onclick="OnReplyClicked">
     Reply
 </button>
+
 <div class="mt-3">
     <div class="m-3" style="text-align:right; width:80%">
         @if (ReplyClicked)
         {
-            <EditForm method="post" Model="ComplaintReply" OnValidSubmit="OnSubmitClickedAsync" FormName="createreply" Enhance>
+            <EditForm method="post" Model="ComplaintReply" OnValidSubmit="OnSubmitClickedAsync" FormName="create-reply" Enhance>
                 <DataAnnotationsValidator />
                 <ValidationSummary class="text-danger" />
 
@@ -61,8 +63,6 @@
     public EventCallback<SaveChangesEventArgs> OnSaveNewReplyCallback { get; set; }
 
     private  ApplicationUser user = default!;
-
-    private string? currentUrl;
 
     private IEnumerable<IdentityError>? identityErrors;
     private ApplicationRoleManager? RoleManager;
@@ -153,7 +153,7 @@
         notification = new Notification
         {
             ReferenceID = complaint.Id,
-                Author = user!.UserName,
+            Author = user!.UserName,
             Message = "replied to ",
             Link = $"/Account/Complaints/Details?id={complaint.Id}",
             LinkTo = $"{complaint.Subject}",

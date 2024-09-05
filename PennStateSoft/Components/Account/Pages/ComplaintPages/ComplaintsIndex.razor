@@ -7,13 +7,14 @@
 @rendermode InteractiveServer
 
 @attribute [Authorize]
+
 <PageTitle>Complaints</PageTitle>
 
 <div class="header-container me-5">
     <h3>Complaints</h3>
     <AuthorizeView Roles="Client">
         <div class="showHover nav-item px-3">
-            <button class="btn btn-labeled btn-newMeeting" type="button"
+            <button class="btn btn-labeled btn-newComplaint" type="button"
                     @onclick="OnMouseClicked" @onmouseenter="ShowButtonInfo" @onmouseleave="HideButtonInfo">
                 <i class="icon1" ></i>
             </button>

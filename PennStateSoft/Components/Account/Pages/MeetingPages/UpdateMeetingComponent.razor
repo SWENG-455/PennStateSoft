@@ -11,6 +11,8 @@
 @inject ILookupNormalizer KeyNormalizer
 @rendermode InteractiveServer
 
+@attribute [Authorize]
+
 <dl class="row" style="width:55%;">
     <div style="text-align:right;">
         @if (!AddMembersClicked)
@@ -35,7 +37,7 @@
                 </p>
                 memberAdded = false;
             }
-            <EditForm method="post" Model="meeting" OnValidSubmit="@(()=> AddSelectedMember(selectedUser!))" FormName="create" Enhance>
+            <EditForm method="post" Model="meeting" OnValidSubmit="@(()=> AddSelectedMember(selectedUser!))" FormName="add-attendees" Enhance>
                 <DataAnnotationsValidator />
                 <ValidationSummary class="text-danger" />
                 <div class="mb-3">

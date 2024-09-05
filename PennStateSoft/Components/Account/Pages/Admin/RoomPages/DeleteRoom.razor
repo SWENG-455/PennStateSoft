@@ -49,7 +49,7 @@
                 }
             </dd>
         </dl>
-        <EditForm method="post" Model="room" OnValidSubmit="Delete_Room" FormName="delete" Enhance>
+        <EditForm method="post" Model="room" OnValidSubmit="Delete_Room" FormName="delete-room" Enhance>
             <button type="submit" class="btn btn-danger" disabled="@(room is null)">Delete</button>
             <button type="reset" class="btn btn-secondary ms-2" @onclick="Cancel">
                 Cancel

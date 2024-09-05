@@ -50,7 +50,7 @@
                 <dd class="col-sm-10">@room!.Name</dd>
             </dl>
 
-            <EditForm method="post" Model="meeting" OnValidSubmit="DeleteThisMeeting" FormName="delete" Enhance>
+            <EditForm method="post" Model="meeting" OnValidSubmit="DeleteThisMeeting" FormName="delete-meeting" Enhance>
                 <button type="submit" class="btn btn-danger" disabled="@(meeting is null)">Delete</button>
                 <a class="btn btn-secondary ms-2" href="/Account/Meetings">Cancel</a>
             </EditForm>
@@ -59,7 +59,7 @@
 }
 else
 {
-    <Not_Found />
+    <NotFound />
 }
 
 @code {

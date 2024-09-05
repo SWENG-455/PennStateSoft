@@ -1,6 +1,8 @@
 ﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
 
+@attribute [Authorize(Roles = "Client")]
+
 <h3>Edit Complaint</h3>
 <StatusMessage Message="@message" />
 <hr />
@@ -13,7 +15,7 @@ else
 {
     <div class="row">
         <div class="w-100 col-md-4">
-            <EditForm method="post" Model="Complaint" OnValidSubmit="UpdateComplaint" FormName="edit">
+            <EditForm method="post" Model="Complaint" OnValidSubmit="UpdateComplaint" FormName="edit-complaint">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
                 <input type="hidden" name="Complaint.Id" value="@Complaint.Id" />

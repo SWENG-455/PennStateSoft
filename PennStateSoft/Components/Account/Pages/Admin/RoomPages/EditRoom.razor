@@ -19,7 +19,7 @@ else
     <hr />
     <div class="row">
         <div class="col-md-4">
-            <EditForm method="post" Model="Room" OnValidSubmit="UpdateRoom" FormName="edit" Enhance>
+            <EditForm method="post" Model="Room" OnValidSubmit="UpdateRoom" FormName="edit-room" Enhance>
                 <DataAnnotationsValidator />
                 <ValidationSummary />
                 <input type="hidden" name="Room.Id" value="@Room.Id" />

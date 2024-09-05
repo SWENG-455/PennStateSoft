@@ -63,14 +63,7 @@ else
                     }
                 }
             }
-        @if (IsAdmin)
-        {
-            <span class="weak text-wrap">@NotificationDuration</span>
-        }
-        else
-        {
-            <p>@NotificationDuration</p>
-        }
+        <span class="weak text-wrap">@NotificationDuration</span>
         
     </div>
 }
@@ -100,6 +93,7 @@ else
         {
             NavigationManager.NavigateTo("NotFound");
         }
+        /*
         else
         {
             if (user is not null)
@@ -125,6 +119,7 @@ else
                 }
             }
         }
+        */
     }
     public async Task UpdateNotification(Notification notification)
     {
@@ -154,7 +149,22 @@ else
     }
     private async void NotificationClicked(Notification notification)
     {
+        //Market the notification clicked as read
         notification.Read = true;
         await UpdateNotification(notification);
+
+        //Find all notifications older than the notification that was clicked
+        using var context = DbFactory.CreateDbContext();
+        var notifications = context.Notification.Where(n => n.ReferenceID == notification.ReferenceID).ToList();
+        notifications = notifications.Where(n => n.IsAuthor == false && n.Author != user.UserName && (n.IsReferenceOwner == true || IsAdmin)).ToList();
+        notifications = notifications.OrderByDescending(n => n.Created).ToList();
+        notifications = notifications.Where(n => n.Created < notification.Created).ToList();
+
+        //Mark them all as read as well
+        foreach (var _notification in notifications)
+        {
+            _notification.Read = true;
+            await UpdateNotification(_notification);
+        }
     }
 }

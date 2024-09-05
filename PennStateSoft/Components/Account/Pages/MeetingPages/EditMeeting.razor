@@ -23,7 +23,7 @@
     {
         <div class="row">
             <div class="col-md-4">
-                <EditForm method="post" Model="meeting" OnValidSubmit="@(() => UpdateMeeting(selectedRoom!))" FormName="edit" Enhance>
+                <EditForm method="post" Model="meeting" OnValidSubmit="@(() => UpdateMeeting(selectedRoom!))" FormName="edit-meeting" Enhance>
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <input type="hidden" name="meeting.Id" value="@meeting.Id" />
@@ -66,7 +66,7 @@
 }
 else
 {
-    <Not_Found />
+    <NotFound />
 }
 
 @code {

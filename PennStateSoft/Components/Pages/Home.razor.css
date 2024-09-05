@@ -97,7 +97,7 @@ h1 {
     height: 100%;
     display: inline-block;
     max-height: 790px;
-    min-width: 300px;
+    min-width: 350px;
 }
 .card3 {
     background-color: white;
@@ -108,8 +108,8 @@ h1 {
     height: 100%;
     display: inline-block;
     max-height: 790px;
-    min-width: 300px;
-    max-width: 300px;
+    min-width: 250px;
+    max-width: 250px;
 }
 
 h2 {
@@ -490,9 +490,9 @@ a:active {
     margin-top: -3px;
     margin-bottom: -3px;
     display: inline-block;
-    padding: 8px 12px 8px 14px;
+    padding: 6px 12px 8px 14px;
     background-color: #1b4ea3;
-    border-radius: 3px 0 0 3px;
+    border-radius: 2px 0 0 3px;
 }
 
 .btn-labeled2 {
@@ -503,11 +503,11 @@ a:active {
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    padding: 0.2em 0.9em 0.2em 0.7em;
-    font-size: 1.0em;
-    border-radius: 3px;
+    padding: 0.1em 0.9em 0.2em 0.7em;
+    font-size: 0.8em;
+    border-radius: 2px;
     text-decoration: none;
-    max-width: 260px;
+    max-width: 220px;
     line-height: 1;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -537,6 +537,11 @@ a:active {
     background-size: contain;
     background-repeat: no-repeat;
     vertical-align: middle;
+}
+.btn-newComplaint{
+    color: white;
+    text-decoration: none;
+    margin-left: -6px;
 }
 
 p1 {

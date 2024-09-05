@@ -1,74 +1,68 @@
 ﻿@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> DbFactory
 @inject NavigationManager NavigationManager
 
-@if (notification is null)
-{
-    <p>loading...</p>
-}
-else
-{
-    <div class="mt-2 mb-3">
-        <strong>
-            @notification.Author
-        </strong>
-        @notification.Message
-        <span><a href="@(notification.Link)">@notification.LinkTo</a></span>
-        @{
-            TimeSinceCreated = DateTime.Now - notification.Created;
+<div class="mt-2 mb-3">
+    <strong>
+        @notification.Author
+    </strong>
+    @notification.Message
+    <span><a href="@(notification.Link)">@notification.LinkTo</a></span>
+    @{
+        TimeSinceCreated = DateTime.Now - notification.Created;
 
-            if (TimeSinceCreated.Days > 0)
+        if (TimeSinceCreated.Days > 0)
+        {
+            if (TimeSinceCreated.Days == 1)
             {
-                if (TimeSinceCreated.Days == 1)
-                {
-                    NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " day ago ";
-                }
-                else
-                {
-                    NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
-                }
-            }
-            else if (TimeSinceCreated.Hours > 0)
-            {
-                if (TimeSinceCreated.Hours == 1)
-                {
-                    NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hour ago ";
-                }
-                else
-                {
-                    NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
-                }
-            }
-            else if (TimeSinceCreated.Minutes > 0)
-            {
-                if (TimeSinceCreated.Minutes == 1)
-                {
-                    NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minute ago ";
-                }
-                else
-                {
-                    NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
-                }
+                NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " day ago ";
             }
             else
             {
-                if (TimeSinceCreated.Seconds == 1)
-                {
-                    NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " second ago ";
-                }
-                else
-                {
-                    NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
-                }
+                NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
             }
         }
-        <span class="weak">@NotificationDuration</span>
-        
-        <button type="submit" class="btn btn-sm ms-3" style="float:right;"
-                disabled="@(notification is null)" @onclick="DeleteNotification">
-            🗙
-        </button>
-    </div>
-}
+        else if (TimeSinceCreated.Hours > 0)
+        {
+            if (TimeSinceCreated.Hours == 1)
+            {
+                NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hour ago ";
+            }
+            else
+            {
+                NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
+            }
+        }
+        else if (TimeSinceCreated.Minutes > 0)
+        {
+            if (TimeSinceCreated.Minutes == 1)
+            {
+                NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minute ago ";
+            }
+            else
+            {
+                NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
+            }
+        }
+        else
+        {
+            if (TimeSinceCreated.Seconds == 1)
+            {
+                NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " second ago ";
+            }
+            else
+            {
+                NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
+            }
+        }
+    }
+    <span class="weak">@NotificationDuration</span>
+
+    <button type="submit" class="btn btn-sm ms-3" style="float:right;"
+            disabled="@(notification is null)" @onclick="DeleteNotification">
+        🗙
+    </button>
+</div>
+
 
 @code {
     [Parameter]

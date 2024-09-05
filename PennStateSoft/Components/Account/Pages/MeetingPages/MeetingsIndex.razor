@@ -303,6 +303,9 @@ else
                 } 
             }
         }
+        //Order the meetings by date of meeting
+        _meetings = _meetings.OrderByDescending(m => m.Date).ToList();
+
         //Set the client view
         await SetGridItemsProvider(_meetings);
     }

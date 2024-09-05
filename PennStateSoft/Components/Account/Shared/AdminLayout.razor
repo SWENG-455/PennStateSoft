@@ -1,0 +1,18 @@
+﻿@inherits LayoutComponentBase
+@layout AccountLayout
+
+<h3>Admin Dashboard - <PennStateSoft.Components.Pages.Auth /></h3>
+
+<div>
+    <hr />
+    <div class="row">
+        <div class="col-md-3">
+            <AdminNavMenu />
+        </div>
+    </div>
+    <div class="row m-5">
+        <div class="col-md-9">
+            @Body
+        </div>
+    </div>
+</div>

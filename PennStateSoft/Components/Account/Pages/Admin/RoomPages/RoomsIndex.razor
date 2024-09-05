@@ -1,4 +1,4 @@
-﻿@page "/Account/Rooms"
+﻿@page "/Account/Admin/Rooms"
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject NavigationManager NavigationManager
@@ -80,14 +80,14 @@
     }
     private void OnViewClicked(int Id)
     {
-        NavigationManager.NavigateTo($"Account/Rooms/Details?id={Id}");
+        NavigationManager.NavigateTo($"Account/Admin/Rooms/Details?id={Id}");
     }
     private void OnMouseClicked()
     {
-        NavigationManager.NavigateTo("Account/Rooms/Create");
+        NavigationManager.NavigateTo("Account/Admin/Rooms/Create");
     }
     private void OnDeleteClicked(int Id)
     {
-        NavigationManager.NavigateTo($"Account/Rooms/Delete?id={Id}");
+        NavigationManager.NavigateTo($"Account/Admin/Rooms/Delete?id={Id}");
     }
 }

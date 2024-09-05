@@ -62,7 +62,6 @@ builder.Services.ConfigureApplicationCookie(options => {
 //The following code changes all data protection tokens timeout period to 3 hours
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromHours(3));
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

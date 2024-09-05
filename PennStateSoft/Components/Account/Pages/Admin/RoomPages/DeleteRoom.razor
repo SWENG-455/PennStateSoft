@@ -1,4 +1,4 @@
-﻿@page "/Account/Rooms/Delete"
+﻿@page "/Account/Admin/Rooms/Delete"
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject NavigationManager NavigationManager
@@ -74,12 +74,12 @@
 
         if (room is null)
         {
-            NavigationManager.NavigateTo("notfound");
+            NavigationManager.NavigateTo("Accound/NotFound");
         }
     }
     public void Cancel()
     {
-        NavigationManager.NavigateTo("Account/Rooms");
+        NavigationManager.NavigateTo("Account/Admin/Rooms");
     }
 
     public async Task Delete_Room()
@@ -89,7 +89,7 @@
         {
             context.Room.Remove(room!);
             await context.SaveChangesAsync();
-            NavigationManager.NavigateTo("Account/Rooms");
+            NavigationManager.NavigateTo("Account/Admin/Rooms");
         }
         else
         {

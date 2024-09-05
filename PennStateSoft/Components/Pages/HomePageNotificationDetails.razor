@@ -14,7 +14,7 @@ else
         </strong>
         @notification.Message
         <span @onclick="@(()=>NotificationClicked(notification))">
-            <a href="@(notification.Link)">@notification.LinkTo</a></span>
+            <a class="text-wrap" href="@(notification.Link)">@notification.LinkTo</a></span>
             @{
                 TimeSinceCreated = DateTime.Now - notification.Created;
 
@@ -65,7 +65,7 @@ else
             }
         @if (IsAdmin)
         {
-            <span class="weak">@NotificationDuration</span>
+            <span class="weak text-wrap">@NotificationDuration</span>
         }
         else
         {

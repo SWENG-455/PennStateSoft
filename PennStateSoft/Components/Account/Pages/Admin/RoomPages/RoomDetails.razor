@@ -1,4 +1,4 @@
-﻿@page "/Account/Rooms/Details"
+﻿@page "/Account/Admin/Rooms/Details"
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject NavigationManager NavigationManager
@@ -36,8 +36,8 @@
             </dd>
         </dl>
         <div>
-            <a class="text-decoration-none" href="@($"Account/Rooms/Edit?id={room.Id}")">Edit</a> |
-            <a class="text-decoration-none" href="@($"Account/Rooms")">Back</a>
+            <a class="text-decoration-none" href="@($"Account/Admin/Rooms/Edit?id={room.Id}")">Edit</a> |
+            <a class="text-decoration-none" href="@($"Account/Admin/Rooms")">Back</a>
         </div>
     }
 </div>
@@ -58,7 +58,7 @@
 
         if (room is null)
         {
-            NavigationManager.NavigateTo("notfound");
+            NavigationManager.NavigateTo("Account/NotFound");
         }
     }
 }

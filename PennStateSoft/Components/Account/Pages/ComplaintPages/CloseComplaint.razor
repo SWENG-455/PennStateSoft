@@ -121,6 +121,17 @@ else
             {
                 Role = await RoleManager.FindByNameAsync("ComplaintReplyAuthor" + complaint!.Id + "_" + complaintReply.Id).ConfigureAwait(false);
                 result = await RoleManager.DeleteAsync(Role!);
+
+                var complaintReplyReplies = context.ReplyReply.Where(rr => rr.ComplaintReplyId == complaintReply.Id).ToList();
+                
+                if (complaintReplyReplies is not null)
+                {
+                    foreach (var complaintReplyReply in complaintReplyReplies)
+                    {
+                        Role = await RoleManager.FindByNameAsync("ReplyReplyAuthor" + complaintReply!.Id + "_" + complaintReplyReply.Id).ConfigureAwait(false);
+                        result = await RoleManager.DeleteAsync(Role!);
+                    }
+                }
             }
         }
     }
@@ -147,9 +158,10 @@ else
     }
     private async Task DeleteNotifications()
     {
-        //Delete the notifications created by Admin replies to this complaint
+        //Delete all complaint reply notifications tied to this complaint
         using var context = NotificationsDbFactory.CreateDbContext();
         var notifications = context.Notification.Where(n => n.ReferenceID == complaint.Id && n.Author != user.UserName);
+
         if (notifications is not null && notifications.Count() > 0)
         {
             foreach (var notification in notifications)
@@ -158,14 +170,35 @@ else
                 await context.SaveChangesAsync();
             }
         }
+
+        //Delete all complaint reply reply notifications tied to a specific complaint reply
+        using var complaintReplyContext = ComplaintsDbFactory.CreateDbContext();
+        var complaintReplies = complaintReplyContext.ComplaintReply.Where(cr => cr.ComplaintId == complaint.Id).ToList();
+
+        if (complaintReplies is not null)
+        {
+            foreach (var complaintReply in complaintReplies)
+            {
+                notifications = context.Notification.Where(n => n.ReferenceID == complaintReply.Id && n.Author != user.UserName);
+
+                if (notifications is not null && notifications.Count() > 0)
+                {
+                    foreach (var notification in notifications)
+                    {
+                        context.Notification.Remove(notification);
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
+        }
     }
     private async Task DeleteComplaint()
     {
-        using var context = ComplaintsDbFactory.CreateDbContext();
-        context.Complaint.Remove(complaint!);
         await CreateNotification();
         await RemoveRoles();
-        await  DeleteNotifications();
+        await DeleteNotifications();
+        using var context = ComplaintsDbFactory.CreateDbContext();
+        context.Complaint.Remove(complaint!);
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/Account/Complaints");
     }

@@ -18,25 +18,29 @@ else
     {
         @if (ExistingUnreadNotifications)
         {
-        <p3>
-            <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
-                <TemplateColumn Context="notification">
-                    <CascadingValue Value="notification">
-                        <CascadingValue Value="notifications">
-                                    <CascadingValue Value="User" IsFixed="true">
-                                        <HomePageNotificationDetails OnDeleteCallback="UpdateGridProvider" />
-                                    </CascadingValue>
+            <p3>
+                <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
+                    <TemplateColumn Context="notification">
+                        <CascadingValue Value="notification">
+                            <CascadingValue Value="notifications">
+                                <CascadingValue Value="User" IsFixed="true">
+                                    <HomePageNotificationDetails OnDeleteCallback="UpdateGridProvider" />
+                                </CascadingValue>
+                            </CascadingValue>
                         </CascadingValue>
-                    </CascadingValue>
-                </TemplateColumn>
-            </QuickGrid>
-        </p3>
+                    </TemplateColumn>
+                </QuickGrid>
+            </p3>
         }
         else
         {
-            <p class="ms-1">Nothing new here.</p>
+            <p class="ms-1">No new notifications.</p>
         }
-    }  
+    }
+    else
+    {
+        <p class="ms-1">No new notifications.</p>
+    }
 }
 </div>
 

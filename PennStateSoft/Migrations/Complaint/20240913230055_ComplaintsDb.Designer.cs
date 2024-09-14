@@ -12,7 +12,7 @@ using PennStateSoft.Data;
 namespace PennStateSoft.Migrations
 {
     [DbContext(typeof(UserComplaints))]
-    [Migration("20240803224143_ComplaintsDb")]
+    [Migration("20240913230055_ComplaintsDb")]
     partial class ComplaintsDb
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace PennStateSoft.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.7")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -86,6 +86,39 @@ namespace PennStateSoft.Migrations
                     b.ToTable("ComplaintReply");
                 });
 
+            modelBuilder.Entity("PennStateSoft.Data.Models.ReplyReply", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("Closed")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ComplaintReplyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("Description")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComplaintReplyId");
+
+                    b.ToTable("ReplyReply");
+                });
+
             modelBuilder.Entity("PennStateSoft.Data.Models.ComplaintReply", b =>
                 {
                     b.HasOne("PennStateSoft.Data.Models.Complaint", null)
@@ -95,9 +128,23 @@ namespace PennStateSoft.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PennStateSoft.Data.Models.ReplyReply", b =>
+                {
+                    b.HasOne("PennStateSoft.Data.Models.ComplaintReply", null)
+                        .WithMany("Replies")
+                        .HasForeignKey("ComplaintReplyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("PennStateSoft.Data.Models.Complaint", b =>
                 {
                     b.Navigation("ComplaintReplies");
+                });
+
+            modelBuilder.Entity("PennStateSoft.Data.Models.ComplaintReply", b =>
+                {
+                    b.Navigation("Replies");
                 });
 #pragma warning restore 612, 618
         }

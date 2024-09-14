@@ -21,7 +21,7 @@
     <div class="m-3" style="text-align:right; width:80%">
         @if (ReplyClicked)
         {
-            <EditForm method="post" Model="ComplaintReply" OnValidSubmit="OnSubmitClickedAsync" FormName="create-reply" Enhance>
+            <EditForm method="post" Model="ComplaintReplyReply" OnValidSubmit="OnSubmitClickedAsync" FormName="create-complaintreplyreply" Enhance>
                 <DataAnnotationsValidator />
                 <ValidationSummary class="text-danger" />
 
@@ -31,11 +31,11 @@
                 <ValidationMessage For="() => ReplyDescription" class="text-danger" />
                 <div class="m-2" style="text-align:right; width:99%">
                     <button type="reset" class="btn btn-secondary" @onclick="OnCancelClicked">Cancel</button>
-                    <button type="submit" class="btn btn-primary" >Reply</button>
+                    <button type="submit" class="btn btn-primary">Reply</button>
                 </div>
             </EditForm>
         }
-    </div>  
+    </div>
 </div>
 
 @code {
@@ -48,8 +48,11 @@
     [CascadingParameter]
     public Complaint? complaint { get; set; } = default!;
 
+    [CascadingParameter]
+    public ComplaintReply? complaintReply { get; set; } = default!;
+
     [SupplyParameterFromForm]
-    public ComplaintReply? ComplaintReply { get; set; } = new();
+    public ReplyReply? ComplaintReplyReply { get; set; } = new();
 
     private ClaimsPrincipal? claimsPrincipal { get; set; }
 
@@ -62,7 +65,7 @@
     [Parameter]
     public EventCallback<SaveChangesEventArgs> OnSaveNewReplyCallback { get; set; }
 
-    private  ApplicationUser user = default!;
+    private ApplicationUser user = default!;
 
     private IEnumerable<IdentityError>? identityErrors;
     private ApplicationRoleManager? RoleManager;
@@ -70,9 +73,9 @@
 
     protected override void OnInitialized()
     {
-        if (complaint!.ComplaintReplies is null)
+        if (complaintReply!.Replies is null)
         {
-            complaint.ComplaintReplies = new List<ComplaintReply>();
+            complaintReply!.Replies = new List<ReplyReply>();
         }
     }
     private void OnReplyClicked()
@@ -109,15 +112,15 @@
             }
         }
 
-        ComplaintReply.Username = user!.UserName;
-        ComplaintReply.Created = DateTime.Now;
-        ComplaintReply.Closed = DateTime.Now.AddDays(7);
-        ComplaintReply.Subject = complaint?.Subject;
-        ComplaintReply.ComplaintId = complaint!.Id;
+        ComplaintReplyReply.Username = user!.UserName;
+        ComplaintReplyReply.Created = DateTime.Now;
+        ComplaintReplyReply.Closed = DateTime.Now.AddDays(7);
+        ComplaintReplyReply.Subject = complaintReply?.Subject;
+        ComplaintReplyReply.ComplaintReplyId = complaintReply!.Id;
 
         if (ReplyDescription is not null)
         {
-            ComplaintReply.Description = Encoding.ASCII.GetBytes(ReplyDescription);
+            ComplaintReplyReply.Description = Encoding.ASCII.GetBytes(ReplyDescription);
         }
         else
         {
@@ -125,8 +128,8 @@
             return;
         }
 
-        await AddComplaintReply();
-        ComplaintReply = new ComplaintReply();
+        await AddReplyReply();
+        ComplaintReplyReply = new ReplyReply();
     }
     private async Task CreateRole(ApplicationUser authUser, string roleName)
     {
@@ -152,7 +155,7 @@
     {
         notification = new Notification
         {
-            ReferenceID = complaint.Id,
+            ReferenceID = complaintReply.Id,
             Author = user!.UserName,
             Message = "replied to ",
             Link = $"/Account/Complaints/Details?id={complaint.Id}",
@@ -169,13 +172,13 @@
         await context.SaveChangesAsync();
     }
 
-    public async Task AddComplaintReply()
+    public async Task AddReplyReply()
     {
         using var context = ComplaintsDbFactory.CreateDbContext();
-        context.ComplaintReply.Add(ComplaintReply);
-        context.Attach(complaint!).State = EntityState.Modified;
+        context.ReplyReply.Add(ComplaintReplyReply);
+        context.Attach(complaintReply!).State = EntityState.Modified;
         await context.SaveChangesAsync();
-        await CreateRole(user!, "ComplaintReplyAuthor" + complaint.Id + "_" + ComplaintReply!.Id.ToString());
+        await CreateRole(user!, "ReplyReplyAuthor" + complaintReply.Id + "_" + ComplaintReplyReply!.Id.ToString());
         await CreateNotification();
         await OnCancelClicked();
         await OnSaveNewReplyCallback.InvokeAsync();

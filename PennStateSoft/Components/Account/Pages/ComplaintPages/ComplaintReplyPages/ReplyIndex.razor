@@ -3,8 +3,9 @@
 
 <PageTitle>Index</PageTitle>
 
-<QuickGrid ItemsProvider="@ComplaintReplyGridProvider" Class="table" Theme="chat">
+<QuickGrid ItemsProvider="@ComplaintReplyGridProvider" Theme="chat">
     <TemplateColumn Context="complaintreply" Align="Align.Right">
+        
         <CascadingValue Value="Complaint" IsFixed="true">
             <CascadingValue Value="@complaintreply" IsFixed="true">
                 <ReplyDetails OnSaveCallback="UpdateGridProvider" />
@@ -18,6 +19,7 @@
 
     PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
     GridItemsProvider<ComplaintReply>? ComplaintReplyGridProvider;
+    int firstComplaintID;
 
     [CascadingParameter]
     private Complaint? Complaint { get; set; } = default!;

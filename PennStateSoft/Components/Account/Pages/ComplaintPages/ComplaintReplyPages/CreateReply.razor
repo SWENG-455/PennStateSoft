@@ -16,9 +16,9 @@
         @onclick="OnReplyClicked">
     Reply
 </button>
-
+<hr />
 <div class="mt-3">
-    <div class="m-3" style="text-align:right; width:80%">
+    <div class="m-3" style="text-align:right; width:50%;">
         @if (ReplyClicked)
         {
             <EditForm method="post" Model="ComplaintReply" OnValidSubmit="OnSubmitClickedAsync" FormName="create-reply" Enhance>
@@ -29,7 +29,7 @@
                                rows="@uIHelper.Rows" @onchange="@(()=> uIHelper.CalculateSize(ReplyDescription))" autofocus>
                 </InputTextArea>
                 <ValidationMessage For="() => ReplyDescription" class="text-danger" />
-                <div class="m-2" style="text-align:right; width:99%">
+                <div class="m-2 mb-5" style="text-align:right; width:99%">
                     <button type="reset" class="btn btn-secondary" @onclick="OnCancelClicked">Cancel</button>
                     <button type="submit" class="btn btn-primary" >Reply</button>
                 </div>

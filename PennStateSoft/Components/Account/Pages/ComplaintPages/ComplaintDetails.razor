@@ -40,6 +40,7 @@
                     <a href="@($"/Account/Complaints/Edit?id={complaint.Id}")" class="m-2 text-decoration-none">Edit</a> |
                     <a class=" m-2 text-decoration-none" href="@($"Account/Complaints/Delete?id={complaint.Id}")">Close</a> |
                     <a href="@($"/Account/Complaints")" class="text-decoration-none">Back</a>
+                    <hr/>
                 </AuthorizeView>
             </div>
 
@@ -88,7 +89,7 @@
 
         if (complaint is null)
         {
-            NavigationManager.NavigateTo("notfound");
+            NavigationManager.NavigateTo("/Account/NotFound");
         }
         else
         {

@@ -53,6 +53,7 @@ else
     List<IdentityRole>? Roles;
     List<IdentityRole>? ComplaintAuthorRoles;
     List<IdentityRole>? ComplaintReplyAuthorRoles;
+    List<IdentityRole>? ComplaintReplyReplyAuthorRoles;
     List<IdentityRole>? MeetingCreatorRoles;
     List<IdentityRole>? InviteeRoles;
     IdentityRole? ComplaintAuthor, ComplaintReplyAuthor;
@@ -91,6 +92,7 @@ else
 
             //Check if the user has created any complaints or meetings, or has been invited to any meetings
             ComplaintAuthorRoles = Roles.Where(r => r.Name!.Contains("ComplaintAuthor")).ToList();
+            ComplaintReplyReplyAuthorRoles = Roles.Where(r => r.Name!.Contains("ReplyReplyAuthor")).ToList();
             MeetingCreatorRoles = Roles.Where(r => r.Name!.Contains("MeetingCreator")).ToList();
             InviteeRoles = Roles.Where(r => r.Name!.Contains("Invitee")).ToList();
         }
@@ -103,6 +105,8 @@ else
                 using var appContext = await AppDbFactory.CreateDbContextAsync();
                 ComplaintReplyAuthorRoles = appContext.Roles.Where(r => r.Name!.
                     Contains("ComplaintReplyAuthor" + notification.ReferenceID + "_")).ToList();
+                ComplaintReplyReplyAuthorRoles = appContext.Roles.Where(r => r.Name!.
+                    Contains("ReplyReplyAuthor" + notification.ReferenceID + "_")).ToList();
                 await SetUserState(notification);
             }
             notifications = notifications.Where(n => n.IsAuthor == false && n.Author != User.UserName && (n.IsReferenceOwner == true || IsAdmin)).ToList();
@@ -167,6 +171,37 @@ else
                     await UpdateNotification(notification);
                 }
             }
+            if (ComplaintReplyReplyAuthorRoles is not null && ComplaintReplyReplyAuthorRoles.Count() > 0)
+            {
+                //Get only the complaint reply author roles corresponding to the currently logged in user
+                var userComplaintReplyReplyAuthorRoles = Roles.Where(r => r.Name!.Contains("ReplyReplyAuthor" + notification.ReferenceID + "_"));
+
+                if (userComplaintReplyReplyAuthorRoles.Count() > 0)
+                {
+                    foreach (var role in userComplaintReplyReplyAuthorRoles)
+                    {
+                        if (role is not null)
+                        {
+                            if (notification.Author == User!.UserName)
+                            {
+                                notification.IsAuthor = true;
+                                await UpdateNotification(notification);
+                            }
+                            else
+                            {
+                                notification.IsAuthor = false;
+                                await UpdateNotification(notification);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    notification.IsAuthor = false;
+                    await UpdateNotification(notification);
+                }
+            }
+            /*
             else
             {
                 if (IsComplaintAuthor)
@@ -180,6 +215,7 @@ else
                     await UpdateNotification(notification);
                 }
             }
+            */
         }
     }
 

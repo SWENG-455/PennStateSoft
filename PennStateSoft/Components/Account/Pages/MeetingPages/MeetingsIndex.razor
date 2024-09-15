@@ -42,7 +42,7 @@ else
                         <InputText typeof="search" @bind-Value="filteredSearch" class="form-control"
                                    placeholder="Search Meetings by Day, Date, Room, Member, or Time" style="justify-content:center; width:50%;" />
                     }
-                    <InputSelect id="filter" @bind-Value="filter" class="form-select ms-1" style="width:10%;">
+                    <InputSelect id="filter" @bind-Value="filter" class="form-select ms-1" style="width:12%;">
                         @foreach (var filtr in filters)
                         {
                             <option value="@filtr">@filtr</option>
@@ -142,10 +142,11 @@ else
     private ClaimsPrincipal? claimsPrincipal { get; set; }
     private List<string>? roles { get; set; }
     private List<int>? MeetingIds { get; set; } = new List<int>();
-    private string[] filters = {"Day", "Date", "Room", "Member", "Time" };
+    private string[] filters = {"Please Select", "Day", "Date", "Room", "Member", "Time" };
 
     [SupplyParameterFromForm]
-    private string? filter { get; set; } = "";
+    private string? filter { get; set; } = "Please Select";
+
     [SupplyParameterFromForm]
     private string filteredSearch { get; set; } = "";
     private TimeOnly FromTime { get; set; }

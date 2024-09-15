@@ -91,6 +91,7 @@ else
 
         if (await UserManager.IsInRoleAsync(user, "Admin")){
             response = context.Complaint;
+            complaints = response.ToList();
         }
 
         var rows = response.AsEnumerable<Complaint>().OrderByDescending(c => c.Created).ToList<Complaint>();

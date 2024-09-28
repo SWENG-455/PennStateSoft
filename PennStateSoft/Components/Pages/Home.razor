@@ -2,9 +2,10 @@
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
-@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> NotificationDbFactory
+@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppUsersDbFactory
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
 
 <PageTitle>Home</PageTitle>
 
@@ -19,144 +20,164 @@
 </div3>
 
 <AuthorizeView>
-    <body>  
-        <div class="container">
-            <div class ="card1">
-                <UserGreeting></UserGreeting>
-                <div class="wrapper">
-                    <div class="grid-container1">
-                        <div class="grid-item1 firstItem">
-                            <div class="card2">
-                                <h2>
-                                    Meetings:
-                                    <b><a href="Account/Meetings" target="_blank">View all › </a></b>
-                                </h2>
-                                <div class="grid-container">
-                                    <div class="grid-item item1">
-                                        <div class="mainList">
-                                            <h3 class="header-with-line">Upcoming Meetings</h3>
-                                            @if (upcomingMeetings != null){
-                                                @foreach (var meeting in upcomingMeetings){
-                                                    <article class="meeting">
-                                                        <img src="/test3.svg" alt="Meeting Icon" class="meetingImage">
-                                                        <a href="Account/Meetings/Details?id=@meeting.Id" class="meetingName">@meeting.Name</a>
-                                                        <span class="meetingInfo">@meeting.Date.ToShortDateString() @meeting.Time.ToShortTimeString() <span>@GetMeetingRoom(meeting.RoomId).Name</span></span>
-                                                    </article>
+    <NotAuthorized>
+        <div class="grid-container2 ms-5 mt-5" style="padding-top:50px;">
+            <div class="grid-item3 itemCard1">
+                <div class="card4">
+                    <h4 class="ms-3 mb-4 mt-3" style="font-size:1.0vw; color:midnightblue;">Log in to PennStateSoft</h4>
+                    <h6 class="ms-3 text-nowrap" style="color:dimgray;">PennStateSoft is a world leader in meeting scheduling</h6>
+                    <h6 class="ms-3 mb-4" style="color:dimgray;"> and management software.</h6>
+                    <NavLink style="text-decoration:none" href="/Account/Login">
+                        <button class="btn-labeled ms-3 mt-2" style="text-align:center;">
+                            <h6 class="mt-2" style="font-size:0.6vw;">LOG IN</h6>
+                        </button>
+                    </NavLink>
+                </div>
+            </div>
+        </div>
+    </NotAuthorized>
+    <Authorized>
+        <body>
+            <div class="container">
+                <div class="card1">
+                    <UserGreeting></UserGreeting>
+                    <div class="wrapper">
+                        <div class="grid-container1">
+                            <div class="grid-item1 firstItem">
+                                <div class="card2">
+                                    <h2>
+                                        Meetings:
+                                        <b><a href="Account/Meetings" target="_blank">View all › </a></b>
+                                    </h2>
+                                    <div class="grid-container">
+                                        <div class="grid-item item1">
+                                            <div class="mainList">
+                                                <h3 class="header-with-line">Upcoming Meetings</h3>
+                                                @if (upcomingMeetings != null)
+                                                {
+                                                    @foreach (var meeting in upcomingMeetings)
+                                                    {
+                                                        <article class="meeting">
+                                                            <img src="/test3.svg" alt="Meeting Icon" class="meetingImage">
+                                                            <a href="Account/Meetings/Details?id=@meeting.Id" class="meetingName">@meeting.Name</a>
+                                                            <span class="meetingInfo">@meeting.Date.ToShortDateString() @meeting.Time.ToShortTimeString() <span>@GetMeetingRoom(meeting.RoomId).Name</span></span>
+                                                        </article>
+                                                    }
                                                 }
-                                            }
+                                            </div>
                                         </div>
+                                        @if (!IsAdmin)
+                                        {
+                                            <div class="grid-item item2">
+                                                <NavLink style="text-decoration:none" href="Account/Meetings/Create">
+                                                    <button class="btn-labeled btn-newMeeting">
+                                                        <div class="btn-label"><i class="icon1"></i></div>
+                                                        <p2>Schedule a New Meeting</p2>
+                                                    </button>
+                                                </NavLink>
+                                            </div>
+                                        }
                                     </div>
+                                </div>
+                            </div>
+                            <div class="grid-item1 secondItem">
+                                <div class="grid-container">
+                                    <div class="card2">
+                                        <Calendar>
+                                            <DayTemplate Context="day">
+                                                @{
+                                                    string currentDay = day.Date == DateTime.Now.Date ? "today" : "";
+                                                    string selectedDay = SelectedDay == day.Day ? "selected" : "";
+                                                }
+                                                @if (day.IsInThisMonth)
+                                                {
+                                                    <div class="ms-2 day shadow-effect @selectedDay @currentDay" @onclick="@(()=>OnDayClicked(day.Day))">@day.Day</div>
+                                                }
+                                            </DayTemplate>
+                                        </Calendar>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid-item1 thirdItem">
+                                <div class="grid-container2">
                                     @if (!IsAdmin)
                                     {
-                                        <div class="grid-item item2">
-                                            <NavLink style="text-decoration:none" href="Account/Meetings/Create">
-                                                <button class="btn-labeled btn-newMeeting">
-                                                    <div class="btn-label"><i class="icon1"></i></div>
-                                                    <p2>Schedule a New Meeting</p2>
-                                                </button>
-                                            </NavLink>
+                                        <div class="grid-item3 itemCard1">
+                                            <div class="card2">
+                                                <div class="row">
+                                                    <strong>
+                                                        <p3>
+                                                            Notifications:
+                                                            <a href="/Account/Notifications">View all › </a>
+                                                        </p3>
+                                                    </strong>
+                                                </div>
+                                                <div class="grid-container4">
+                                                    @if (User is not null)
+                                                    {
+                                                        <div class="user-info" style="font-size:small;">
+                                                            <CascadingValue Value="@User" IsFixed=true>
+                                                                <NotificationsIndexPreview />
+                                                            </CascadingValue>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (IsAdmin)
+                                    {
+                                        <div class="grid-item3 itemCardAdmin">
+                                            <div class="card2">
+                                                <div class="row">
+                                                    <strong>
+                                                        <p3>
+                                                            Notifications:
+                                                            <a href="/Account/Notifications">View all › </a>
+                                                        </p3>
+                                                    </strong>
+                                                </div>
+                                                <div class="grid-container">
+                                                    @if (User is not null)
+                                                    {
+                                                        <div1 style="font-size:small;">
+                                                            <CascadingValue Value="@User" IsFixed=true>
+                                                                <NotificationsIndexPreview />
+                                                            </CascadingValue>
+                                                        </div1>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (!IsAdmin)
+                                    {
+                                        <div class="grid-item3 itemCard2">
+                                            <div class="card3">
+                                                <div class="row1 header1">
+                                                    <strong>Complaints:</strong>
+                                                </div>
+                                                <div class="grid-container">
+                                                    <div2 class="grid-item2 itemButton2">
+                                                        <NavLink style="text-decoration:none" href="Account/Complaints/Create">
+                                                            <button class="btn-labeled2 btn-newComplaint">
+                                                                <div class="btn-label2"><i class="iconComplaint"></i></div>
+                                                                <p4>File a Complaint</p4>
+                                                            </button>
+                                                        </NavLink>
+                                                    </div2>
+                                                </div>
+                                            </div>
                                         </div>
                                     }
                                 </div>
                             </div>
                         </div>
-                        <div class="grid-item1 secondItem">
-                            <div class="grid-container">
-                                <div class="card2">
-                                    <Calendar>
-                                        <DayTemplate Context="day">
-                                            @{
-                                                string currentDay = day.Date == DateTime.Now.Date ? "today" : "";
-                                                string selectedDay = SelectedDay == day.Day ? "selected" : "";
-                                            }
-                                            @if (day.IsInThisMonth)
-                                            {
-                                                <div class="ms-2 day shadow-effect @selectedDay @currentDay" @onclick="@(()=>OnDayClicked(day.Day))">@day.Day</div>
-                                            }
-                                        </DayTemplate>
-                                    </Calendar>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="grid-item1 thirdItem">
-                            <div class="grid-container2">
-                                @if (!IsAdmin)
-                                {
-                                    <div class="grid-item3 itemCard1">
-                                        <div class="card2">
-                                            <div class="row">
-                                                <strong>
-                                                    <p3>
-                                                        Notifications:
-                                                        <a href="/Account/Notifications">View all › </a>
-                                                    </p3>
-                                                </strong>
-                                            </div>
-                                            <div class="grid-container4">
-                                                @if (User is not null)
-                                                {
-                                                    <div class="user-info" style="font-size:small;">
-                                                        <CascadingValue Value="@User" IsFixed=true>
-                                                            <NotificationsIndexPreview />
-                                                        </CascadingValue>
-                                                    </div>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                                @if (IsAdmin)
-                                {
-                                    <div class="grid-item3 itemCardAdmin">
-                                        <div class="card2">
-                                            <div class="row">
-                                                <strong>
-                                                    <p3>
-                                                        Notifications:
-                                                        <a href="/Account/Notifications">View all › </a>
-                                                    </p3>
-                                                </strong>
-                                            </div>
-                                            <div class="grid-container">
-                                                @if (User is not null)
-                                                {
-                                                    <div1 style="font-size:small;">
-                                                        <CascadingValue Value="@User" IsFixed=true>
-                                                            <NotificationsIndexPreview />
-                                                        </CascadingValue>
-                                                    </div1>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                                @if (!IsAdmin)
-                                {
-                                    <div class="grid-item3 itemCard2">
-                                        <div class="card3">
-                                            <div class="row1 header1">
-                                                <strong>Complaints:</strong>
-                                            </div>
-                                            <div class="grid-container">
-                                                <div2 class="grid-item2 itemButton2">
-                                                    <NavLink style="text-decoration:none" href="Account/Complaints/Create">
-                                                        <button class="btn-labeled2 btn-newComplaint">
-                                                            <div class="btn-label2"><i class="iconComplaint"></i></div>
-                                                            <p4>File a Complaint</p4>
-                                                        </button>
-                                                    </NavLink>
-                                                </div2>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </body>
+        </body>
+    </Authorized>
 </AuthorizeView>
 
 @code 
@@ -173,7 +194,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUpcomingMeetings();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        claimsPrincipal = authState.User;
+
+        if (claimsPrincipal.Identity.IsAuthenticated)
+        {
+            await LoadUpcomingMeetings();
+        }
     }
 
     private async Task LoadUpcomingMeetings()
@@ -181,17 +208,25 @@
         using var context = MeetingDbFactory.CreateDbContext();
         var allMeetings = await context.Meeting.ToListAsync();
         Rooms = await context.Room.ToListAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        claimsPrincipal = authState.User;
 
-        if (claimsPrincipal.Identity.IsAuthenticated)
+        User = await UserManager.GetUserAsync(claimsPrincipal);
+        using var AppContext = await AppDbFactory.CreateDbContextAsync();
+        var userRoles = AppContext.UserRoles.Where(ur => ur.UserId == User!.Id).ToList();
+        Roles = new List<IdentityRole>();
+        upcomingMeetings = new List<Meeting>();
+        var someMeetings = new List<Meeting>();
+        var members = context.Members.Where(m => m.UserId == User.Id);
+        if (members is not null)
         {
-            User = await UserManager.GetUserAsync(claimsPrincipal);
-            using var AppContext = await AppDbFactory.CreateDbContextAsync();
-            var userRoles = AppContext.UserRoles.Where(ur => ur.UserId == User!.Id);
-            Roles = new List<IdentityRole>();
-            upcomingMeetings = new List<Meeting>();
+            foreach (var member in members)
+            {
+                someMeetings = context.Meeting.Where(m => m.Id == member.MeetingId).ToList();
+            }
+        }
+        
 
+        if (userRoles is not null && userRoles.Count() > 0)
+        {
             foreach (var userRole in userRoles)
             {
                 var role = await AppContext.Roles.FirstOrDefaultAsync(r => r.Id == userRole.RoleId);
@@ -226,28 +261,32 @@
 
                     if (meeting is not null)
                     {
-                        upcomingMeetings.Add(meeting);
+                        if (!upcomingMeetings.Contains(meeting))
+                        {
+                            upcomingMeetings.Add(meeting);
+                        }
                     }
                 }
             }
+        }
+        
 
-            DateOnly today = DateOnly.FromDateTime(DateTime.Now);
-            if (IsAdmin)
-            {
-                upcomingMeetings = allMeetings
-                .Where(m => m.Date >= today)
-                .OrderBy(m => m.Date)
-                .ThenBy(m => m.Time)
-                .ToList();
-            }
-            else
-            {
-                upcomingMeetings = upcomingMeetings
-                .Where(m => m.Date >= today)
-                .OrderBy(m => m.Date)
-                .ThenBy(m => m.Time)
-                .ToList();
-            }
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+        if (IsAdmin)
+        {
+            upcomingMeetings = allMeetings
+            .Where(m => m.Date >= today)
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Time)
+            .ToList();
+        }
+        else
+        {
+            upcomingMeetings = upcomingMeetings
+            .Where(m => m.Date >= today)
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Time)
+            .ToList();
         }
     }
     private void OnDayClicked(int index)

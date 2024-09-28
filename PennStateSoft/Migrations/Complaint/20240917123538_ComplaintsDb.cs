@@ -53,7 +53,7 @@ namespace PennStateSoft.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ReplyReply",
+                name: "ComplaintReplyReply",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -67,11 +67,35 @@ namespace PennStateSoft.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ReplyReply", x => x.Id);
+                    table.PrimaryKey("PK_ComplaintReplyReply", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ReplyReply_ComplaintReply_ComplaintReplyId",
+                        name: "FK_ComplaintReplyReply_ComplaintReply_ComplaintReplyId",
                         column: x => x.ComplaintReplyId,
                         principalTable: "ComplaintReply",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReplyReply",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ComplaintReplyReplyId = table.Column<int>(type: "int", nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Subject = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Closed = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Description = table.Column<byte[]>(type: "varbinary(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReplyReply", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReplyReply_ComplaintReplyReply_ComplaintReplyReplyId",
+                        column: x => x.ComplaintReplyReplyId,
+                        principalTable: "ComplaintReplyReply",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -82,9 +106,14 @@ namespace PennStateSoft.Migrations
                 column: "ComplaintId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ReplyReply_ComplaintReplyId",
-                table: "ReplyReply",
+                name: "IX_ComplaintReplyReply_ComplaintReplyId",
+                table: "ComplaintReplyReply",
                 column: "ComplaintReplyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReplyReply_ComplaintReplyReplyId",
+                table: "ReplyReply",
+                column: "ComplaintReplyReplyId");
         }
 
         /// <inheritdoc />
@@ -92,6 +121,9 @@ namespace PennStateSoft.Migrations
         {
             migrationBuilder.DropTable(
                 name: "ReplyReply");
+
+            migrationBuilder.DropTable(
+                name: "ComplaintReplyReply");
 
             migrationBuilder.DropTable(
                 name: "ComplaintReply");

@@ -1,7 +1,6 @@
-﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
+﻿@page "/Account/Complaints/ComplaintReplies/ComplaintRepliesReplies"
+@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @attribute [Authorize]
-
-<PageTitle>ComplaintReplyReplyIndex</PageTitle>
 
 <QuickGrid ItemsProvider="@ReplyReplyGridProvider" Theme="chat">
     <TemplateColumn Context="ComplaintReplyReply" Align="Align.Right">
@@ -16,7 +15,7 @@
 @code {
 
     PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
-    GridItemsProvider<ReplyReply>? ReplyReplyGridProvider;
+    GridItemsProvider<ComplaintReplyReply>? ReplyReplyGridProvider;
 
     [CascadingParameter]
     private ComplaintReply? ComplaintReply { get; set; } = default!;
@@ -34,9 +33,9 @@
     {
         UpdateGridProvider(ComplaintReply.Replies);
     }
-    private void UpdateGridProvider(List<ReplyReply> replies)
+    private void UpdateGridProvider(List<ComplaintReplyReply> replies)
     {
-        var result = GridItemsProviderResult.From<ReplyReply>(items: replies!, totalItemCount: replies!.Count);
+        var result = GridItemsProviderResult.From<ComplaintReplyReply>(items: replies!, totalItemCount: replies!.Count);
         ReplyReplyGridProvider = req => ValueTask.FromResult(result);
     }
 }

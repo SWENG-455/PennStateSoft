@@ -1,6 +1,5 @@
 ﻿@page "/Account/Notifications"
 
-@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> DbFactory
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
 @inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
@@ -21,13 +20,54 @@
 }
 else
 {
-    @if (IsComplaintAuthor || (IsAdmin && (notifications is not null && notifications.Count > 0)))
+    @if ((notifications is not null && notifications.Count > 0) || 
+    (SelectedNotifications is not null && SelectedNotifications!.Count > 1))
     {
+        <div>
+            <InputCheckbox @bind-Value="SelectAllNotifications" class="darker-border-checkbox form-check-input"
+                           disabled="@(notifications is null)" @onclick="OnCheckBoxSelected"
+                           @onmouseenter="ShowCheckboxInfo" @onmouseleave="HideCheckboxInfo">
+            </InputCheckbox>
+            <div class="showHover ms-4 mt-2" data-hover="@CheckboxInfo" style="position:relative;"></div>
+        </div>
+        
+        @if (SelectAllNotifications || SelectedNotifications!.Count > 1)
+        {
+            <div>
+                <button class="btn btn-labeled ms-5" type="submit"
+                        style="float:right;" disabled="@(notifications is null)" @onclick="DeleteNotifications"
+                        @onmouseenter="ShowButtonIconInfo" @onmouseleave="HideButtonIconInfo">
+
+                    <i class="icon"></i>
+                </button>
+                <div class="showHover mt-3 me-5" data-hover="@ButtonIconInfo" style="position:relative; float:right;"></div>
+            </div>
+            
+            <div style="text-align:center;">
+                @if (SelectedNotifications.Count() > 1 && SelectAllNotifications)
+                {
+                    <p style="color:#0070E0">All (@SelectedNotifications.Count()) notifications selected.</p>
+                }
+                else if (SelectedNotifications.Count() <= 1 && SelectAllNotifications)
+                {
+                    <p style="color:#0070E0">(@SelectedNotifications.Count()) notification selected.</p>
+                }
+                else
+                {
+                    <p style="color:#0070E0">(@SelectedNotifications.Count()) notifications selected.</p>
+                }
+
+            </div>
+        }
         <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
             <TemplateColumn Context="notification">
                 <CascadingValue Value="notification">
                     <CascadingValue Value="notifications">
-                        <NotificationDetails OnDeleteCallback="UpdateGridProvider" />
+                        <CascadingValue Value="SelectedNotifications">
+                            <CascadingValue Value="SelectAllNotifications">
+                                <NotificationDetails OnDeleteCallback="UpdateGridProvider" OnSelected="UpdateGridProvider" />
+                            </CascadingValue>
+                        </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
             </TemplateColumn>
@@ -41,9 +81,17 @@ else
 }
 
 @code {
+
     GridItemsProvider<Notification>? NotificationsProvider;
     private List<Notification>? notifications;
-
+    [Parameter]
+    public List<Notification>? SelectedNotifications { get; set; }
+    [Parameter]
+    public string CheckboxInfo { get; set; } = "";
+    [Parameter]
+    public string ButtonIconInfo { get; set; } = "";
+    [Parameter]
+    public bool SelectAllNotifications { get; set; } = false;
     private string? UserName;
     private bool IsAdmin = false;
     private bool IsComplaintAuthor = false;
@@ -51,18 +99,15 @@ else
     private ComplaintReply? complaintReply;
     private ApplicationUser? User;
     List<IdentityRole>? Roles;
-    List<IdentityRole>? ComplaintAuthorRoles;
-    List<IdentityRole>? ComplaintReplyAuthorRoles;
-    List<IdentityRole>? ComplaintReplyReplyAuthorRoles;
-    List<IdentityRole>? MeetingCreatorRoles;
-    List<IdentityRole>? InviteeRoles;
-    IdentityRole? ComplaintAuthor, ComplaintReplyAuthor;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        var Notifications = context.Notification.ToList<Notification>();
-        notifications = Notifications;
+        using var context = AppDbFactory.CreateDbContext();
+
+        if (SelectedNotifications is null)
+        {
+            SelectedNotifications = new List<Notification>();
+        }
 
         var AuthState = await AuthStateProvider.GetAuthenticationStateAsync();
         ClaimsPrincipal = AuthState.User;
@@ -90,27 +135,15 @@ else
                 IsAdmin = true;
             }
 
-            //Check if the user has created any complaints or meetings, or has been invited to any meetings
-            ComplaintAuthorRoles = Roles.Where(r => r.Name!.Contains("ComplaintAuthor")).ToList();
-            ComplaintReplyReplyAuthorRoles = Roles.Where(r => r.Name!.Contains("ReplyReplyAuthor")).ToList();
-            MeetingCreatorRoles = Roles.Where(r => r.Name!.Contains("MeetingCreator")).ToList();
-            InviteeRoles = Roles.Where(r => r.Name!.Contains("Invitee")).ToList();
+            var Notifications = context.Notifications.
+                    Where(n => n.Author != User.UserName && (n.Recipient == User.UserName)).ToList();
+            notifications = Notifications;
         }
 
         if (notifications is not null)
         {
-            foreach (var notification in notifications)
-            {
-                //Get all of the complaint reply author roles corresponding to the specific notification
-                using var appContext = await AppDbFactory.CreateDbContextAsync();
-                ComplaintReplyAuthorRoles = appContext.Roles.Where(r => r.Name!.
-                    Contains("ComplaintReplyAuthor" + notification.ReferenceID + "_")).ToList();
-                ComplaintReplyReplyAuthorRoles = appContext.Roles.Where(r => r.Name!.
-                    Contains("ReplyReplyAuthor" + notification.ReferenceID + "_")).ToList();
-                await SetUserState(notification);
-            }
-            notifications = notifications.Where(n => n.IsAuthor == false && n.Author != User.UserName && (n.IsReferenceOwner == true || IsAdmin)).ToList();
             notifications = notifications.OrderByDescending(n => n.Created).ToList();
+
             foreach (var notification in notifications)
             {
                 notification.Read = true;
@@ -121,107 +154,9 @@ else
         }
     }
 
-    private async Task SetUserState(Notification notification)
-    {  
-        if (notification is not null)
-        {
-            if (ComplaintAuthorRoles is not null && ComplaintAuthorRoles.Count() > 0)
-            {
-                ComplaintAuthor = ComplaintAuthorRoles.FirstOrDefault(r => r.Name == "ComplaintAuthor" + notification.ReferenceID);
-
-                if (ComplaintAuthor is not null)
-                {
-                    IsComplaintAuthor = true;
-                    notification.IsReferenceOwner = true;
-                    await UpdateNotification(notification);
-                }
-                else
-                {
-                    notification.IsReferenceOwner = false;
-                    await UpdateNotification(notification);
-                }
-            }
-            if (ComplaintReplyAuthorRoles is not null && ComplaintReplyAuthorRoles.Count() > 0)
-            {
-                //Get only the complaint reply author roles corresponding to the currently logged in user
-                var userComplaintReplyAuthorRoles = Roles.Where(r => r.Name!.Contains("ComplaintReplyAuthor" + notification.ReferenceID + "_"));
-
-                if (userComplaintReplyAuthorRoles.Count() > 0)
-                {
-                    foreach (var role in userComplaintReplyAuthorRoles)
-                    {
-                        if (role is not null)
-                        {
-                            if (notification.Author == User!.UserName)
-                            {
-                                notification.IsAuthor = true;
-                                await UpdateNotification(notification);
-                            }
-                            else
-                            {
-                                notification.IsAuthor = false;
-                                await UpdateNotification(notification);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    notification.IsAuthor = false;
-                    await UpdateNotification(notification);
-                }
-            }
-            if (ComplaintReplyReplyAuthorRoles is not null && ComplaintReplyReplyAuthorRoles.Count() > 0)
-            {
-                //Get only the complaint reply author roles corresponding to the currently logged in user
-                var userComplaintReplyReplyAuthorRoles = Roles.Where(r => r.Name!.Contains("ReplyReplyAuthor" + notification.ReferenceID + "_"));
-
-                if (userComplaintReplyReplyAuthorRoles.Count() > 0)
-                {
-                    foreach (var role in userComplaintReplyReplyAuthorRoles)
-                    {
-                        if (role is not null)
-                        {
-                            if (notification.Author == User!.UserName)
-                            {
-                                notification.IsAuthor = true;
-                                await UpdateNotification(notification);
-                            }
-                            else
-                            {
-                                notification.IsAuthor = false;
-                                await UpdateNotification(notification);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    notification.IsAuthor = false;
-                    await UpdateNotification(notification);
-                }
-            }
-            /*
-            else
-            {
-                if (IsComplaintAuthor)
-                {
-                    notification.IsAuthor = true;
-                    await UpdateNotification(notification);
-                }
-                else
-                {
-                    notification.IsAuthor = false;
-                    await UpdateNotification(notification);
-                }
-            }
-            */
-        }
-    }
-
     public async Task UpdateNotification(Notification notification)
     {
-        using var context = DbFactory.CreateDbContext();
+        using var context = AppDbFactory.CreateDbContext();
         context.Attach(notification!).State = EntityState.Modified;
 
         try
@@ -232,7 +167,7 @@ else
         {
             if (!NotificationExists(notification!.Id))
             {
-                NavigationManager.NavigateTo("NotFound");
+                NavigationManager.NavigateTo("Account/NotFound");
             }
             else
             {
@@ -243,8 +178,8 @@ else
 
     bool NotificationExists(int id)
     {
-        using var context = DbFactory.CreateDbContext();
-        return context.Notification.Any(e => e.Id == id);
+        using var context = AppDbFactory.CreateDbContext();
+        return context.Notifications.Any(e => e.Id == id);
     }
 
     private void UpdateGridProvider()
@@ -255,6 +190,76 @@ else
     {
         var result = GridItemsProviderResult.From<Notification>(items: notifications!, totalItemCount: notifications!.Count);
         NotificationsProvider = req => ValueTask.FromResult(result);
+    }
+    public async Task DeleteNotifications()
+    {
+        using var context = AppDbFactory.CreateDbContext();
+        foreach (var notification in SelectedNotifications)
+        {
+            context.Notifications.Remove(notification!);
+            await context.SaveChangesAsync();
+        }
+        UpdateGridProvider();
+        NavigationManager.Refresh(true);
+    }
+    private void ShowCheckboxInfo()
+    {
+        CheckboxInfo = "Select all";
+    }
+    private void HideCheckboxInfo()
+    {
+        Task.Delay(3500);
+        CheckboxInfo = "";
+    }
+    private async Task OnCheckBoxSelected()
+    {
+        SelectAllNotifications = !SelectAllNotifications;
+        
+        using var context = AppDbFactory.CreateDbContext();
+
+        foreach (var notification in notifications)
+        {
+            notification.Selected = SelectAllNotifications;
+            context.Attach(notification!).State = EntityState.Modified;
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!NotificationExists(notification!.Id))
+                {
+                    NavigationManager.NavigateTo("Account/NotFound");
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            if (SelectAllNotifications)
+            {
+                if (!SelectedNotifications!.Contains(notification))
+                {
+                    SelectedNotifications!.Add(notification);
+                }
+            }
+            else
+            {
+                SelectedNotifications.Remove(notification);
+            }
+        }
+        UpdateGridProvider();
+    }
+    private void ShowButtonIconInfo()
+    {
+        ButtonIconInfo = "Delete selected notifications";
+    }
+    private void HideButtonIconInfo()
+    {
+        Task.Delay(3500);
+        ButtonIconInfo = "";
     }
 }
 

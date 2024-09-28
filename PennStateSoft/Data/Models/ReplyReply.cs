@@ -3,7 +3,7 @@
     public class ReplyReply
     {
         public int Id { get; set; }
-        public int ComplaintReplyId { get; set; }
+        public int ComplaintReplyReplyId { get; set; }
         public string? Username { get; set; }
         public string? Subject { get; set; }
         public DateTime Created { get; set; }

@@ -1,5 +1,5 @@
 ﻿@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
-@inject PennStateSoft.Data.ApplicationDbContext AppDb
+@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDb
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
@@ -33,13 +33,12 @@
             @if (memberAdded)
             {
                 <p class="text-success mt-1">
-                    @user!.UserName was added to the meeting.
+                    @member!.UserName was added to the meeting.
                 </p>
                 memberAdded = false;
             }
-            <EditForm method="post" Model="meeting" OnValidSubmit="@(()=> AddSelectedMember(selectedUser!))" FormName="add-attendees" Enhance>
-                <DataAnnotationsValidator />
-                <ValidationSummary class="text-danger" />
+            <form method="post" Model="@meeting" @onsubmit="@(()=> AddSelectedMember(selectedUser!))" @formname="add-attendees">
+                <AntiforgeryToken/>
                 <div class="mb-3">
                     <div style="text-align:left;">
                         <label for="user" class="form-label">Add people to the meeting:</label>
@@ -53,15 +52,14 @@
                             }
                         }
                     </InputSelect>
-                    <ValidationMessage For="() => user" class="text-danger" />
                     <button type="submit" class="btn btn-primary mt-1">
                         Add
                     </button>
-                    <a class="btn btn-secondary ms-2" @onclick="OnAddClicked">
+                    <a class="btn btn-secondary ms-2 mt-1" @onclick="OnAddClicked">
                         Cancel
                     </a>
                 </div>
-            </EditForm>
+            </form>
         }
     </div>
     @if (MemberRemovedNotify)
@@ -117,12 +115,13 @@
     private ApplicationRoleManager? RoleManager;
     private IdentityRole? Role;
     private IdentityRole? AdminRole;
+    private IdentityUserRole<string>? userRole;
     private IdentityUserRole<string>[]? UserRoles { get; set; }
     private List<MeetingMember>? members { get; set; }
     private List<ApplicationUser>? Members { get; set; }
     private List<ApplicationUser>? users { get; set; }
     private List<ApplicationUser>? _users { get; set; }
-    private ApplicationUser? user { get; set; }
+    private ApplicationUser? User { get; set; }
     private ApplicationUser? member { get; set; }
     private ClaimsPrincipal? claimsPrincipal { get; set; }
 
@@ -144,6 +143,7 @@
     private string? MemberRemovedError { get; set; } = "";
     private bool RemoveErrorNotify { get; set; } = false;
     private bool MemberRemovedNotify { get; set; } = false;
+    private Notification? notification;
 
     private Room? room { get; set; }
     private bool AddMembersClicked = false;
@@ -153,21 +153,28 @@
     {
         if (meeting is not null)
         {
+            var AuthState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var ClaimsPrinciple = AuthState.User;
+            User = await UserManager.GetUserAsync(ClaimsPrinciple);
+
             role = "MeetingCreator" + meeting.Id.ToString();
 
             using var roomContext = MeetingDbFactory.CreateDbContext();
             room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
 
-
+            using var context = await AppDb.CreateDbContextAsync();
             //Get all registered app users
-            users = AppDb.Users.AsEnumerable<ApplicationUser>().ToList();
+            users = context.Users.AsEnumerable<ApplicationUser>().ToList();
             _users = new List<ApplicationUser>();
 
             //Get all userRoles
-            UserRoles = AppDb.UserRoles.AsEnumerable<IdentityUserRole<string>>().ToArray();
+            UserRoles = context.UserRoles.AsEnumerable<IdentityUserRole<string>>().ToArray();
 
             //Get admin role object
-            AdminRole = AppDb.Roles.FirstOrDefault(r => r.Name == "Admin");
+            AdminRole = context.Roles.FirstOrDefault(r => r.Name == "Admin");
+
+            //Initialize the role manager
+            RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
 
             foreach (var user in users)
             {
@@ -210,26 +217,28 @@
 
         if (meetingMember is not null)
         {
+            await CreateDeleteNotification(meetingMember);
             context.Remove<MeetingMember>(meetingMember!);
             await context.SaveChangesAsync();
             await RemoveFromRole(member, "Invitee" + meeting!.Id);
             MemberRemovedNotification = $"{member.UserName} has been removed.";
             MemberRemovedNotify = true;
-            SetGridItemsProvider();
+            await SetGridItemsProvider();
         }
     }
-    private void SetGridItemsProvider()
+    private async Task SetGridItemsProvider()
     {
         using var context = MeetingDbFactory.CreateDbContext();
         members = context.Members.Where(m => m.MeetingId == meeting!.Id).ToList();
 
         Members = new List<ApplicationUser>();
 
+        using var appContext = await AppDb.CreateDbContextAsync();
         if (members is not null)
         {
             foreach (var member in members)
             {
-                var user = AppDb.Users.FirstOrDefault(u => u.Id == member.UserId);
+                var user = appContext.Users.FirstOrDefault(u => u.Id == member.UserId);
                 if (user is not null)
                 {
                     Members.Add(user);
@@ -245,17 +254,17 @@
         using var MemberContext = MeetingDbFactory.CreateDbContext();
         members = MemberContext.Members.ToList();
 
-        user = users!.FirstOrDefault(u => u.UserName == UserName);
+        member = users!.FirstOrDefault(u => u.UserName == UserName);
 
-        if (user is null)
+        if (member is null)
         {
             //Get the first user in the dropdown if user wasn't selected
-            user = _users!.First();
-            UserName = user.UserName!;
+            member = _users!.First();
+            UserName = member.UserName!;
         }
 
         //Get the meeting members that match current App user
-        members = members.Where(m => m.UserId == user.Id).ToList();
+        members = members.Where(m => m.UserId == member.Id).ToList();
 
         //Check if current user is in any meetings currently ongoing
         if (IsMemberInAMeeting(UserName))
@@ -264,17 +273,18 @@
             return;
         }
         //Add members that have not been added already
-        if (MemberContext.Members.FirstOrDefault(m => m.UserId == user.Id && m.MeetingId == meeting!.Id) is null)
+        if (MemberContext.Members.FirstOrDefault(m => m.UserId == member.Id && m.MeetingId == meeting!.Id) is null)
         {
-            var member = new MeetingMember();
-            member.UserId = user.Id;
-            member.MeetingId = meeting!.Id;
-            MemberContext.Add(member);
+            var _member = new MeetingMember();
+            _member.UserId = member.Id;
+            _member.MeetingId = meeting!.Id;
+            MemberContext.Add(_member);
+            await CreateNotification(_member);
             await MemberContext.SaveChangesAsync();
-            await AddToRole(user, "Invitee" + meeting.Id);
+            await AddToRole(member, "Invitee" + meeting.Id);
             statusMessage = "";
             memberAdded = true;
-            SetGridItemsProvider();
+            await SetGridItemsProvider();
         }
         else
         {
@@ -318,44 +328,102 @@
     private async Task AddToRole(ApplicationUser authUser, string roleName)
     {
         //Create the Role
-        RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
-        Role = await RoleManager.FindByNameAsync(roleName).ConfigureAwait(false);
+        Role = await RoleManager!.FindByNameAsync(roleName).ConfigureAwait(false);
 
         if (Role == null)
         {
             Role = new IdentityRole(roleName);
             var roleResult = await RoleManager.CreateAsync(Role);
         }
-        var result = await UserManager.AddToRoleAsync(authUser, Role.Name!);
-
-        //Check if UserRole was added successfully
-        if (!result.Succeeded)
-        {
-            identityErrors = result.Errors;
-            return;
-        }
+        var UserRole = new IdentityUserRole<string>();
+        UserRole.UserId = authUser.Id;
+        UserRole.RoleId = Role.Id;
+        using var context = await AppDb.CreateDbContextAsync();
+        var result = await context.UserRoles.AddAsync(UserRole);
+        await context.SaveChangesAsync();
     }
     private async Task RemoveFromRole(ApplicationUser authUser, string roleName)
     {
-        //Create the Role
-        RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
-        Role = await RoleManager.FindByNameAsync(roleName).ConfigureAwait(false);
+        //Get the Role
+        Role = await RoleManager!.FindByNameAsync(roleName).ConfigureAwait(false);
 
         if (Role != null)
         {
-            var result = await UserManager.RemoveFromRoleAsync(authUser, Role.Name!);
-
-            //Check if UserRole was removed successfully
-            if (!result.Succeeded)
+            using var context = await AppDb.CreateDbContextAsync();
+            var UserRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == authUser.Id && ur.RoleId == Role.Id);
+            if (UserRole is not null)
             {
-                identityErrors = result.Errors;
-                return;
+                var result = context.UserRoles.Remove(UserRole);
+                await context.SaveChangesAsync();
             }
         }
         else
         {
             return;
         }  
+    }
+    private async Task CreateNotification(MeetingMember member)
+    {
+        using var context = AppDb.CreateDbContext();
+
+        if (member.UserId != User!.Id)
+        {
+            var UserMember = await context.Users.FirstOrDefaultAsync(u => u.Id == member.UserId);
+
+            //Notify meeting attendee
+            notification = new Notification
+                {
+                    ReferenceID = meeting!.Id,
+                    Author = User!.UserName,
+                    UserId = UserMember!.Id,
+                    Recipient = UserMember!.UserName,
+                    Message = "invited you to the meeting ",
+                    Link = $"/Account/Meetings/Details?id={meeting.Id}",
+                    LinkTo = $"{meeting.Name}",
+                    Read = false
+                };
+            await AddNotification(notification);
+        }
+    }
+    private async Task CreateDeleteNotification(MeetingMember member)
+    {
+        using var context = AppDb.CreateDbContext();
+
+        if (member.UserId != User!.Id)
+        {
+            var UserMember = await context.Users.FirstOrDefaultAsync(u => u.Id == member.UserId);
+
+            //Notify meeting attendee
+            notification = new Notification
+                {
+                    ReferenceID = meeting!.Id,
+                    Author = User!.UserName,
+                    UserId = UserMember!.Id,
+                    Recipient = UserMember!.UserName,
+                    Message = "removed you from the meeting ",
+                    Link = $"/Account/Meetings/Details?id={meeting.Id}",
+                    LinkTo = $"{meeting.Name}",
+                    Read = false
+                };
+            await AddNotification(notification);
+        }
+    }
+    public async Task AddNotification(Notification notification)
+    {
+        using var context = AppDb.CreateDbContext();
+        context.Notifications.Add(notification);
+        await context.SaveChangesAsync();
+    }
+    private async Task DeleteNotification(MeetingMember member)
+    {
+        using var context = AppDb.CreateDbContext();
+
+        var UserMember = await context.Users.FirstOrDefaultAsync(u => u.Id == member.UserId);
+        var notification = await context.Notifications
+                        .FirstOrDefaultAsync(n => n.LinkTo == meeting!.Name && n.Recipient == UserMember!.UserName);
+
+        context.Notifications.Remove(notification!);
+        await context.SaveChangesAsync();
     }
     private void HasEnded()
     {

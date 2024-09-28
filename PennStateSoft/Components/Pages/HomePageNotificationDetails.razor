@@ -1,5 +1,4 @@
-﻿@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> DbFactory
-@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
+﻿@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
 @inject NavigationManager NavigationManager
 
 @if (notification is null)
@@ -87,43 +86,16 @@ else
 
     private bool IsAdmin = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         if (notifications is null || notification is null)
         {
-            NavigationManager.NavigateTo("NotFound");
+            NavigationManager.NavigateTo("/Account/NotFound");
         }
-        /*
-        else
-        {
-            if (user is not null)
-            {
-                using var context = await AppDbFactory.CreateDbContextAsync();
-
-                //Get all user roles corresponding to the current user
-                var UserRoles = context.UserRoles.Where(ur => ur.UserId == user.Id);
-
-                //Get the admin role
-                var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
-
-                if (adminRole is not null)
-                {
-                    //Get the admin user role
-                    var AdminUserRole = await UserRoles.FirstOrDefaultAsync(ur => ur.RoleId == adminRole.Id);
-
-                    //Check if the user is an admin
-                    if (AdminUserRole is not null)
-                    {
-                        IsAdmin = true;
-                    }
-                }
-            }
-        }
-        */
     }
     public async Task UpdateNotification(Notification notification)
     {
-        using var context = DbFactory.CreateDbContext();
+        using var context = AppDbFactory.CreateDbContext();
         context.Attach(notification!).State = EntityState.Modified;
 
         try
@@ -134,7 +106,7 @@ else
         {
             if (!NotificationExists(notification!.Id))
             {
-                NavigationManager.NavigateTo("NotFound");
+                NavigationManager.NavigateTo("Account/NotFound");
             }
             else
             {
@@ -144,27 +116,31 @@ else
     }
     bool NotificationExists(int id)
     {
-        using var context = DbFactory.CreateDbContext();
-        return context.Notification.Any(e => e.Id == id);
+        using var context = AppDbFactory.CreateDbContext();
+        return context.Notifications.Any(e => e.Id == id);
     }
     private async void NotificationClicked(Notification notification)
     {
-        //Market the notification clicked as read
+        //Mark the notification clicked as read
         notification.Read = true;
         await UpdateNotification(notification);
 
         //Find all notifications older than the notification that was clicked
-        using var context = DbFactory.CreateDbContext();
-        var notifications = context.Notification.Where(n => n.ReferenceID == notification.ReferenceID).ToList();
-        notifications = notifications.Where(n => n.IsAuthor == false && n.Author != user.UserName && (n.IsReferenceOwner == true || IsAdmin)).ToList();
+        using var context = AppDbFactory.CreateDbContext();
+        var notifications = context.Notifications.ToList();
+        notifications = notifications.Where(n => n.Author != user.UserName && (n.Recipient == user.UserName)).ToList();
+        notifications = notifications.Where(n => n.Read == false).ToList();
         notifications = notifications.OrderByDescending(n => n.Created).ToList();
         notifications = notifications.Where(n => n.Created < notification.Created).ToList();
 
         //Mark them all as read as well
-        foreach (var _notification in notifications)
+        if (notifications is not null)
         {
-            _notification.Read = true;
-            await UpdateNotification(_notification);
+            foreach (var _notification in notifications)
+            {
+                _notification.Read = true;
+                await UpdateNotification(_notification);
+            }
         }
     }
 }

@@ -216,13 +216,17 @@ else
                     {
                         meetingList = meetings.Where(m => m.RoomId == room.Id).ToList();
                     }
+                    else
+                    {
+                        meetingList = new List<Meeting>();
+                    }
                     break;
                 case "Member":
                     var _context = MeetingDbFactory.CreateDbContext();
                     var user = AppDb.Users.FirstOrDefault(u => u.UserName == filteredSearch);
+                    var listOfMeetings = new List<Meeting>();
                     if (user is not null)
                     {
-                        var listOfMeetings = new List<Meeting>();
                         var members = _context.Members.Where(m => m.UserId == user.Id);
                         if (members is not null)
                         {
@@ -232,8 +236,8 @@ else
                                 listOfMeetings.Add(meetings.FirstOrDefault(m => m.Id == member.MeetingId));
                             }
                         }
-                        meetingList = listOfMeetings;
                     }
+                    meetingList = listOfMeetings;
                     break;
                 case "Time":
                     var midNight = new TimeOnly(0, 0, 0);

@@ -13,48 +13,51 @@
 
 @if (IsCreator || IsAdmin || IsInvited)
 {
-    <div>
-        <h4>Meeting Details</h4>
-        <hr />
-        @if (meeting is null)
-        {
-            <p><em>Loading...</em></p>
-        }
-        else
-        {
-            <dl class="row">
-                <dt class="col-sm-2">Name</dt>
-                <dd class="col-sm-10">@meeting.Name</dd>
-                <dt class="col-sm-2">Date</dt>
-                <dd class="col-sm-10">@meeting.Date.ToLongDateString()</dd>
-                <dt class="col-sm-2">Time</dt>
-                <dd class="col-sm-10">@meeting.Time</dd>
-                <dt class="col-sm-2">Duration</dt>
-                <dd class="col-sm-10">@meeting.Duration hr </dd>
-                <dt class="col-sm-2">Room</dt>
-                <dd class="col-sm-10">@room!.Name</dd>
-            </dl>
-            <CascadingValue Value="Id">
-                <CascadingValue Value="meeting" IsFixed="true">
-                    <CascadingValue Value="roles" IsFixed="true">
-                        <CascadingValue Value="IsCreator" IsFixed="true">
-                            <UpdateMeetingComponent />
+    <div style="align-content:baseline; background-color:whitesmoke; width:55%">
+        <div class="ms-5 mt-5">
+            <h4>Meeting Details</h4>
+            <hr />
+            @if (meeting is null)
+            {
+                <p><em>Loading...</em></p>
+            }
+            else
+            {
+                <dl class="row">
+                    <dt class="col-sm-2">Name</dt>
+                    <dd class="col-sm-10">@meeting.Name</dd>
+                    <dt class="col-sm-2">Date</dt>
+                    <dd class="col-sm-10">@meeting.Date.ToLongDateString()</dd>
+                    <dt class="col-sm-2">Time</dt>
+                    <dd class="col-sm-10">@meeting.Time</dd>
+                    <dt class="col-sm-2">Duration</dt>
+                    <dd class="col-sm-10">@meeting.Duration hr </dd>
+                    <dt class="col-sm-2">Room</dt>
+                    <dd class="col-sm-10">@room!.Name</dd>
+                </dl>
+                <CascadingValue Value="Id">
+                    <CascadingValue Value="meeting" IsFixed="true">
+                        <CascadingValue Value="roles" IsFixed="true">
+                            <CascadingValue Value="IsCreator" IsFixed="true">
+                                <UpdateMeetingComponent />
+                            </CascadingValue>
                         </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
-            </CascadingValue>
 
-            <div>
-                @if (IsCreator && !hasEnded && !hasStarted)
-                {
-                    <a class="text-decoration-none me-2" href="@($"Account/Meetings/Edit?id={meeting.Id}")">
-                        Edit
-                    </a> <span class="me-2">  | </span>
-                }
+                <div class="mb-3">
+                    @if (IsCreator && !hasEnded && !hasStarted)
+                    {
+                        <a class="text-decoration-none me-2" href="@($"Account/Meetings/Edit?id={meeting.Id}")">
+                            Edit
+                        </a> <span class="me-2">  | </span>
+                    }
 
-                <a class="text-decoration-none" href="@($"Account/Meetings")">Back</a>
-            </div>
-        }
+                    <a class="text-decoration-none" href="@($"Account/Meetings")">Back</a>
+                </div>
+            }
+        </div>
+        
     </div>
 }
 else
@@ -100,7 +103,6 @@ else
                     IsInvited = await UserManager.IsInRoleAsync(user, "Invitee" + meeting.Id);
                     IsAdmin = await UserManager.IsInRoleAsync(user, "Admin");
                 }
-
             }
 
             using var roomContext = MeetingDbFactory.CreateDbContext();

@@ -22,7 +22,7 @@
     <div class="m-3" style="text-align:right; width:90%;">
         @if (ReplyClicked)
         {
-            <form method="post" Model="@ComplaintReplyReply" @onsubmit="OnSubmitClickedAsync" @formname="create-complaintreplyreply">
+            <form method="post" Model="@ReplyReply" @onsubmit="OnSubmitClickedAsync" @formname="create-replyreply">
                 <AntiforgeryToken />
                 <InputTextArea id="replydescription" @bind-Value="ReplyDescription" class="form-control text-wrap"
                                rows="@uIHelper.Rows" @onchange="@(()=> uIHelper.CalculateSize(ReplyDescription))" autofocus>
@@ -47,10 +47,10 @@
     public Complaint? complaint { get; set; } = default!;
 
     [CascadingParameter]
-    public ComplaintReply? complaintReply { get; set; } = default!;
+    public ComplaintReplyReply? complaintReplyReply { get; set; } = default!;
 
     [SupplyParameterFromForm]
-    public ComplaintReplyReply? ComplaintReplyReply { get; set; } = new();
+    public ReplyReply? ReplyReply { get; set; } = new();
 
     private ClaimsPrincipal? claimsPrincipal { get; set; }
 
@@ -71,9 +71,9 @@
 
     protected override void OnInitialized()
     {
-        if (ComplaintReplyReply!.Replies is null)
+        if (complaintReplyReply!.Replies is null)
         {
-            ComplaintReplyReply!.Replies = new List<ReplyReply>();
+            complaintReplyReply!.Replies = new List<ReplyReply>();
         }
     }
     private void OnReplyClicked()
@@ -110,15 +110,15 @@
             }
         }
 
-        ComplaintReplyReply.Username = user!.UserName;
-        ComplaintReplyReply.Created = DateTime.Now;
-        ComplaintReplyReply.Closed = DateTime.Now.AddDays(7);
-        ComplaintReplyReply.Subject = complaintReply?.Subject;
-        ComplaintReplyReply.ComplaintReplyId = complaintReply!.Id;
+        ReplyReply.Username = user!.UserName;
+        ReplyReply.Created = DateTime.Now;
+        ReplyReply.Closed = DateTime.Now.AddDays(7);
+        ReplyReply.Subject = complaintReplyReply?.Subject;
+        ReplyReply.ComplaintReplyReplyId = complaintReplyReply!.Id;
 
         if (ReplyDescription is not null)
         {
-            ComplaintReplyReply.Description = Encoding.ASCII.GetBytes(ReplyDescription);
+            ReplyReply.Description = Encoding.ASCII.GetBytes(ReplyDescription);
         }
         else
         {
@@ -126,8 +126,8 @@
             return;
         }
 
-        await AddComplaintReplyReply();
-        ComplaintReplyReply = new ComplaintReplyReply();
+        await AddReplyReply();
+        ReplyReply = new ReplyReply();
     }
     private async Task CreateRole(ApplicationUser authUser, string roleName)
     {
@@ -175,16 +175,17 @@
                 await AddNotification(notification);
             }
         }
-        var ComplaintReplyAuthor = await context.Users.FirstOrDefaultAsync(u => u.UserName == complaintReply!.Username);
-        if (!await UserManager.IsInRoleAsync(ComplaintReplyAuthor, "Admin"))
+        var CompReplyReplyAuthor = await context.Users.
+                                FirstOrDefaultAsync(u => u.UserName == complaintReplyReply!.Username);
+        if (!await UserManager.IsInRoleAsync(CompReplyReplyAuthor, "Admin"))
         {
             //Notify the complaint author of new replies
             notification = new Notification
                 {
                     ReferenceID = complaint.Id,
                     Author = user!.UserName,
-                    UserId = ComplaintReplyAuthor.Id,
-                    Recipient = ComplaintReplyAuthor.UserName,
+                    UserId = CompReplyReplyAuthor.Id,
+                    Recipient = CompReplyReplyAuthor.UserName,
                     Message = "replied to ",
                     Link = $"/Account/Complaints/Details?id={complaint.Id}",
                     LinkTo = $"{complaint.Subject}",
@@ -200,13 +201,13 @@
         await context.SaveChangesAsync();
     }
 
-    public async Task AddComplaintReplyReply()
+    public async Task AddReplyReply()
     {
         using var context = ComplaintsDbFactory.CreateDbContext();
-        context.ComplaintReplyReply.Add(ComplaintReplyReply!);
-        context.Attach(complaintReply!).State = EntityState.Modified;
+        context.ReplyReply.Add(ReplyReply!);
+        context.Attach(complaintReplyReply!).State = EntityState.Modified;
         await context.SaveChangesAsync();
-        await CreateRole(user!, "ComplaintReplyReplyAuthor" + complaintReply!.Id + "_" + ComplaintReplyReply!.Id.ToString());
+        await CreateRole(user!, "ReplyReplyAuthor" + complaintReplyReply!.Id + "_" + ReplyReply!.Id.ToString());
         await CreateNotification();
         await OnCancelClicked();
         await OnSaveNewReplyCallback.InvokeAsync();

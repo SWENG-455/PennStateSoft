@@ -1,7 +1,12 @@
-﻿@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> DbFactory
+﻿@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppUsersDbFactory
 @inject NavigationManager NavigationManager
 
+
 <div class="mt-2 mb-3">
+    <InputCheckbox @bind-Value="notification.Selected" @onclick="OnSelectClick" 
+                    class="darker-border-checkbox form-check-input me-4">
+    </InputCheckbox>
+
     <strong>
         @notification.Author
     </strong>
@@ -68,6 +73,9 @@
     [Parameter]
     public EventCallback<SaveChangesEventArgs> OnDeleteCallback { get; set; }
 
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnSelected { get; set; }
+
     [CascadingParameter]
     public Notification notification { get; set; } = default!;
 
@@ -76,18 +84,32 @@
 
     private TimeSpan TimeSinceCreated;
 
+    [CascadingParameter]
+    public bool SelectAllNotifications { get; set; } = default!;
+
+    [CascadingParameter]
+    public List<Notification>? SelectedNotifications { get; set; } = default!;
+
     private string? NotificationDuration;
 
     protected override async Task OnInitializedAsync()
     {
         if (notifications is null || notification is null)
         {
-            NavigationManager.NavigateTo("NotFound");
+            NavigationManager.NavigateTo("Account/NotFound");
+        }
+        else
+        {
+            if (!SelectAllNotifications)
+            {
+                notification.Selected = false;
+                await OnSelect();
+            }
         }
     }
     public async Task UpdateNotification(Notification notification)
     {
-        using var context = DbFactory.CreateDbContext();
+        using var context = AppUsersDbFactory.CreateDbContext();
         context.Attach(notification!).State = EntityState.Modified;
 
         try
@@ -98,7 +120,7 @@
         {
             if (!NotificationExists(notification!.Id))
             {
-                NavigationManager.NavigateTo("NotFound");
+                NavigationManager.NavigateTo("Account/NotFound");
             }
             else
             {
@@ -108,15 +130,38 @@
     }
     public async Task DeleteNotification()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Notification.Remove(notification!);
-        await context.SaveChangesAsync();
-        notifications.Remove(notification);
+        using var context = AppUsersDbFactory.CreateDbContext();
+        if (notification.Selected)
+        {
+            context.Notifications.Remove(notification!);
+            await context.SaveChangesAsync();
+        }
         await OnDeleteCallback.InvokeAsync();
+    }
+    public async void OnSelectClick()
+    {
+        notification.Selected = !notification.Selected;
+        await UpdateNotification(notification);
+        await OnSelect();
+    }
+    public async Task OnSelect()
+    {
+        if (notification.Selected)
+        {
+            if (!SelectedNotifications!.Contains(notification))
+            {
+                SelectedNotifications!.Add(notification);
+            }
+        }
+        else
+        {
+            SelectedNotifications!.Remove(notification);
+        }
+        await OnSelected.InvokeAsync();
     }
     bool NotificationExists(int id)
     {
-        using var context = DbFactory.CreateDbContext();
-        return context.Notification.Any(e => e.Id == id);
+        using var context = AppUsersDbFactory.CreateDbContext();
+        return context.Notifications.Any(e => e.Id == id);
     }
 }

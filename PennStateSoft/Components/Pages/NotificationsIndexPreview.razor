@@ -1,21 +1,16 @@
-﻿
-@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> DbFactory
-@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
+﻿@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
 @inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
-@rendermode InteractiveServer
 
 @attribute [Authorize]
 <div>
 @if (NotificationsProvider is null)
 {
-    <p><em>Loading...</em></p>
+        <p><em>Loading...</em></p>
 }
 else
 {
-    @if (IsComplaintAuthor || IsAdmin)
-    {
         @if (ExistingUnreadNotifications)
         {
             <p3>
@@ -37,11 +32,6 @@ else
             <p class="ms-1">No new notifications.</p>
         }
     }
-    else
-    {
-        <p class="ms-1">No new notifications.</p>
-    }
-}
 </div>
 
 @code {
@@ -58,20 +48,13 @@ else
     public ApplicationUser? User { get; set; } = default!;
 
     List<IdentityRole>? Roles;
-    List<IdentityRole>? ComplaintAuthorRoles;
-    List<IdentityRole>? ComplaintReplyAuthorRoles;
-    List<IdentityRole>? MeetingCreatorRoles;
-    List<IdentityRole>? InviteeRoles;
-    IdentityRole? ComplaintAuthor, ComplaintReplyAuthor;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        var Notifications = context.Notification.ToList<Notification>();
-        notifications = Notifications;
-
         if (User is not null)
         {
+            using var context = AppDbFactory.CreateDbContext();
+
             UserName = User.UserName;
             using var appContext = await AppDbFactory.CreateDbContextAsync();
 
@@ -92,24 +75,14 @@ else
                 IsAdmin = true;
             }
 
-            //Check if the user has created any complaints or meetings, or has been invited to any meetings
-            ComplaintAuthorRoles = Roles.Where(r => r.Name!.Contains("ComplaintAuthor")).ToList();
-            MeetingCreatorRoles = Roles.Where(r => r.Name!.Contains("MeetingCreator")).ToList();
-            InviteeRoles = Roles.Where(r => r.Name!.Contains("Invitee")).ToList();
+            var Notifications = context.Notifications.
+                Where(n => n.Author != User.UserName && (n.Recipient == User.UserName)).ToList();
+            notifications = Notifications;
+            notifications = notifications.Where(n => n.Read == false).ToList();
         }
 
         if (notifications is not null)
         {
-            foreach (var notification in notifications)
-            {
-                //Get all of the complaint reply author roles corresponding to the specific notification
-                using var appContext = await AppDbFactory.CreateDbContextAsync();
-                ComplaintReplyAuthorRoles = appContext.Roles.Where(r => r.Name!.
-                    Contains("ComplaintReplyAuthor" + notification.ReferenceID + "_")).ToList();
-                await SetUserState(notification);
-            }
-            notifications = notifications.Where(n => n.IsAuthor == false && n.Author != User.UserName && (n.IsReferenceOwner == true || IsAdmin)
-                                                && n.Read == false).ToList();
             notifications = notifications.OrderByDescending(n => n.Created).ToList();
             notifications = notifications.Take(2).ToList();
 
@@ -121,76 +94,10 @@ else
             NotificationsProvider = request => ValueTask.FromResult(Result);
         }
     }
-
-    private async Task SetUserState(Notification notification)
-    {  
-        if (notification is not null)
-        {
-            if (ComplaintAuthorRoles is not null && ComplaintAuthorRoles.Count() > 0)
-            {
-                ComplaintAuthor = ComplaintAuthorRoles.FirstOrDefault(r => r.Name == "ComplaintAuthor" + notification.ReferenceID);
-
-                if (ComplaintAuthor is not null)
-                {
-                    IsComplaintAuthor = true;
-                    notification.IsReferenceOwner = true;
-                    await UpdateNotification(notification);
-                }
-                else
-                {
-                    notification.IsReferenceOwner = false;
-                    await UpdateNotification(notification);
-                }
-            }
-            if (ComplaintReplyAuthorRoles is not null && ComplaintReplyAuthorRoles.Count() > 0)
-            {
-                //Get only the complaint reply author roles corresponding to the currently logged in user
-                var userComplaintReplyAuthorRoles = Roles.Where(r => r.Name!.Contains("ComplaintReplyAuthor" + notification.ReferenceID + "_"));
-
-                if (userComplaintReplyAuthorRoles.Count() > 0)
-                {
-                    foreach (var role in userComplaintReplyAuthorRoles)
-                    {
-                        if (role is not null)
-                        {
-                            if (notification.Author == User!.UserName)
-                            {
-                                notification.IsAuthor = true;
-                                await UpdateNotification(notification);
-                            }
-                            else
-                            {
-                                notification.IsAuthor = false;
-                                await UpdateNotification(notification);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    notification.IsAuthor = false;
-                    await UpdateNotification(notification);
-                }
-            }
-            else
-            {
-                if (IsComplaintAuthor)
-                {
-                    notification.IsAuthor = true;
-                    await UpdateNotification(notification);
-                }
-                else
-                {
-                    notification.IsAuthor = false;
-                    await UpdateNotification(notification);
-                }
-            }
-        }
-    }
-
+    
     public async Task UpdateNotification(Notification notification)
     {
-        using var context = DbFactory.CreateDbContext();
+        using var context = AppDbFactory.CreateDbContext();
         context.Attach(notification!).State = EntityState.Modified;
 
         try
@@ -201,7 +108,7 @@ else
         {
             if (!NotificationExists(notification!.Id))
             {
-                NavigationManager.NavigateTo("NotFound");
+                NavigationManager.NavigateTo("Account/NotFound");
             }
             else
             {
@@ -212,8 +119,8 @@ else
 
     bool NotificationExists(int id)
     {
-        using var context = DbFactory.CreateDbContext();
-        return context.Notification.Any(e => e.Id == id);
+        using var context = AppDbFactory.CreateDbContext();
+        return context.Notifications.Any(e => e.Id == id);
     }
 
     private void UpdateGridProvider()

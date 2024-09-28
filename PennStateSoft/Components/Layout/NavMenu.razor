@@ -1,10 +1,6 @@
-﻿@using Microsoft.AspNetCore.Antiforgery
-@implements IDisposable
+﻿@implements IDisposable
 
 @inject NavigationManager NavigationManager
-@inject IHttpContextAccessor HttpContextAccessor
-@inject IAntiforgery Antiforgery
-@inject AntiforgeryStateProvider AntiforgeryStateProvider
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid d-flex justify-content-between align-items-center" style="height: 1.9rem;">
@@ -45,7 +41,7 @@
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" bind:event="GetAntiforgeryToken()" />
+                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                         <button type="submit" class="nav-link">
                             <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
                         </button>
@@ -81,17 +77,6 @@
     {
         currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
         StateHasChanged();
-    }
-
-    public string GetAntiforgeryToken()
-    {
-        var httpContext = HttpContextAccessor.HttpContext;
-        if (httpContext == null)
-        {
-            throw new InvalidOperationException("HttpContext is not available.");
-        }
-        var tokens = Antiforgery.GetAndStoreTokens(httpContext);
-        return tokens.RequestToken;
     }
 
     public void Dispose()

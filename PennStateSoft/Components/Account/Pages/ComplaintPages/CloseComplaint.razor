@@ -1,7 +1,7 @@
 ﻿@page "/Account/Complaints/Delete"
 
 @inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
-@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> NotificationsDbFactory
+@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppUsersDbFactory
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
@@ -18,40 +18,44 @@
 
 @if (UserName == complaint?.Username)
 {
-    <div>
-        @if (complaint is null)
-        {
-            <hr />
-            <p><em>Loading...</em></p>
-        }
-        else
-        {
-            <h3 class="link-danger">Mark as resolved?</h3>
-            <hr class="link-danger" />
-            <h4 class="mt-4">@complaint.Subject</h4>
-            <hr />
-            <div class="forms-control border border-light border-start-0 border-end-0 border-bottom-0
+     <div style="align-content:baseline; background-color:whitesmoke; width:75%">
+         <div class="ms-5 mt-5">
+            <div>
+                @if (complaint is null)
+                {
+                    <hr />
+                    <p><em>Loading...</em></p>
+                }
+                else
+                {
+                    <h3 class="link-danger">Mark as resolved?</h3>
+                    <hr class="link-danger" />
+                    <h4 class="mt-4">@complaint.Subject</h4>
+                    <hr />
+                    <div class="forms-control border border-light border-start-0 border-end-0 border-bottom-0
                border-top-0" cols="80">
-                <div>
-                    <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
-                    <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username </label>
-                    <label class="ms-5 form-label text-black-50"> @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() </label>
-                </div>
-                <div class="mt-3 mb-4">
-                    <textarea class="text-black text-wrap" style="border:none; background-color:Window" cols="100"
-                              rows="4" disabled>
-                        @Encoding.ASCII.GetString(complaint.Description!)
-                        </textarea>
-                </div>
+                        <div>
+                            <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
+                            <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username </label>
+                            <label class="ms-5 form-label text-black-50"> @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() </label>
+                        </div>
+                        <div class="mt-3 mb-4">
+                            <textarea class="text-black text-wrap" style="border:none; background-color:whitesmoke" cols="100"
+                                      rows="@uIHelper.Rows" disabled>
+                                @Encoding.ASCII.GetString(complaint.Description!)
+                                </textarea>
+                        </div>
+                    </div>
+                    <EditForm method="post" Model="complaint" OnValidSubmit="DeleteComplaint" FormName="close-complaint" Enhance>
+                        <button type="submit" class="btn btn-danger ms-3 mb-3" disabled="@(complaint is null)">Resolve</button>
+                        <a class="btn btn-secondary ms-2 mb-3" href="Account/Complaints">
+                            Cancel
+                        </a>
+                    </EditForm>
+                }
             </div>
-            <EditForm method="post" Model="complaint" OnValidSubmit="DeleteComplaint" FormName="close-complaint" Enhance>
-                <button type="submit" class="btn btn-danger ms-3" disabled="@(complaint is null)">Resolve</button>
-                <a class="btn btn-secondary ms-2" href="Account/Complaints">
-                    Cancel
-                </a>
-            </EditForm>
-        }
-    </div>
+         </div>
+     </div>
 }
 else
 {
@@ -122,7 +126,7 @@ else
                 Role = await RoleManager.FindByNameAsync("ComplaintReplyAuthor" + complaint!.Id + "_" + complaintReply.Id).ConfigureAwait(false);
                 result = await RoleManager.DeleteAsync(Role!);
 
-                var complaintReplyReplies = context.ReplyReply.Where(rr => rr.ComplaintReplyId == complaintReply.Id).ToList();
+                var complaintReplyReplies = context.ReplyReply.Where(rr => rr.ComplaintReplyReplyId == complaintReply.Id).ToList();
                 
                 if (complaintReplyReplies is not null)
                 {
@@ -137,58 +141,48 @@ else
     }
     private async Task CreateNotification()
     {
-        notification = new Notification
-            {
-                ReferenceID = complaint.Id,
-                Author = user!.UserName,
-                Message = "closed the complaint, ",
-                Link = $"/Account/Complaints/Details?id={complaint.Id}",
-                LinkTo = $"{complaint.Subject}",
-                IsAuthor = true
-            };
+        using var context = AppUsersDbFactory.CreateDbContext();
+        var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        var adminUserRoles = context.UserRoles.Where(Ur => Ur.RoleId == adminRole!.Id);
 
-        await AddNotification();
+        foreach (var adminUserRole in adminUserRoles)
+        {
+            var recipientAccts = context.Users.Where(u => u.Id == adminUserRole.UserId).ToList();
+            foreach (var adminAcc in recipientAccts)
+            {
+                notification = new Notification
+                    {
+                        ReferenceID = complaint.Id,
+                        Author = user!.UserName,
+                        UserId = adminAcc.Id,
+                        Recipient = adminAcc.UserName,
+                        Message = "closed the complaint, ",
+                        Link = $"/Account/Complaints/Details?id={complaint.Id}",
+                        LinkTo = $"{complaint.Subject}",
+                        Read = false
+                    };
+                await AddNotification(notification);
+            }
+        }
     }
-    private async Task AddNotification()
+    private async Task AddNotification(Notification notification)
     {
-        //Add notifications to alert admins of the closure of this complaint
-        using var context = NotificationsDbFactory.CreateDbContext();
-        context.Notification.Add(notification!);
+        using var context = AppUsersDbFactory.CreateDbContext();
+        context.Notifications.Add(notification!);
         await context.SaveChangesAsync();
     }
     private async Task DeleteNotifications()
     {
         //Delete all complaint reply notifications tied to this complaint
-        using var context = NotificationsDbFactory.CreateDbContext();
-        var notifications = context.Notification.Where(n => n.ReferenceID == complaint.Id && n.Author != user.UserName);
+        using var context = AppUsersDbFactory.CreateDbContext();
+        var notifications = context.Notifications.Where(n => n.ReferenceID == complaint.Id && n.UserId == user.Id);
 
         if (notifications is not null && notifications.Count() > 0)
         {
             foreach (var notification in notifications)
             {
-                context.Notification.Remove(notification);
+                context.Notifications.Remove(notification);
                 await context.SaveChangesAsync();
-            }
-        }
-
-        //Delete all complaint reply reply notifications tied to a specific complaint reply
-        using var complaintReplyContext = ComplaintsDbFactory.CreateDbContext();
-        var complaintReplies = complaintReplyContext.ComplaintReply.Where(cr => cr.ComplaintId == complaint.Id).ToList();
-
-        if (complaintReplies is not null)
-        {
-            foreach (var complaintReply in complaintReplies)
-            {
-                notifications = context.Notification.Where(n => n.ReferenceID == complaintReply.Id && n.Author != user.UserName);
-
-                if (notifications is not null && notifications.Count() > 0)
-                {
-                    foreach (var notification in notifications)
-                    {
-                        context.Notification.Remove(notification);
-                        await context.SaveChangesAsync();
-                    }
-                }
             }
         }
     }

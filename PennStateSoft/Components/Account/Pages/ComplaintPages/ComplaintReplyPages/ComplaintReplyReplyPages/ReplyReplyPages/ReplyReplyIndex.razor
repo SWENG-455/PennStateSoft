@@ -1,0 +1,41 @@
+﻿@page "/Account/Complaints/ComplaintReplies/ComplaintRepliesReplies/RepliesReplies"
+@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
+@attribute [Authorize]
+
+<QuickGrid ItemsProvider="@ReplyReplyGridProvider" Theme="chat">
+    <TemplateColumn Context="ReplyReply" Align="Align.Right">
+        <CascadingValue Value="ComplaintReplyReply" IsFixed="true">
+            <CascadingValue Value="@ReplyReply" IsFixed="true">
+                <ReplyReplyDetails OnSaveCallback="UpdateGridProvider" />
+            </CascadingValue>
+        </CascadingValue>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+
+    PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
+    GridItemsProvider<ReplyReply>? ReplyReplyGridProvider;
+
+    [CascadingParameter]
+    private ComplaintReplyReply? ComplaintReplyReply { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        if (ComplaintReplyReply is not null && ComplaintReplyReply.Replies is not null)
+        {
+            var rows = ComplaintReplyReply.Replies;
+            UpdateGridProvider(rows);
+
+        }
+    }
+    private void UpdateGridProvider(SaveChangesEventArgs eventArgs)
+    {
+        UpdateGridProvider(ComplaintReplyReply.Replies);
+    }
+    private void UpdateGridProvider(List<ReplyReply> replies)
+    {
+        var result = GridItemsProviderResult.From<ReplyReply>(items: replies!, totalItemCount: replies!.Count);
+        ReplyReplyGridProvider = req => ValueTask.FromResult(result);
+    }
+}

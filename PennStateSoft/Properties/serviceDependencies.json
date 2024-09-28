@@ -2,15 +2,17 @@
   "dependencies": {
     "secrets1": {
       "type": "secrets",
-      "dynamicId": null
+      "connectionId": null
     },
     "mssql1": {
       "type": "mssql",
-      "connectionId": "ConnectionStrings:ComplaintReplies"
+      "connectionId": "ConnectionStrings:DefaultConnection",
+      "dynamicId": null
     },
     "mssql2": {
       "type": "mssql",
-      "connectionId": "ConnectionStrings:MeetingsContext"
+      "connectionId": "ConnectionStrings:NotificationContext",
+      "dynamicId": null
     },
     "mssql3": {
       "type": "mssql",
@@ -18,7 +20,8 @@
     },
     "mssql4": {
       "type": "mssql",
-      "connectionId": "ConnectionStrings:NotificationContext"
+      "connectionId": "ConnectionStrings:UserComplaints",
+      "dynamicId": null
     }
   }
 }

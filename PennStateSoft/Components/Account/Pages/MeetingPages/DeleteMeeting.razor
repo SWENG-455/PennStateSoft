@@ -1,6 +1,7 @@
 ﻿@page "/Account/Meetings/Delete"
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
+@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDb
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
 @inject IRoleStore<IdentityRole> RoleStore
@@ -17,44 +18,48 @@
 <PageTitle>Delete</PageTitle>
 @if (IsCreator)
 {
-    <h3 class="link-danger">Are you sure you want to delete this meeting?</h3>
-    <hr class="link-danger" />
-    <div>
+    <div style="align-content:baseline; background-color:whitesmoke; width:55%">
+        <div class="ms-5 mt-5">
+            <h3 class="link-danger">Are you sure you want to delete this meeting?</h3>
+            <hr class="link-danger" />
+            <div>
 
-        @if (meeting is null)
-        {
-            <p><em>Loading...</em></p>
-        }
-        else
-        {
-            <h4>@meeting.Name</h4>
-            <hr />
-            <dl class="row">
-                <dt class="col-sm-2">Name</dt>
-                <dd class="col-sm-10">@meeting.Name</dd>
-            </dl>
-            <dl class="row">
-                <dt class="col-sm-2">Date</dt>
-                <dd class="col-sm-10">@meeting.Date.ToLongDateString()</dd>
-            </dl>
-            <dl class="row">
-                <dt class="col-sm-2">Time</dt>
-                <dd class="col-sm-10">@meeting.Time</dd>
-            </dl>
-            <dl class="row">
-                <dt class="col-sm-2">Duration</dt>
-                <dd class="col-sm-10">@meeting.Duration hr</dd>
-            </dl>
-            <dl class="row">
-                <dt class="col-sm-2">Room</dt>
-                <dd class="col-sm-10">@room!.Name</dd>
-            </dl>
+                @if (meeting is null)
+                {
+                    <p><em>Loading...</em></p>
+                }
+                else
+                {
+                    <h4>@meeting.Name</h4>
+                    <hr />
+                    <dl class="row">
+                        <dt class="col-sm-2">Name</dt>
+                        <dd class="col-sm-10">@meeting.Name</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-2">Date</dt>
+                        <dd class="col-sm-10">@meeting.Date.ToLongDateString()</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-2">Time</dt>
+                        <dd class="col-sm-10">@meeting.Time</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-2">Duration</dt>
+                        <dd class="col-sm-10">@meeting.Duration hr</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-2">Room</dt>
+                        <dd class="col-sm-10">@room!.Name</dd>
+                    </dl>
 
-            <EditForm method="post" Model="meeting" OnValidSubmit="DeleteThisMeeting" FormName="delete-meeting" Enhance>
-                <button type="submit" class="btn btn-danger" disabled="@(meeting is null)">Delete</button>
-                <a class="btn btn-secondary ms-2" href="/Account/Meetings">Cancel</a>
-            </EditForm>
-        }
+                    <EditForm method="post" Model="meeting" OnValidSubmit="DeleteThisMeeting" FormName="delete-meeting" Enhance>
+                        <button type="submit" class="btn btn-danger mb-3" disabled="@(meeting is null)">Delete</button>
+                        <a class="btn btn-secondary ms-2 mb-3" href="/Account/Meetings">Cancel</a>
+                    </EditForm>
+                }
+            </div>
+        </div>
     </div>
 }
 else
@@ -73,6 +78,7 @@ else
 
     private Room? room { get; set; }
     private ApplicationUser? User { get; set; }
+    private Notification? notification;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -127,7 +133,7 @@ else
             meetingRoom!.MeetingId = 0;             //Release the room
             await context.SaveChangesAsync();
         }
-       
+
     }
     private async Task RemoveRole()
     {
@@ -138,9 +144,64 @@ else
         Role = await RoleManager.FindByNameAsync("Invitee" + meeting!.Id).ConfigureAwait(false);
         result = await RoleManager.DeleteAsync(Role!);
     }
+    private async Task CreateNotification()
+    {
+        using var context = AppDb.CreateDbContext();
+        var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        var adminUserRoles = context.UserRoles.Where(Ur => Ur.RoleId == adminRole!.Id);
+
+        foreach (var adminUserRole in adminUserRoles)
+        {
+            var recipientAccts = context.Users.Where(u => u.Id == adminUserRole.UserId).ToList();
+            foreach (var adminAcc in recipientAccts)
+            {
+                //Notify all admins
+                notification = new Notification
+                    {
+                        ReferenceID = meeting!.Id,
+                        Author = User!.UserName,
+                        UserId = adminAcc.Id,
+                        Recipient = adminAcc.UserName,
+                        Message = "deleted the meeting ",
+                        Link = $"/Account/Meetings/Details?id={meeting.Id}",
+                        LinkTo = $"{meeting.Name}",
+                        Read = false
+                    };
+                await AddNotification(notification);
+            }
+        }
+        if (meeting!.Members is not null)
+        {
+            foreach (var member in meeting.Members)
+            {
+                var user = await context.Users.FirstOrDefaultAsync(u => u.Id == member.UserId);
+
+                //Notify all meeting attendees
+                notification = new Notification
+                    {
+                        ReferenceID = meeting.Id,
+                        Author = User!.UserName,
+                        UserId = user!.Id,
+                        Recipient = user.UserName,
+                        Message = "deleted the meeting ",
+                        Link = $"/Account/Meetings/Details?id={meeting.Id}",
+                        LinkTo = $"{meeting.Name}",
+                        Read = false
+                    };
+                await AddNotification(notification);
+            }
+        }
+    }
+    public async Task AddNotification(Notification notification)
+    {
+        using var context = AppDb.CreateDbContext();
+        context.Notifications.Add(notification);
+        await context.SaveChangesAsync();
+    }
 
     public async Task DeleteThisMeeting()
     {
+        await CreateNotification();
         await ReleaseRoom();
         await RemoveRole();
         using var context = MeetingDbFactory.CreateDbContext();

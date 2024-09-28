@@ -13,45 +13,45 @@
 @attribute [Authorize]
 
 <div>
-    @if (ComplaintReplyReply is null)
+    @if (ComplaintReply is null)
     {
         <p><em>Loading...</em></p>
     }
     else
     {
-        <div id="replyreply" class="m-3">
+        <div id="complaint_reply" class="m-3">
             <div class="m-3">
                 <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
                 @if (IsAdmin)
                 {
-                    <label class=" form-label m-2 me-5 text-black-50"> @ComplaintReplyReply.Username (Admin) </label>
+                    <label class=" form-label m-2 me-5 text-black-50"> @ComplaintReply.Username (Admin) </label>
                 }
                 else
                 {
-                    <label class=" form-label m-2 me-5 text-black-50"> @ComplaintReplyReply.Username </label>
+                    <label class=" form-label m-2 me-5 text-black-50"> @ComplaintReply.Username </label>
                 }
-                <label class="ms-5 form-label text-black-50">
-                    @ComplaintReplyReply.Created.ToLongDateString() at
-                    @ComplaintReplyReply.Created.ToShortTimeString()
+                <label class="ms-4 m-1 form-label text-black-50">
+                    @ComplaintReply.Created.ToLongDateString() at
+                    @ComplaintReply.Created.ToShortTimeString()
                 </label>
                 @if (!EditClicked)
                 {
-                    <div class="m-1">
+                    <div>
                         <textarea class="text-black text-wrap" cols="100"
                                   style="border:none; background-color:whitesmoke;" disabled>
-                            @Encoding.ASCII.GetString(ComplaintReplyReply!.Description!)
-                                </textarea>
+                            @Encoding.ASCII.GetString(ComplaintReply!.Description!)
+                                                    </textarea>
                     </div>
                 }
-                @if (!UserName!.Equals(ComplaintReplyReply.Username) && !EditClicked)
+                @if (!UserName!.Equals(ComplaintReply.Username) && !EditClicked)
                 {
                     <div>
-                        <CascadingValue Value="ComplaintReplyReply" IsFixed="true">
-                            <CreateReplyReply OnSaveNewReplyCallback="OnSaveClicked" />
+                        <CascadingValue Value="ComplaintReply" IsFixed="true">
+                            <CreateComplaintReplyReply OnSaveNewReplyCallback="OnSaveClicked" />
                         </CascadingValue>
                     </div>
                 }
-                @if (UserName!.Equals(ComplaintReplyReply.Username) && !EditClicked)
+                @if (UserName!.Equals(ComplaintReply.Username) && !EditClicked)
                 {
                     <div>
                         <button id="edit" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
@@ -59,8 +59,8 @@
                             Edit
                         </button> |
 
-                        <button id="delete" type="submit" class="btn btn-danger text-danger" disabled="@(ComplaintReplyReply is null)"
-                                style="border:none; background:inherit;" @onclick="DeleteReplyReply">
+                        <button id="delete" type="submit" class="btn btn-danger text-danger" disabled="@(ComplaintReply is null)"
+                                style="border:none; background:inherit;" @onclick="DeleteComplaintReply">
                             Delete
                         </button>
                     </div>
@@ -68,13 +68,13 @@
                 }
                 @if (EditClicked)
                 {
-                    <form method="post" Model="@ComplaintReplyReply" @onsubmit="UpdateComplaintReplyReply" @formname="edit-complaintreplyreply">
+                    <form method="post" Model="@ComplaintReply" @onsubmit="UpdateComplaintReply" @formname="edit-complaintreply">
                         <AntiforgeryToken />
                         <div class="m-1">
                             <textarea id="description" @bind="Description" @bind:event="oninput" class="text-black text-wrap" cols="100"
                                       style="border:none; background-color:Window;" autofocus>
-                                @Encoding.ASCII.GetString(ComplaintReplyReply!.Description!)
-                                                        </textarea>
+                                @Encoding.ASCII.GetString(ComplaintReply!.Description!)
+                                        </textarea>
                         </div>
                         <div class="m-1">
                             <button type="submit" class="btn btn-primary">Save </button>
@@ -83,43 +83,43 @@
                     </form>
                     <hr />
                 }
-                @if (ComplaintReplyReply is not null && ComplaintReplyReply.Replies is not null && ComplaintReplyReply.Replies.Count() > 0)
+                @if (ComplaintReply is not null && ComplaintReply.Replies is not null && ComplaintReply.Replies.Count() > 0)
                 {
                     @if (SeeReplies)
                     {
-                        @if (ComplaintReplyReply.Replies.Count() == 1)
+                        @if (ComplaintReply.Replies.Count() == 1)
                         {
-                            SeeHideReplies = "Hide " + ComplaintReplyReply.Replies.Count() + " reply";
+                            SeeHideReplies = "Hide " + ComplaintReply.Replies.Count() + " reply";
                         }
                         else
                         {
-                            SeeHideReplies = "Hide " + ComplaintReplyReply.Replies.Count() + " replies";
+                            SeeHideReplies = "Hide " + ComplaintReply.Replies.Count() + " replies";
                         }
                     }
                     else
                     {
-                        @if (ComplaintReplyReply.Replies.Count() == 1)
+                        @if (ComplaintReply.Replies.Count() == 1)
                         {
-                            SeeHideReplies = "See " + ComplaintReplyReply.Replies.Count() + " reply";
+                            SeeHideReplies = "See " + ComplaintReply.Replies.Count() + " reply";
                         }
                         else
                         {
-                            SeeHideReplies = "See " + ComplaintReplyReply.Replies.Count() + " replies";
+                            SeeHideReplies = "See " + ComplaintReply.Replies.Count() + " replies";
                         }
                     }
                     <button class="btn-link ms-3 text-decoration-none" @onclick=OnClickSeeReplies style="border:none;
-                                    background-color:whitesmoke;">@SeeHideReplies</button>
+                                   background-color:whitesmoke;">@SeeHideReplies</button>
                 }
                 @if (SeeReplies)
                 {
                     <div id="replyreplies" class="ms-3">
                         <CascadingValue Value="complaint">
-                            <CascadingValue Value="ComplaintReplyReply">
-                                <ReplyReplyIndex />
+                            <CascadingValue Value="ComplaintReply">
+                                <ComplaintReplyReplyIndex />
                             </CascadingValue>
                         </CascadingValue>
                     </div>
-                }
+                }  
             </div>
         </div>
     }
@@ -132,9 +132,6 @@
     [CascadingParameter]
     Complaint? complaint { get; set; } = default!;
 
-    [CascadingParameter]
-    ComplaintReply? complaintReply { get; set; } = default!;
-
     [SupplyParameterFromQuery]
     public int replyId { get; set; }
 
@@ -142,7 +139,7 @@
     private string? Description { get; set; }
 
     [CascadingParameter]
-    public ComplaintReplyReply? ComplaintReplyReply { get; set; } = default!;
+    public ComplaintReply? ComplaintReply { get; set; } = default!;
 
     private UIHelper UIhelper = new();
 
@@ -152,19 +149,19 @@
     private ApplicationUser? User;
     private bool IsAdmin = false;
 
+    private bool SeeReplies = false;
+    private string? SeeHideReplies;
+
     private ClaimsPrincipal? claimsPrincipal { get; set; }
 
     private string? UserName { get; set; }
-
-    private bool SeeReplies = false;
-    private string? SeeHideReplies;
 
     private ApplicationRoleManager? RoleManager;
     private IdentityRole? Role;
 
     protected override async Task OnInitializedAsync()
     {
-        if (ComplaintReplyReply is null)
+        if (ComplaintReply is null)
         {
             try
             {
@@ -184,12 +181,12 @@
 
             //Check if the reply creator is an admin
             using var context = await AppDbFactory.CreateDbContextAsync();
-            User = await context.Users.FirstOrDefaultAsync(u => u.UserName == ComplaintReplyReply.Username);
+            User = await context.Users.FirstOrDefaultAsync(u => u.UserName == ComplaintReply.Username);
             var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
             var userRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.RoleId == adminRole.Id && ur.UserId == User.Id);
 
             using var replyContext = await ComplaintsDbFactory.CreateDbContextAsync();
-            ComplaintReplyReply.Replies = replyContext.ReplyReply.Where(c => c.ComplaintReplyReplyId == ComplaintReplyReply.Id).ToList<ReplyReply>();
+            ComplaintReply.Replies = replyContext.ComplaintReplyReply.Where(c => c.ComplaintReplyId == ComplaintReply.Id).ToList<ComplaintReplyReply>();
 
             if (userRole is not null)
             {
@@ -205,18 +202,14 @@
     {
         await OnSaveCallback.InvokeAsync();
     }
-    private void OnClickSeeReplies()
-    {
-        SeeReplies = !SeeReplies;
-    }
-    public async Task UpdateComplaintReplyReply()
+    public async Task UpdateComplaintReply()
     {
         using var context = ComplaintsDbFactory.CreateDbContext();
-        context.Attach(ComplaintReplyReply!).State = EntityState.Modified;
+        context.Attach(ComplaintReply!).State = EntityState.Modified;
 
         if (Description is not null)
         {
-            ComplaintReplyReply!.Description = Encoding.ASCII.GetBytes(Description);
+            ComplaintReply!.Description = Encoding.ASCII.GetBytes(Description);
         }
 
         try
@@ -225,7 +218,7 @@
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!ComplaintReplyReplyExists(ComplaintReplyReply!.Id))
+            if (!ComplaintReplyExists(ComplaintReply!.Id))
             {
                 NavigationManager.NavigateTo("notfound");
             }
@@ -237,31 +230,35 @@
         OnEditClicked();
         await OnSaveCallback.InvokeAsync();
     }
-    private async Task RemoveRole(ComplaintReplyReply complaintreplyReply)
+    private async Task RemoveRole(ComplaintReply complaintReply)
     {
         RoleManager = new ApplicationRoleManager(RoleStore, RoleValidators, KeyNormalizer, IdentityErrorDescriber, RoleLogger);
 
-        if (complaintReply is not null && complaintreplyReply is not null)
+        if (complaint is not null && complaintReply is not null)
         {
-            Role = await RoleManager.FindByNameAsync("ComplaintReplyReplyAuthor" + complaintReply!.Id + "_" + complaintreplyReply.Id).ConfigureAwait(false);
+            Role = await RoleManager.FindByNameAsync("ComplaintReplyAuthor" + complaint!.Id + "_" + complaintReply.Id).ConfigureAwait(false);
             var result = await RoleManager.DeleteAsync(Role!);
         }
     }
-
-    public async Task DeleteReplyReply()
+    private void OnClickSeeReplies()
     {
-        await RemoveRole(ComplaintReplyReply!);
+        SeeReplies = !SeeReplies;
+    }
+
+    public async Task DeleteComplaintReply()
+    {
+        await RemoveRole(ComplaintReply!);
         using var context = ComplaintsDbFactory.CreateDbContext();
-        context.ComplaintReplyReply.Remove(ComplaintReplyReply!);
-        context.Attach(complaintReply!).State = EntityState.Modified;
+        context.ComplaintReply.Remove(ComplaintReply!);
+        context.Attach(complaint!).State = EntityState.Modified;
         await context.SaveChangesAsync();
         OnEditClicked();
         await OnSaveCallback.InvokeAsync();
     }
 
-    bool ComplaintReplyReplyExists(int id)
+    bool ComplaintReplyExists(int id)
     {
         using var context = ComplaintsDbFactory.CreateDbContext();
-        return context.ComplaintReplyReply.Any(e => e.Id == id);
+        return context.ComplaintReply.Any(e => e.Id == id);
     }
 }

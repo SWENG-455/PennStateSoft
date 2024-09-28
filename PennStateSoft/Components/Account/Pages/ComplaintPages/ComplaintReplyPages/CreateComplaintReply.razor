@@ -1,5 +1,6 @@
-﻿@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
-@inject IDbContextFactory<PennStateSoft.Data.NotificationContext> NotificationsDbFactory
+﻿@implements IDisposable
+@inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
+@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppUsersDbFactory
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthStateProvider
@@ -18,22 +19,19 @@
 </button>
 <hr />
 <div class="mt-3">
-    <div class="m-3" style="text-align:right; width:50%;">
+    <div class="m-3" style="text-align:right; width:75%;">
         @if (ReplyClicked)
         {
-            <EditForm method="post" Model="ComplaintReply" OnValidSubmit="OnSubmitClickedAsync" FormName="create-reply" Enhance>
-                <DataAnnotationsValidator />
-                <ValidationSummary class="text-danger" />
-
+            <form method="post"  Model="@ComplaintReply" @onsubmit="OnSubmitClickedAsync" @formname="create-complaintreply">
                 <InputTextArea id="replydescription" @bind-Value="ReplyDescription" class="form-control text-wrap"
                                rows="@uIHelper.Rows" @onchange="@(()=> uIHelper.CalculateSize(ReplyDescription))" autofocus>
                 </InputTextArea>
-                <ValidationMessage For="() => ReplyDescription" class="text-danger" />
                 <div class="m-2 mb-5" style="text-align:right; width:99%">
                     <button type="reset" class="btn btn-secondary" @onclick="OnCancelClicked">Cancel</button>
                     <button type="submit" class="btn btn-primary" >Reply</button>
                 </div>
-            </EditForm>
+                <AntiforgeryToken />
+            </form>
         }
     </div>  
 </div>
@@ -67,13 +65,22 @@
     private IEnumerable<IdentityError>? identityErrors;
     private ApplicationRoleManager? RoleManager;
     private IdentityRole? Role;
+    private string? currentUrl;
 
     protected override void OnInitialized()
     {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+
         if (complaint!.ComplaintReplies is null)
         {
             complaint.ComplaintReplies = new List<ComplaintReply>();
         }
+    }
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
     }
     private void OnReplyClicked()
     {
@@ -150,22 +157,49 @@
     }
     private async Task CreateNotification()
     {
-        notification = new Notification
-        {
-            ReferenceID = complaint.Id,
-            Author = user!.UserName,
-            Message = "replied to ",
-            Link = $"/Account/Complaints/Details?id={complaint.Id}",
-            LinkTo = $"{complaint.Subject}",
-            Read = false
-        };
+        using var context = AppUsersDbFactory.CreateDbContext();
+        var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        var adminUserRoles = context.UserRoles.Where(Ur => Ur.RoleId == adminRole!.Id);
 
-        await AddNotification();
+        foreach (var adminUserRole in adminUserRoles)
+        {
+            var recipientAccts = context.Users.Where(u => u.Id == adminUserRole.UserId).ToList();
+            foreach (var adminAcc in recipientAccts)
+            {
+                //Notify all admins of new conversation activity within specific complaints
+                notification = new Notification
+                    {
+                        ReferenceID = complaint.Id,
+                        Author = user!.UserName,
+                        UserId = adminAcc.Id,
+                        Recipient = adminAcc.UserName,
+                        Message = "replied to ",
+                        Link = $"/Account/Complaints/Details?id={complaint.Id}",
+                        LinkTo = $"{complaint.Subject}",
+                        Read = false
+                    };
+                await AddNotification(notification);
+            }
+        }
+        var ComplaintAuthor = await context.Users.FirstOrDefaultAsync(u => u.UserName == complaint.Username);
+        //Notify the complaint author of new replies
+        notification = new Notification
+            {
+                ReferenceID = complaint.Id,
+                Author = user!.UserName,
+                UserId = ComplaintAuthor.Id,
+                Recipient = ComplaintAuthor.UserName,
+                Message = "replied to ",
+                Link = $"/Account/Complaints/Details?id={complaint.Id}",
+                LinkTo = $"{complaint.Subject}",
+                Read = false
+            };
+        await AddNotification(notification);
     }
-    public async Task AddNotification()
+    public async Task AddNotification(Notification notification)
     {
-        using var context = NotificationsDbFactory.CreateDbContext();
-        context.Notification.Add(notification!);
+        using var context = AppUsersDbFactory.CreateDbContext();
+        context.Notifications.Add(notification);
         await context.SaveChangesAsync();
     }
 
@@ -179,5 +213,9 @@
         await CreateNotification();
         await OnCancelClicked();
         await OnSaveNewReplyCallback.InvokeAsync();
+    }
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }

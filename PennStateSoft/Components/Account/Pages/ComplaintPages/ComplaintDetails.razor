@@ -1,5 +1,5 @@
 ﻿@page "/Account/Complaints/Details"
-
+@implements IDisposable
 @inject IDbContextFactory<PennStateSoft.Data.UserComplaints> ComplaintsDbFactory
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
@@ -19,46 +19,81 @@
     else {
         @if (userName == complaint.Username || IsAdmin)
         {
-            <h3>@complaint!.Subject</h3>
-            <hr />
-            <div class="border border-light border-start-0 border-end-0 border-bottom-0
+            <div style="align-content:baseline; background-color:whitesmoke; width:80%">
+                <div class="ms-5 mt-5">
+                    <h3>@complaint!.Subject</h3>
+                    <hr />
+                    <div class="border border-light border-start-0 border-end-0 border-bottom-0
                border-top-0">
-                <div class="m-1">
-                    <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
-                    <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username</label>
-                    <label class="ms-5 form-label text-black-50"> @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() </label>
-                </div>
-                <div class="m-1">
-                    <textarea class="text-black text-wrap" style="border:none; background-color:Window" cols="100"
-                              rows="@UIhelper.Rows" disabled>
-                        @Encoding.ASCII.GetString(complaint.Description!)
-                        </textarea>
-                </div>
-            </div>
-            <div class="ms-3">
-                <AuthorizeView Roles="Client">
-                    <a href="@($"/Account/Complaints/Edit?id={complaint.Id}")" class="m-2 text-decoration-none">Edit</a> |
-                    <a class=" m-2 text-decoration-none" href="@($"Account/Complaints/Delete?id={complaint.Id}")">Close</a> |
-                    <a href="@($"/Account/Complaints")" class="text-decoration-none">Back</a>
-                    <hr/>
-                </AuthorizeView>
-            </div>
+                        <div class="m-1">
+                            <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
+                            <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username</label>
+                            <label class="ms-5 form-label text-black-50"> @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() </label>
+                        </div>
+                        <div class="m-1">
+                            <textarea class="text-black text-wrap" style="border:none; background-color:whitesmoke" cols="100"
+                                      rows="@UIhelper.Rows" disabled>
+                                @Encoding.ASCII.GetString(complaint.Description!)
+                                </textarea>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <AuthorizeView Roles="Client">
+                            <a href="@($"/Account/Complaints/Edit?id={complaint.Id}")" class="m-2 text-decoration-none">Edit</a> |
+                            <a class=" m-2 text-decoration-none" href="@($"Account/Complaints/Delete?id={complaint.Id}")">Close</a> |
+                            <a href="@($"/Account/Complaints")" class="text-decoration-none">Back</a>
+                            <hr />
+                        </AuthorizeView>
+                    </div>
 
-            <div>
-                <AuthorizeView Roles="Admin">
-                    <button id="back" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
-                            @onclick="OnBackClicked">
-                        Back
-                    </button> |
-                    <CascadingValue Value="complaint">
-                        <CreateReply OnSaveNewReplyCallback="OnReplied" />
-                    </CascadingValue>
-                </AuthorizeView>
-            </div>
-            <div id="replies">
-                <CascadingValue Value="complaint">
-                    <ReplyIndex />
-                </CascadingValue>
+                    <div>
+                        <AuthorizeView Roles="Admin">
+                            <button id="back" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
+                                    @onclick="OnBackClicked">
+                                Back
+                            </button> |
+                            <CascadingValue Value="complaint">
+                                <CreateComplaintReply OnSaveNewReplyCallback="@OnReplied" />
+                            </CascadingValue>
+                        </AuthorizeView>
+                    </div>
+                    @if (complaint.ComplaintReplies is not null && complaint.ComplaintReplies.Count() > 0)
+                    {
+                        @if (SeeReplies)
+                        {
+                            @if (complaint.ComplaintReplies.Count() == 1)
+                            {
+                                SeeHideReplies = "Hide " + complaint.ComplaintReplies.Count() + " reply";
+                            }
+                            else
+                            {
+                                SeeHideReplies = "Hide " + complaint.ComplaintReplies.Count() + " replies";
+                            }
+                        }
+                        else
+                        {
+                            @if (complaint.ComplaintReplies.Count() == 1)
+                            {
+                                SeeHideReplies = "See " + complaint.ComplaintReplies.Count() + " reply";
+                            }
+                            else
+                            {
+                                SeeHideReplies = "See " + complaint.ComplaintReplies.Count() + " replies";
+                            }
+                        }
+                        <button class="btn-link ms-3 mb-3 text-decoration-none" @onclick=OnClickSeeReplies style="border:none; 
+                                        background-color:whitesmoke;">@SeeHideReplies</button>
+                    }
+                    @if (SeeReplies)
+                    {
+                        <div class="ms-3">
+                            <CascadingValue Value="complaint">
+                                <ComplaintReplyIndex />
+                                <a id="replies"></a>
+                            </CascadingValue>
+                        </div>
+                    }
+                </div>
             </div>
         }
         else
@@ -69,21 +104,31 @@
 </div>
 
 @code {
-
     private Complaint? complaint;
+    private bool SeeReplies = false;
+    private string? SeeHideReplies;
+    private static int ReplyCount = 0;
+    private static int ReplyReplyCount = 0;
+    private static int ReplyReplyReplyCount = 0;
 
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
     public string? Description { get; set; }
 
+    private string? currentUrl;
+
     private UIHelper UIhelper = new();
     private string? userName;
     private ApplicationUser? User;
     private bool IsAdmin = false;
     private Notification? notification;
+
     protected override async Task OnInitializedAsync()
     {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+
         using var context = ComplaintsDbFactory.CreateDbContext();
         complaint = await context.Complaint.FirstOrDefaultAsync(m => m.Id == Id);
 
@@ -100,18 +145,31 @@
             IsAdmin = await UserManager.IsInRoleAsync(User!, "Admin");
             using var replyContext = ComplaintsDbFactory.CreateDbContext();
             complaint.ComplaintReplies = replyContext.ComplaintReply.Where(c => c.ComplaintId == Id).ToList<ComplaintReply>();
-
             Description = Encoding.ASCII.GetString(complaint.Description!);
             UIhelper.CalculateSize(Description);
         }
     }
-    private void OnReplied()
+    private void OnReplied(SaveChangesEventArgs saveChangesEventArgs)
     {
-       //Additional processing can be added here for Complaint Details Specific logic
-
+        NavigationManager.Refresh(true);
     }
+    private void OnClickSeeReplies()
+    {
+        SeeReplies = !SeeReplies;
+    }
+
     private void OnBackClicked()
     {
         NavigationManager.NavigateTo("/Account/Complaints");
+    }
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }

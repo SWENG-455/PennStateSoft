@@ -18,7 +18,7 @@
 <PageTitle>Delete</PageTitle>
 @if (IsCreator)
 {
-    <div style="align-content:baseline; background-color:whitesmoke; width:55%">
+    <div style="align-content:baseline; background-color:@color; width:50%">
         <div class="ms-5 mt-5">
             <h3 class="link-danger">Are you sure you want to delete this meeting?</h3>
             <hr class="link-danger" />
@@ -73,6 +73,9 @@ else
 
     Meeting? meeting;
 
+    [Parameter]
+    public string? color { get; set; }
+
     [SupplyParameterFromQuery]
     public int Id { get; set; }
 
@@ -121,6 +124,15 @@ else
 
             using var roomContext = MeetingDbFactory.CreateDbContext();
             room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
+
+            if (room is not null && room.Price > 0)
+            {
+                color = "aliceblue";
+            }
+            else
+            {
+                color = "whitesmoke";
+            }
         }
     }
     private async Task ReleaseRoom()

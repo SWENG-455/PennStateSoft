@@ -65,7 +65,7 @@
     content: attr(data-hover);
     position: absolute;
     top: calc(-30px - 100%);
-    left: 0;
+    left: -55px;
     background: whitesmoke;
     color: midnightblue;
 }

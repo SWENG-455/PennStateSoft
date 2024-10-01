@@ -19,7 +19,7 @@
 @if (UserName == complaint?.Username)
 {
      <div style="align-content:baseline; background-color:whitesmoke; width:75%">
-         <div class="ms-5 mt-5">
+         <div class="ms-5 mt-3">
             <div>
                 @if (complaint is null)
                 {
@@ -48,7 +48,7 @@
                     </div>
                     <EditForm method="post" Model="complaint" OnValidSubmit="DeleteComplaint" FormName="close-complaint" Enhance>
                         <button type="submit" class="btn btn-danger ms-3 mb-3" disabled="@(complaint is null)">Resolve</button>
-                        <a class="btn btn-secondary ms-2 mb-3" href="Account/Complaints">
+                        <a class="btn btn-secondary ms-2 mb-3" href=@($"Account/Complaints/Details?id={@complaint?.Id}")>
                             Cancel
                         </a>
                     </EditForm>

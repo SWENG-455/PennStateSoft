@@ -125,7 +125,8 @@ else
         notification.Read = true;
         await UpdateNotification(notification);
 
-        //Find all notifications older than the notification that was clicked
+        /*
+         * //Find all notifications older than the notification that was clicked
         using var context = AppDbFactory.CreateDbContext();
         var notifications = context.Notifications.ToList();
         notifications = notifications.Where(n => n.Author != user.UserName && (n.Recipient == user.UserName)).ToList();
@@ -142,5 +143,6 @@ else
                 await UpdateNotification(_notification);
             }
         }
+         */
     }
 }

@@ -59,8 +59,8 @@
     content: attr(data-hover);
     text-align:right;
     position: absolute;
-    top: calc(-50px - 100%);
-    left: 100%;
+    top: calc(-30px - 100%);
+    left: 780px;
     background: whitesmoke;
     color: midnightblue;
 }

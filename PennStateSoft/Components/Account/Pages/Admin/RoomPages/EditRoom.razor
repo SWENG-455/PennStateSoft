@@ -10,13 +10,13 @@
 @if (Room is null)
 {
     <h3>Edit Room</h3>
-    <hr />
+    <hr style="width:60%;" />
     <p><em>Loading...</em></p>
 }
 else
 {
     <h3>Edit @Room.Name</h3>
-    <hr />
+    <hr style="width:60%;"/>
     <div class="row">
         <div class="col-md-4">
             <EditForm method="post" Model="Room" OnValidSubmit="UpdateRoom" FormName="edit-room" Enhance>

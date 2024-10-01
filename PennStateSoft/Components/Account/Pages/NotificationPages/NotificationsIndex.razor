@@ -13,72 +13,75 @@
 <PageTitle>Notifications</PageTitle>
 
 <h3>Notifications</h3>
- 
-@if (NotificationsProvider is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    @if ((notifications is not null && notifications.Count > 0) || 
-    (SelectedNotifications is not null && SelectedNotifications!.Count > 1))
-    {
-        <div>
-            <InputCheckbox @bind-Value="SelectAllNotifications" class="darker-border-checkbox form-check-input"
-                           disabled="@(notifications is null)" @onclick="OnCheckBoxSelected"
-                           @onmouseenter="ShowCheckboxInfo" @onmouseleave="HideCheckboxInfo">
-            </InputCheckbox>
-            <div class="showHover ms-4 mt-2" data-hover="@CheckboxInfo" style="position:relative;"></div>
-        </div>
-        
-        @if (SelectAllNotifications || SelectedNotifications!.Count > 1)
+<div style="align-content:baseline; background-color:@color; width:85%">
+    <div>
+        @if (NotificationsProvider is null)
         {
-            <div>
-                <button class="btn btn-labeled ms-5" type="submit"
-                        style="float:right;" disabled="@(notifications is null)" @onclick="DeleteNotifications"
-                        @onmouseenter="ShowButtonIconInfo" @onmouseleave="HideButtonIconInfo">
-
-                    <i class="icon"></i>
-                </button>
-                <div class="showHover mt-3 me-5" data-hover="@ButtonIconInfo" style="position:relative; float:right;"></div>
-            </div>
-            
-            <div style="text-align:center;">
-                @if (SelectedNotifications.Count() > 1 && SelectAllNotifications)
-                {
-                    <p style="color:#0070E0">All (@SelectedNotifications.Count()) notifications selected.</p>
-                }
-                else if (SelectedNotifications.Count() <= 1 && SelectAllNotifications)
-                {
-                    <p style="color:#0070E0">(@SelectedNotifications.Count()) notification selected.</p>
-                }
-                else
-                {
-                    <p style="color:#0070E0">(@SelectedNotifications.Count()) notifications selected.</p>
-                }
-
-            </div>
+            <p><em>Loading...</em></p>
         }
-        <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
-            <TemplateColumn Context="notification">
-                <CascadingValue Value="notification">
-                    <CascadingValue Value="notifications">
-                        <CascadingValue Value="SelectedNotifications">
-                            <CascadingValue Value="SelectAllNotifications">
-                                <NotificationDetails OnDeleteCallback="UpdateGridProvider" OnSelected="UpdateGridProvider" />
+        else
+        {
+            @if (notifications is not null && notifications.Count > 0)
+            {
+                <div class="ms-1">
+                    <InputCheckbox @bind-Value="SelectAllNotifications" class="darker-border-checkbox form-check-input"
+                                   disabled="@(notifications is null)" @onclick="OnCheckBoxSelected"
+                                   @onmouseenter="ShowCheckboxInfo" @onmouseleave="HideCheckboxInfo">
+                    </InputCheckbox>
+                    <div class="showHoverIcon ms-4 mt-2" data-hover="@CheckboxInfo" style="position:relative;"></div>
+                </div>
+
+                @if (SelectedNotifications is not null && SelectedNotifications!.Count > 1)
+                {
+                    <div nav-item px-3>
+                        <button class="btn btn-labeled ms-5 me-4" type="submit"
+                                style="float:right;" disabled="@(notifications is null)" @onclick="DeleteNotifications"
+                                @onmouseenter="ShowButtonIconInfo" @onmouseleave="HideButtonIconInfo">
+
+                            <i class="icon"></i>
+                        </button>
+                        <div class="showHoverBtn text-nowrap" data-hover="@ButtonIconInfo" style="position:relative; float:right;"></div>
+                    </div>
+
+                    <div style="text-align:center;">
+                        @if (SelectedNotifications.Count() == notifications!.Count() && SelectAllNotifications)
+                        {
+                            <p style="color:#0070E0">All (@SelectedNotifications.Count()) notifications selected.</p>
+                        }
+                        else if (SelectedNotifications.Count() <= 1)
+                        {
+                            <p style="color:#0070E0">(@SelectedNotifications.Count()) notification selected.</p>
+                        }
+                        else
+                        {
+                            <p style="color:#0070E0">(@SelectedNotifications.Count()) notifications selected.</p>
+                        }
+
+                    </div>
+                }
+
+                <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
+                    <TemplateColumn Context="notification">
+                        <CascadingValue Value="notification">
+                            <CascadingValue Value="notifications">
+                                <CascadingValue Value="SelectedNotifications">
+                                    <CascadingValue Value="SelectAllNotifications">
+                                        <NotificationDetails OnDeleteCallback="UpdateGridProvider" OnSelected="UpdateGridProvider" />
+                                    </CascadingValue>
+                                </CascadingValue>
                             </CascadingValue>
                         </CascadingValue>
-                    </CascadingValue>
-                </CascadingValue>
-            </TemplateColumn>
-        </QuickGrid>
-    }
-    else
-    {
-        <hr/>
-        <p class="ms-1 mt-2" style="color:lightslategray; text-align:center;">No new notifications.</p>
-    }
-}
+                    </TemplateColumn>
+                </QuickGrid>
+            }
+            else
+            {
+                <hr />
+                <p class="ms-1 mt-2" style="color:lightslategray; text-align:center;">No new notifications.</p>
+            }
+        }
+    </div>
+</div>
 
 @code {
 
@@ -91,7 +94,8 @@ else
     [Parameter]
     public string ButtonIconInfo { get; set; } = "";
     [Parameter]
-    public bool SelectAllNotifications { get; set; } = false;
+    public string? color { get; set; }
+    public bool SelectAllNotifications { get; set; }
     private string? UserName;
     private bool IsAdmin = false;
     private bool IsComplaintAuthor = false;
@@ -144,11 +148,6 @@ else
         {
             notifications = notifications.OrderByDescending(n => n.Created).ToList();
 
-            foreach (var notification in notifications)
-            {
-                notification.Read = true;
-                await UpdateNotification(notification);
-            }
             var Result = GridItemsProviderResult.From<Notification>(items: notifications, totalItemCount: notifications.Count);
             NotificationsProvider = request => ValueTask.FromResult(Result);
         }
@@ -194,7 +193,7 @@ else
     public async Task DeleteNotifications()
     {
         using var context = AppDbFactory.CreateDbContext();
-        foreach (var notification in SelectedNotifications)
+        foreach (var notification in SelectedNotifications!)
         {
             context.Notifications.Remove(notification!);
             await context.SaveChangesAsync();
@@ -217,7 +216,7 @@ else
         
         using var context = AppDbFactory.CreateDbContext();
 
-        foreach (var notification in notifications)
+        foreach (var notification in notifications!)
         {
             notification.Selected = SelectAllNotifications;
             context.Attach(notification!).State = EntityState.Modified;
@@ -247,7 +246,7 @@ else
             }
             else
             {
-                SelectedNotifications.Remove(notification);
+                SelectedNotifications!.Remove(notification);
             }
         }
         UpdateGridProvider();

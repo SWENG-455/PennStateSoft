@@ -2,16 +2,7 @@
 @inject NavigationManager NavigationManager
 
 
-<div class="mt-2 mb-3">
-    <InputCheckbox @bind-Value="notification.Selected" @onclick="OnSelectClick" 
-                    class="darker-border-checkbox form-check-input me-4">
-    </InputCheckbox>
-
-    <strong>
-        @notification.Author
-    </strong>
-    @notification.Message
-    <span><a href="@(notification.Link)">@notification.LinkTo</a></span>
+<div class="mt-2 mb-3 ms-2">
     @{
         TimeSinceCreated = DateTime.Now - notification.Created;
 
@@ -60,12 +51,47 @@
             }
         }
     }
-    <span class="weak">@NotificationDuration</span>
-
-    <button type="submit" class="btn btn-sm ms-3" style="float:right;"
+    @if (!notification.Read)
+    {
+        <i class="icon"></i>
+        <InputCheckbox @bind-Value="notification.Selected" @onclick="OnSelectClick"
+                       class="checkbox darker-border-checkbox form-check-input me-4 ms-0"
+                       style="position:relative; left:-30px;">
+        </InputCheckbox>
+        <strong style="position:relative; left:-30px;">
+            @notification.Author
+        </strong>
+        <span class="weak" style="position:relative; left:-30px;">@notification.Message</span>
+        
+        <strong style="position:relative; left:-30px;">
+            <span><a href="@(notification.Link)" @onclick="ReadNotification">@notification.LinkTo</a></span>
+        </strong>
+        <span class="weak" style="position:relative; left:-30px;">@NotificationDuration</span>
+        <button type="submit" class="btn btn-sm ms-3" style="float:right; left:-30px;"
             disabled="@(notification is null)" @onclick="DeleteNotification">
-        🗙
-    </button>
+            🗙
+        </button>
+    }
+    else
+    {
+        <InputCheckbox @bind-Value="@notification!.Selected" @onclick="OnSelectClick"
+                       class="checkbox darker-border-checkbox form-check-input me-4 ms-0"
+                       style="position:relative;">
+        </InputCheckbox>
+
+        @notification.Author
+        <span class="weak">@notification.Message</span>
+
+        <span><a href="@(notification.Link)" @onclick="ReadNotification">@notification.LinkTo</a></span>
+
+        <span class="weak">@NotificationDuration</span>
+
+        <button type="submit" class="btn btn-sm ms-3" style="float:right;"
+                disabled="@(notification is null)" @onclick="DeleteNotification">
+            🗙
+        </button>
+    }
+    
 </div>
 
 
@@ -158,6 +184,11 @@
             SelectedNotifications!.Remove(notification);
         }
         await OnSelected.InvokeAsync();
+    }
+    private async void ReadNotification()
+    {
+        notification.Read = true;
+        await UpdateNotification(notification);
     }
     bool NotificationExists(int id)
     {

@@ -15,7 +15,7 @@
     <button class="btn icon1" type="button"
             style="text-align:justify;" @onclick="OnMouseClicked" @onmouseenter="ShowButtonInfo" @onmouseleave="HideButtonInfo">
     </button>
-    <div class="showHover" data-hover="@ButtonInfo" style="position:relative;">
+    <div class="showHover text-nowrap" data-hover="@ButtonInfo" style="position:relative;">
     </div>
 </div>
 <div class="ms-5" style="width:55%;">
@@ -35,16 +35,18 @@
             </div>
         </TemplateColumn>
         <TemplateColumn Context="room" Title="Actions">
-            <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
+            <div>
+                <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
                         margin:0.25rem 0.5rem;"
-                    @onclick="@(()=> OnViewClicked(room.Id))">
-                View
-            </button>
-            <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
+                        @onclick="@(()=> OnViewClicked(room.Id))">
+                    View
+                </button>
+                <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
                         margin:0.25rem 0.5rem;"
-                    @onclick="@(()=> OnDeleteClicked(room.Id))">
-                Delete
-            </button>
+                        @onclick="@(()=> OnDeleteClicked(room.Id))">
+                    Delete
+                </button>
+            </div>
         </TemplateColumn>
 
     </QuickGrid>
@@ -56,6 +58,9 @@
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
+
+    [Parameter]
+    public string? color { get; set; }
 
     [Parameter]
     public string ButtonInfo { get; set; } = "";
@@ -71,7 +76,7 @@
     }
     private void ShowButtonInfo()
     {
-        ButtonInfo = "Create New Room";
+        ButtonInfo = "Add new room";
     }
     private void HideButtonInfo()
     {

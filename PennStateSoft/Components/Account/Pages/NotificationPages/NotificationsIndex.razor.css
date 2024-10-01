@@ -21,11 +21,19 @@
         .btn-labeled:hover .btn-label {
             background-color: rgb(0, 83, 210);
         }
-.showHover::after {
+.showHoverIcon::after {
     content: attr(data-hover);
     position: absolute;
     top: calc(-30px - 100%);
     left: 0;
+    background: whitesmoke;
+    color: midnightblue;
+}
+.showHoverBtn::after {
+    content: attr(data-hover);
+    position: absolute;
+    top: calc(-35px - 100%);
+    left: -100px;
     background: whitesmoke;
     color: midnightblue;
 }
@@ -35,6 +43,17 @@
     height: 1.6em;
     margin-top: -8px;
     background-image: url("DeleteAllNotificationsIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+.icon1 {
+    display: inline-block;
+    width: 1.6em;
+    height: 1.6em;
+    left: -32px;
+    margin-top: 0;
+    background-image: url("UnreadNotificationDotIcon.svg");
     background-size: contain;
     background-repeat: no-repeat;
     vertical-align: middle;

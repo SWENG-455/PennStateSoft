@@ -94,3 +94,49 @@ main {
         right: 0.75rem;
         top: 0.5rem;
     }
+.icon1 {
+    display: inline-block;
+    width: 1.6em;
+    height: 1.6em;
+    margin-top: -8px;
+    background-image: url("AdminAccountIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+.icon2 {
+    display: inline-block;
+    width: 1.6em;
+    height: 1.6em;
+    margin-top: -8px;
+    background-image: url("NotificationsIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+.icon3 {
+    display: inline-block;
+    width: 1.6em;
+    height: 1.6em;
+    margin-top: -8px;
+    background-image: url("UnreadNotificationsIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+.showHover1::after {
+    content: attr(data-hover);
+    position: absolute;
+    top: 0;
+    left: -35px;
+    background: Window;
+    color: midnightblue;
+}
+.showHover2::after {
+    content: attr(data-hover);
+    position: absolute;
+    top: 0;
+    left: -5px;
+    background: Window;
+    color: midnightblue;
+}

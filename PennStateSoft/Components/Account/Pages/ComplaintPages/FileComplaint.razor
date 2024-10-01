@@ -15,49 +15,52 @@
 @attribute [Authorize(Roles = "Client")]
 
 <PageTitle>File a complaint</PageTitle>
+<div style="align-content:baseline; width:75%">
+    <div class="ms-5 mt-3">
+        <h3>File a new complaint</h3>
 
-<h3>File a new complaint</h3>
+        <StatusMessage Message="@message" />
+        <hr />
+        <div class="row">
+            <div class="w-100 col-md-4">
+                <EditForm method="post" Model="complaint" OnValidSubmit="OnValidSubmit" FormName="file-complaint" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" />
 
-<StatusMessage Message="@message" />
-<hr />
-<div class="row">
-    <div class="w-100 col-md-4">
-        <EditForm method="post" Model="complaint" OnValidSubmit="OnValidSubmit" FormName="file-complaint" Enhance>
-            <DataAnnotationsValidator/>
-            <ValidationSummary class="text-danger" />
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username:</label>
+                        <InputText id="username" @bind-Value=" complaint.Username" class="form-control" disabled />
+                        <ValidationMessage For="() => complaint.Username" class="text-danger" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject:</label>
+                        <InputText id="title" @bind-Value="complaint.Subject" class="form-control" autofocus />
+                        <ValidationMessage For="() => complaint.Subject" class="text-danger" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="datecreated" class="form-label">Created:</label>
+                        <InputDate id="datecreated" @bind-Value="complaint.Created" class="form-control" disabled />
+                        <ValidationMessage For="() => complaint.Created" class="text-danger" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="dateclosed" class="form-label" hidden>DateClosed:</label>
+                        <InputDate id="dateclosed" @bind-Value="complaint.Closed" class="form-control" hidden disabled />
+                        <ValidationMessage For="() => complaint.Closed" class="text-danger" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description:</label>
+                        <InputTextArea id="description" @bind-Value="Description" class="form-control text-wrap"
+                                       rows="@uIHelper.Rows" @oninput="@(()=> uIHelper.CalculateSize(Description))" />
+                        <ValidationMessage For="() => Description" class="text-danger" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <a class="btn btn-secondary ms-2" href="Account/Complaints">
+                        Cancel
+                    </a>
+                </EditForm>
 
-            <div class="mb-3">
-                <label for="username" class="form-label">Username:</label>
-                <InputText id="username" @bind-Value=" complaint.Username" class="form-control" disabled />
-                <ValidationMessage For="() => complaint.Username" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="subject" class="form-label">Subject:</label>
-                <InputText id="title" @bind-Value="complaint.Subject" class="form-control" autofocus />
-                <ValidationMessage For="() => complaint.Subject" class="text-danger" />
-            </div>        
-            <div class="mb-3">
-                <label for="datecreated" class="form-label">Created:</label> 
-                <InputDate id="datecreated" @bind-Value="complaint.Created" class="form-control" disabled />
-                <ValidationMessage For="() => complaint.Created" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="dateclosed" class="form-label" hidden>DateClosed:</label> 
-                <InputDate id="dateclosed" @bind-Value="complaint.Closed" class="form-control" hidden disabled />
-                <ValidationMessage For="() => complaint.Closed" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="description" class="form-label">Description:</label> 
-                <InputTextArea id="description" @bind-Value="Description" class="form-control text-wrap"
-                               rows="@uIHelper.Rows" @oninput="@(()=> uIHelper.CalculateSize(Description))"/>
-                <ValidationMessage For="() => Description" class="text-danger" /> 
             </div>
-            <button type="submit" class="btn btn-primary">Create</button>
-            <a class="btn btn-secondary ms-2" href="Account/Complaints">
-                Cancel
-            </a>
-        </EditForm>
-        
+        </div>
     </div>
 </div>
 

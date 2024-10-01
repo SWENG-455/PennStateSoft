@@ -9,55 +9,57 @@
 @attribute [Authorize]
 
 <PageTitle>Complaints</PageTitle>
-
-<div class="header-container me-5">
-    <h3>Complaints</h3>
-    <AuthorizeView Roles="Client">
-        <div class="showHover nav-item px-3">
-            <button class="btn btn-labeled btn-newComplaint" type="button"
-                    @onclick="OnMouseClicked" @onmouseenter="ShowButtonInfo" @onmouseleave="HideButtonInfo">
-                <i class="icon1" ></i>
-            </button>
-            <div class="showHover" data-hover="@ButtonInfo" style="position:relative;">
-            </div>
+<div style="align-content:baseline; width:85%">
+    <div>
+        <div class="header-container me-5">
+            <h3>Complaints</h3>
+            <AuthorizeView Roles="Client">
+                <div class="showHover nav-item px-3">
+                    <button class="btn btn-labeled btn-newComplaint" type="button"
+                            @onclick="OnMouseClicked" @onmouseenter="ShowButtonInfo" @onmouseleave="HideButtonInfo">
+                        <i class="icon1"></i>
+                    </button>
+                    <div class="showHover text-nowrap" data-hover="@ButtonInfo" style="position:relative;">
+                    </div>
+                </div>
+            </AuthorizeView>
         </div>
-    </AuthorizeView>
-</div>
 
-@if (complaints is not null && complaints.Count() > 0)
-{
-    <div class="grid" tabindex="-1">
-        <QuickGrid ItemsProvider="@complaintProvider" Class="table">
-            <TemplateColumn Context="complaint">
-                <div class="mt-3">
-                    <a class="text-nowrap" href="@($"Account/Complaints/Details?id={complaint.Id}")">@(complaint.Subject)</a>
-                </div>
-                <div class="mt-2 mb-3">
-                    @Encoding.ASCII.GetString(complaint.Description!)
-                </div>
-            </TemplateColumn>
+        @if (complaints is not null && complaints.Count() > 0)
+        {
+            <div class="grid" tabindex="-1">
+                <QuickGrid ItemsProvider="@complaintProvider" Class="table">
+                    <TemplateColumn Context="complaint">
+                        <div class="mt-3">
+                            <a class="text-nowrap" href="@($"Account/Complaints/Details?id={complaint.Id}")">@(complaint.Subject)</a>
+                        </div>
+                        <div class="mt-2 mb-3">
+                            @Encoding.ASCII.GetString(complaint.Description!)
+                        </div>
+                    </TemplateColumn>
 
-            <PropertyColumn Property="@(complaint => complaint.Closed)" Class="visually-hidden" />
+                    <PropertyColumn Property="@(complaint => complaint.Closed)" Class="visually-hidden" />
 
-            <TemplateColumn Context="complaint">
-                <div class="mt-3" style="text-align:right; width:90%">
-                    <div style="color:#0070E0">
-                        Posted on
-                    </div>
-                    <div class="mt-2 text-nowrap text-black-50">
-                        @complaint.Created.ToLongDateString().Substring(@complaint.Created.ToLongDateString().IndexOf(',') + 2) @complaint.Created.ToShortTimeString()
-                    </div>
-                </div>
-            </TemplateColumn>
-        </QuickGrid>
+                    <TemplateColumn Context="complaint">
+                        <div class="mt-3" style="text-align:right; width:90%">
+                            <div style="color:#0070E0">
+                                Posted on
+                            </div>
+                            <div class="mt-2 text-nowrap text-black-50">
+                                @complaint.Created.ToLongDateString().Substring(@complaint.Created.ToLongDateString().IndexOf(',') + 2) @complaint.Created.ToShortTimeString()
+                            </div>
+                        </div>
+                    </TemplateColumn>
+                </QuickGrid>
+            </div>
+        }
+        else
+        {
+            <hr />
+            <p class="ms-1 mt-2" style="color:lightslategray; text-align:center;">No new complaints.</p>
+        }
     </div>
-}
-else
-{
-    <hr/>
-    <p class="ms-1 mt-2" style="color:lightslategray; text-align:center;">No new complaints.</p>
-}
-
+</div>
 
 @code {
     PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
@@ -105,7 +107,7 @@ else
     }
     private void ShowButtonInfo()
     {
-        ButtonInfo = "File New Complaint";
+        ButtonInfo = "File a complaint";
     }
     private void HideButtonInfo()
     {

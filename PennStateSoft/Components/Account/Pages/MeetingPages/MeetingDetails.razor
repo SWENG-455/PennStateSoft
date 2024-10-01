@@ -13,16 +13,17 @@
 
 @if (IsCreator || IsAdmin || IsInvited)
 {
-    <div style="align-content:baseline; background-color:whitesmoke; width:55%">
+    <div style="align-content:baseline; background-color:@color; width:50%">
         <div class="ms-5 mt-5">
-            <h4>Meeting Details</h4>
-            <hr />
+            
             @if (meeting is null)
             {
                 <p><em>Loading...</em></p>
             }
             else
             {
+                <h4>@meeting.Name</h4>
+                <hr />
                 <dl class="row">
                     <dt class="col-sm-2">Name</dt>
                     <dd class="col-sm-10">@meeting.Name</dd>
@@ -83,6 +84,8 @@ else
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
+    [Parameter]
+    public string? color { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -107,6 +110,15 @@ else
 
             using var roomContext = MeetingDbFactory.CreateDbContext();
             room = await roomContext.Room.FirstOrDefaultAsync(r => r.Id == meeting.RoomId);
+
+            if (room is not null && room.Price > 0)
+            {
+                color = "aliceblue";
+            }
+            else
+            {
+                color = "whitesmoke";
+            }
             
             //Check if the meeting has started
             HasStarted();

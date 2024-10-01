@@ -8,3 +8,22 @@ span.weak {
     color: grey;
     padding: 4px;
 }
+.icon {
+    position: relative;
+    display: inline-block;
+    width: 1.4em;
+    height: 1.4em;
+    left: -35px;
+    margin-top: 0;
+    background-image: url("UnreadNotificationDotIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+.checkbox {
+    position: relative;
+    display: inline-block;
+    left: -50px;
+    margin-top: 0;
+    vertical-align: middle;
+}

@@ -31,7 +31,8 @@
                     <div class="showHoverIcon ms-4 mt-2" data-hover="@CheckboxInfo" style="position:relative;"></div>
                 </div>
 
-                @if (SelectedNotifications is not null && SelectedNotifications!.Count > 1)
+                @if (SelectedNotifications is not null && ((SelectedNotifications!.Count > 1 && notifications!.Count > 1)
+                    || SelectedNotifications.Count > 0))
                 {
                     <div nav-item px-3>
                         <button class="btn btn-labeled ms-5 me-4" type="submit"
@@ -46,7 +47,7 @@
                     <div style="text-align:center;">
                         @if (SelectedNotifications.Count() == notifications!.Count() && SelectAllNotifications)
                         {
-                            <p style="color:#0070E0">All (@SelectedNotifications.Count()) notifications selected.</p>
+                            <p style="color:#0070E0">All (@SelectedNotifications.Count()) notification(s) selected.</p>
                         }
                         else if (SelectedNotifications.Count() <= 1)
                         {
@@ -253,7 +254,7 @@
     }
     private void ShowButtonIconInfo()
     {
-        ButtonIconInfo = "Delete selected notifications";
+        ButtonIconInfo = "Delete selected notification(s)";
     }
     private void HideButtonIconInfo()
     {

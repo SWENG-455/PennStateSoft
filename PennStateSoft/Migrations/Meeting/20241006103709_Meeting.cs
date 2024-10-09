@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PennStateSoft.Migrations.Meeting
 {
     /// <inheritdoc />
-    public partial class MeetingsDb : Migration
+    public partial class Meeting : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

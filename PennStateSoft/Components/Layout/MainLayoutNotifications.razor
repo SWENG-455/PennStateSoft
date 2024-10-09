@@ -1,0 +1,145 @@
+﻿@inject IDbContextFactory<ApplicationDbContext> AppDbFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@rendermode InteractiveServer
+
+<div class="nav-item">
+    <NavLink class="nav-link" id="admin" href="Account/Admin" @onmouseenter="ShowButton1Info"
+             @onmouseleave="HideButton1Info">
+        <i class="mt-1 icon1"></i>
+    </NavLink>
+    <div class="showHover1 text-nowrap" data-hover="@Button1Info" style="position:relative;"></div>
+</div>
+<div class="nav-item">
+    <button class="btn btn-toolbar" @onmouseenter="ShowButton2Info" @onmouseleave="HideButton2Info"
+            @onclick="NotificationsClicked" @onblur="NotificationsCancel">
+        <AuthorizeView>
+            <NotAuthorized>
+                <i class="mt-1 icon2"></i>
+            </NotAuthorized>
+            <Authorized>
+            @if (dbContext is not null)
+            {
+                notifications = dbContext.Notifications.Where(n => n.Author != User!.UserName && 
+                (n.Recipient == User.UserName) && (n.Read == false)).ToList();
+            }
+            @if (notifications is not null && notifications.Count() > 0)
+            {
+                <i class="mt-1 icon3"></i>
+            }
+            else
+            {
+                <i class="mt-1 icon2"></i>
+            }
+            </Authorized>
+        </AuthorizeView>
+
+    </button>
+    <div class="showHover2 text-nowrap" data-hover="@Button2Info" style="position:relative;"></div>
+</div>
+<div class="nav-item">
+    @if (ClickedNotifications)
+    {
+        <div class="popover" style="position:absolute; min-width:380px; left:70%; top:88%;"
+             @onmouseenter="OnMouseHover" @onmouseleave="OnMouseHover">
+            <div class="popover-header">
+                <strong>
+                    Notifications
+                </strong>
+                <a href="/Account/Notifications" style="float:right;">View all › </a>
+            </div>
+            <div class="popover-body">
+                @if (User is not null)
+                {
+                    <div1 style="font-size:small;">
+                        <CascadingValue Value="@User" IsFixed=true>
+                            <MainLayoutNotificationsIndex />
+                        </CascadingValue>
+                    </div1>
+                }
+                else
+                {
+                    <p class="ms-1">No new notifications.</p>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Button1Info { get; set; } = "";
+    [Parameter]
+    public string Button2Info { get; set; } = "";
+    [Parameter]
+    public bool ClickedNotifications { get; set; } = false;
+    [Parameter]
+    public bool MouseHovering { get; set; } = false;
+    [Parameter]
+    public ApplicationDbContext? dbContext { get; set; }
+
+    public List<Notification>? notifications;
+    ClaimsPrincipal? claimsPrincipal;
+    private ApplicationUser? User { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var AuthState = await AuthStateProvider.GetAuthenticationStateAsync();
+        claimsPrincipal = AuthState.User;
+
+        if (claimsPrincipal!.Identity!.IsAuthenticated)
+        {
+            using var context = await AppDbFactory.CreateDbContextAsync();
+            User = await context.Users.FirstOrDefaultAsync(u => u.UserName == AuthState.User.Identity!.Name);
+            if (User is not null)
+            {
+                notifications = context.Notifications.
+                Where(n => n.Author != User.UserName && (n.Recipient == User.UserName)).ToList();
+                notifications = notifications.Where(n => n.Read == false).ToList();
+                dbContext = await AppDbFactory.CreateDbContextAsync();
+            }
+        }
+    }
+
+    public void ShowButton1Info(MouseEventArgs args)
+    {
+        Button1Info = "Admin dashboard";
+    }
+
+    public void HideButton1Info()
+    {
+        //Task.Delay(3500);
+        Button1Info = "";
+    }
+
+    private void ShowButton2Info(MouseEventArgs args)
+    {
+        Button2Info = "Notifications";
+    }
+
+    private void HideButton2Info()
+    {
+        //Task.Delay(3500);
+        Button2Info = "";
+    }
+
+    private void NotificationsClicked()
+    {
+        ClickedNotifications = !ClickedNotifications;
+    }
+
+    private void NotificationsCancel()
+    {
+        if (!MouseHovering)
+        {
+            ClickedNotifications = false;
+        }
+    }
+
+    private void OnMouseHover()
+    {
+        MouseHovering = !MouseHovering;
+        NotificationsCancel();
+    }
+}
+

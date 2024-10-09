@@ -1,7 +1,4 @@
 ﻿@inherits LayoutComponentBase
-@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
-@inject AuthenticationStateProvider AuthStateProvider
-@inject UserManager<ApplicationUser> UserManager
 
 <div class="page">
     <div class="sidebar">
@@ -10,36 +7,9 @@
 
     <main>
         <div class="top-row px-4">
-            <div class="nav-item">
-                <NavLink class="nav-link" id="admin" href="Account/Admin" @onmouseenter="ShowButton1Info" @onmouseleave="HideButton1Info">
-                    <i class="mt-1 icon1"></i>
-                </NavLink>
-                <div class="showHover1 text-nowrap" data-hover="@Button1Info" style="position:relative;"></div>
-            </div>
-            <div class="nav-item">
-                <NavLink class="nav-link" href="Account/Notifications" @onmouseenter="ShowButton2Info" @onmouseleave="HideButton2Info">
-                    <AuthorizeView>
-                        <NotAuthorized>
-                            <i class="mt-1 icon2"></i>
-                        </NotAuthorized>
-                        <Authorized>
-                            @if (notifications is not null && notifications.Count() > 0)
-                            {
-                                <i class="mt-1 icon3"></i>
-                            }
-                            else
-                            {
-                                <i class="mt-1 icon2"></i>
-                            }
-                        </Authorized>
-                    </AuthorizeView>
-                    
-                </NavLink>
-                <div class="showHover2 text-nowrap" data-hover="@Button2Info" style="position:relative;"></div>
-            </div>
+           <MainLayoutNotifications/>
             <a href="/Account/Help">Help</a>
         </div>
-
         <article class="content px-4">
             @Body
         </article>
@@ -51,46 +21,3 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
-
-@code{
-    [Parameter]
-    public string Button1Info { get; set; } = "";
-    [Parameter]
-    public string Button2Info { get; set; } = "";
-    public List<Notification>? notifications;
-    ClaimsPrincipal? claimsPrincipal;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var AuthState = await AuthStateProvider.GetAuthenticationStateAsync();
-        claimsPrincipal = AuthState.User;
-
-        if (claimsPrincipal!.Identity!.IsAuthenticated)
-        {
-            using var context = await AppDbFactory.CreateDbContextAsync();
-            var User = await context.Users.FirstOrDefaultAsync(u => u.UserName == AuthState.User.Identity!.Name);
-            notifications = context.Notifications.
-                Where(n => n.Author != User!.UserName && (n.Recipient == User.UserName)).ToList();
-            notifications = notifications.Where(n => n.Read == false).ToList();
-        } 
-    }
-
-    private void ShowButton1Info(MouseEventArgs args)
-    {
-        Button1Info = "Admin dashboard";
-    }
-    private void HideButton1Info()
-    {
-        Task.Delay(3500);
-        Button1Info = "";
-    }
-    private void ShowButton2Info(MouseEventArgs args)
-    {
-        Button2Info = "Notifications";
-    }
-    private void HideButton2Info()
-    {
-        Task.Delay(3500);
-        Button2Info = "";
-    }
-}

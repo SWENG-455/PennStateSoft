@@ -27,11 +27,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Components\Layout\MainLayoutNotifications.razor.css" />
     <None Remove="Components\Pages\Calendar.razor.css" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentEmail.Mailgun" Version="3.0.2" />
+    <PackageReference Include="MailKit" Version="4.8.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.8" />
@@ -41,6 +43,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.5" />
+    <PackageReference Include="MimeKit" Version="4.8.0" />
     <PackageReference Include="RestSharp" Version="112.0.0" />
   </ItemGroup>
 
@@ -52,11 +55,12 @@
     <_ContentIncludedByDefault Remove="Components\Account\Pages\Manage\AdminLogin.razor" />
   </ItemGroup>
 
+	<ItemGroup>
+		<Folder Include="Migrations\" />
+	</ItemGroup>
+	
   <ItemGroup>
-    <Folder Include="Migrations\Meeting\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Content Include="Components\Layout\MainLayoutNotifications.razor.css" />
     <Content Include="Components\Pages\Calendar.razor.css" />
   </ItemGroup>
 
@@ -69,10 +73,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="Components\Layout\MainLayoutNotificationsIndex.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
 </Project>

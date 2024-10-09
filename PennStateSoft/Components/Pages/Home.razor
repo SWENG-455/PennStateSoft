@@ -2,7 +2,6 @@
 
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
-@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppUsersDbFactory
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager NavigationManager
@@ -29,7 +28,7 @@
                     <h6 class="ms-3 mb-4" style="color:dimgray;"> and management software.</h6>
                     <NavLink style="text-decoration:none" href="/Account/Login">
                         <button class="btn-labeled ms-3 mt-2" style="text-align:center;">
-                            <h6 class="mt-2" style="font-size:0.6vw;">LOG IN</h6>
+                            <h6 class="mt-2" style="font-size:0.75vw;">LOG IN</h6>
                         </button>
                     </NavLink>
                 </div>
@@ -60,7 +59,8 @@
                                                         <article class="meeting">
                                                             <img src="/test3.svg" alt="Meeting Icon" class="meetingImage">
                                                             <a href="Account/Meetings/Details?id=@meeting.Id" class="meetingName">@meeting.Name</a>
-                                                            <span class="meetingInfo">@meeting.Date.ToShortDateString() @meeting.Time.ToShortTimeString() <span>@GetMeetingRoom(meeting.RoomId).Name</span></span>
+                                                            <span class="meetingInfo">@meeting.Date.ToShortDateString() @meeting.Time.ToShortTimeString() 
+                                                                <span>@GetMeetingRoom(meeting.RoomId).Name</span></span>
                                                         </article>
                                                     }
                                                 }
@@ -189,6 +189,7 @@
     private bool IsAdmin = false;
     private int SelectedDay = 0;
     private ApplicationUser? User;
+
     [Parameter]
     public string? Month { get; set; }
 

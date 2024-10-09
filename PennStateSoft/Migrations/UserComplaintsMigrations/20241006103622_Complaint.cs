@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PennStateSoft.Migrations
+namespace PennStateSoft.Migrations.UserComplaintsMigrations
 {
     /// <inheritdoc />
-    public partial class ComplaintsDb : Migration
+    public partial class Complaint : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

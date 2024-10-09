@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using PennStateSoft;
-using RestSharp;
-using RestSharp.Authenticators;
-using Humanizer;
+using MimeKit;
 using PennStateSoft.Data.Models;
 
 namespace BlazorSample.Components.Account;
@@ -16,9 +14,9 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
     public AuthMessageSenderOptions Options { get; } = optionsAccessor.Value;
 
     public Task SendConfirmationLinkAsync(ApplicationUser user, string email,
-        string confirmationLink) => SendEmailAsync(email, "Confirm email",
-          "Please confirm your account by<a href=\"{confirmationLink}\"> clicking here</a>." +
-            "\nHappy Schedule Management," +
+        string confirmationLink) => SendEmailAsync(email, "Confirm your email", 
+            $"Please confirm your account by clicking here: {confirmationLink}" +
+            "\n\nHappy Schedule Management," +
             "\nPennStateSoft");
 
     public Task SendPasswordResetLinkAsync(ApplicationUser user, string email,
@@ -47,6 +45,33 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
         int index = toEmail.IndexOf('@');
         string user = toEmail.Substring(0, index);
 
+        var msg = new MimeMessage();
+        var builder = new BodyBuilder();
+
+        msg.From.Add(InternetAddress.Parse("psuarchivereset@gmail.com"));
+        msg.To.Add(InternetAddress.Parse(toEmail));
+        msg.Subject = subject;
+
+        string body = message;
+        string greeting = "Hello " + user + ",\n\n";
+        message = greeting + body;
+
+        builder.TextBody = message;
+
+        msg.Body = builder.ToMessageBody();
+
+        using (var client = new MailKit.Net.Smtp.SmtpClient())
+        {
+            client.ServerCertificateValidationCallback = (s, certificate, chain, sslPolicyErrors) => true;
+
+            await client.ConnectAsync("smtp.gmail.com", 587, false);
+            await client.AuthenticateAsync("psuarchivereset@gmail.com", GlobalVariables.Password);
+
+            await client.SendAsync(msg);
+            await client.DisconnectAsync(true);
+            logger.LogInformation("Email to {EmailAddress} sent!", toEmail);
+        }
+        /*
         var options = new RestClientOptions("https://api.mailgun.net/v3")
         {
             Authenticator = new HttpBasicAuthenticator("api", apiKey)
@@ -65,6 +90,13 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
         if (response.IsSuccessStatusCode)
         {
             logger.LogInformation("Email to {EmailAddress} sent!", toEmail);
-        }   
+        }
+        */
     }
+}
+
+internal class GlobalVariables
+{
+    public static string Password = "xnnb jtri wzag vkll ";
+    public static string FromEmail = "psuarchivereset@gmail.com";
 }

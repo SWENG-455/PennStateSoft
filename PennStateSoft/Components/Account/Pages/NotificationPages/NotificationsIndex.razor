@@ -23,7 +23,7 @@
         {
             @if (notifications is not null && notifications.Count > 0)
             {
-                <div class="ms-1">
+                <div class="ms-lg-3">
                     <InputCheckbox @bind-Value="SelectAllNotifications" class="darker-border-checkbox form-check-input"
                                    disabled="@(notifications is null)" @onclick="OnCheckBoxSelected"
                                    @onmouseenter="ShowCheckboxInfo" @onmouseleave="HideCheckboxInfo">
@@ -32,7 +32,7 @@
                 </div>
 
                 @if (SelectedNotifications is not null && ((SelectedNotifications!.Count > 1 && notifications!.Count > 1)
-                    || SelectedNotifications.Count > 0))
+               || (SelectedNotifications.Count == 1 && notifications!.Count == 1)))
                 {
                     <div nav-item px-3>
                         <button class="btn btn-labeled ms-5 me-4" type="submit"
@@ -63,11 +63,13 @@
 
                 <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
                     <TemplateColumn Context="notification">
-                        <CascadingValue Value="notification">
-                            <CascadingValue Value="notifications">
+                        <CascadingValue Value="notifications">
+                            <CascadingValue Value="notification" IsFixed=true>
                                 <CascadingValue Value="SelectedNotifications">
                                     <CascadingValue Value="SelectAllNotifications">
-                                        <NotificationDetails OnDeleteCallback="UpdateGridProvider" OnSelected="UpdateGridProvider" />
+                                        <NotificationDetails OnDeleteCallback="UpdateGridProvider" 
+                                                             OnSelected="UpdateGridProvider" 
+                                                                             EventCallback="UpdateGridProvider"/>
                                     </CascadingValue>
                                 </CascadingValue>
                             </CascadingValue>
@@ -87,7 +89,8 @@
 @code {
 
     GridItemsProvider<Notification>? NotificationsProvider;
-    private List<Notification>? notifications;
+    [Parameter]
+    public List<Notification>? notifications { get; set; }
     [Parameter]
     public List<Notification>? SelectedNotifications { get; set; }
     [Parameter]
@@ -139,12 +142,10 @@
             {
                 IsAdmin = true;
             }
-
-            var Notifications = context.Notifications.
-                    Where(n => n.Author != User.UserName && (n.Recipient == User.UserName)).ToList();
-            notifications = Notifications;
+            notifications = context.Notifications.
+                    Where(n => n.Author != User.UserName && 
+                        (n.Recipient == User.UserName)).ToList();
         }
-
         if (notifications is not null)
         {
             notifications = notifications.OrderByDescending(n => n.Created).ToList();

@@ -1,5 +1,5 @@
 ﻿@page "/Account/Register"
-
+@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
 @inject IRoleStore<IdentityRole> RoleStore
 @inject IRoleValidator<IdentityRole> RoleValidator
 @inject IEnumerable<RoleValidator<IdentityRole>> RoleValidators
@@ -70,6 +70,8 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
+    public string? imageSource { get; set; }
+
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
     public async Task RegisterUser(EditContext editContext)
@@ -106,6 +108,27 @@
             return;
         }
         Logger.LogInformation("User created a new account with password.");
+        imageSource = "C:/Users/brian/OneDrive/Documents/Summer 2024/SWENG 455/PennStateSoft/PennStateSoft/wwwroot/DefaultUserProfilePicSmall.jpg";
+        user.ProfilePic = File.ReadAllBytes(imageSource);
+
+        using var userContext = await AppDbFactory.CreateDbContextAsync();
+        userContext.Attach(user!).State = EntityState.Modified;
+
+        try
+        {
+            await userContext.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!UserExists(user!.Id))
+            {
+                NavigationManager.NavigateTo("/Account/NotFound");
+            }
+            else
+            {
+                throw;
+            }
+        }
 
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
@@ -119,7 +142,7 @@
             EmailSender = new IdentityNoOpEmailSender();
         }
 
-        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, callbackUrl);
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
@@ -127,8 +150,7 @@
                 "Account/RegisterConfirmation",
                 new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl});
         }
-
-        await SignInManager.SignInAsync(user, isPersistent: false);
+        await SignInManager.SignInAsync(user, isPersistent: true);
         RedirectManager.RedirectTo(ReturnUrl);
     }
 
@@ -153,7 +175,11 @@
         }
         return (IUserEmailStore<ApplicationUser>)UserStore;
     }
-
+    bool UserExists(string id)
+    {
+        using var context = AppDbFactory.CreateDbContext();
+        return context.Users.Any(e => e.Id == id);
+    }
     private sealed class InputModel
     {
         [Required]

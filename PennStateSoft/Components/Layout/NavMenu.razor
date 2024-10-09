@@ -1,6 +1,9 @@
 ﻿@implements IDisposable
 
 @inject NavigationManager NavigationManager
+@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid d-flex justify-content-between align-items-center" style="height: 1.9rem;">
@@ -25,7 +28,16 @@
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                        @if (ProfilePic != null)
+                        {
+                            <img style="width:30px; left:-5px; height:30px; margin-right: 5px; object-fit:cover; border-radius:30px"
+                                 src="data:image/*;base64,@Convert.ToBase64String(ProfilePic)">
+                        }
+                        else
+                        {
+                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span>
+                        }
+                        @context.User.Identity?.Name
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
@@ -66,11 +78,26 @@
 
 @code {
     private string? currentUrl;
+    private byte[]? ProfilePic;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var claimsPrincipal = authState.User;
+
+        if (authState.User.Identity!.IsAuthenticated)
+        {
+            if (claimsPrincipal is not null)
+            {
+                var userName = claimsPrincipal.Identity?.Name;
+                using var context = await AppDbFactory.CreateDbContextAsync();
+                var user = await context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+                ProfilePic = user?.ProfilePic;
+            }
+        }       
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
@@ -84,4 +111,3 @@
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }
-

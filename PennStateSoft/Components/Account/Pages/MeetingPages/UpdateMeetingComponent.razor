@@ -13,7 +13,7 @@
 
 @attribute [Authorize]
 
-<dl class="row" style="width:55%;">
+<dl class="row" style="width:65%;">
     <div style="text-align:right;">
         @if (!AddMembersClicked)
         {
@@ -48,7 +48,7 @@
                         {
                             foreach (var appUser in _users)
                             {
-                                <option value="@appUser">@appUser.UserName</option>
+                                <option class="ms-3" value="@appUser">@appUser.UserName</option>
                             }
                         }
                     </InputSelect>
@@ -80,15 +80,17 @@
     <QuickGrid Class="table" ItemsProvider="@gridItemsProvider">
         <TemplateColumn Context="member" Title="Members">
             <div class="flex items-center mt-1">
-                <nobr>
-                    @member.UserName
+                <img style="width:30px; height:30px; margin-right: 5px; object-fit:cover; border-radius:30px"
+                     src="data:image/*;base64,@Convert.ToBase64String(member?.ProfilePic!)">
+                <nobr style="color:#0070E0;">
+                    @member?.UserName
                 </nobr>
             </div>
         </TemplateColumn>
         <TemplateColumn Context="member">
             @if (IsCreator && !hasEnded)
             {
-                <button style="background-color:#4969ee; padding:0.2rem 1rem; color:white; border-radius:0.25rem;
+                <button class="btn btn-sm ms-3 btn-danger" style="padding:0.2rem 1rem; color:white; border-radius:0.25rem;
                         margin:0.25rem 0.5rem;"
                         @onclick="@(()=> OnRemoveClicked(member))">
                     Remove

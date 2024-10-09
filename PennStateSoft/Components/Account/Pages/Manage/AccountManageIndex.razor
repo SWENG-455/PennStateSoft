@@ -4,6 +4,7 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
+@inject NavigationManager NavigationManager
 
 <PageTitle>Profile</PageTitle>
 
@@ -15,6 +16,13 @@
         <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
+            <div class="col-md-6">
+                <div class="form-floating">
+                    <CascadingValue Value="user" IsFixed="true">
+                        <UpdateProfilePicture />
+                    </CascadingValue>
+                </div>
+            </div>
             <div class="form-floating mb-3">
                 <input type="text" value="@username" class="form-control" placeholder="Please choose your username." disabled />
                 <label for="username" class="form-label">Username</label>
@@ -28,7 +36,10 @@
         </EditForm>
     </div>
 </div>
+<!--Chen Min account profile image obtained from:
 
+<a href="https://www.vecteezy.com/free-photos/confidence">Confidence Stock photos by Vecteezy</a>
+-->
 @code {
     [CascadingParameter]
     private ApplicationUser user { get; set; } = default!;
@@ -41,6 +52,9 @@
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
+    [Parameter]
+    public string? imageSource { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
@@ -50,6 +64,11 @@
             username = await UserManager.GetUserNameAsync(user);
             phoneNumber = await UserManager.GetPhoneNumberAsync(user);
             Input.PhoneNumber ??= phoneNumber;
+
+            if (user.ProfilePic is not null)
+            {
+                imageSource = string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(user.ProfilePic));
+            }
         }
     }
 
@@ -67,7 +86,6 @@
         await SignInManager.RefreshSignInAsync(user);
         RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
     }
-
     private sealed class InputModel
     {
         [Phone]

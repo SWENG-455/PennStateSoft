@@ -1,0 +1,129 @@
+﻿@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
+@inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
+@rendermode InteractiveServer
+
+<div class="form-floating m-2">
+    <label asp-for="User.ProfilePicture" style="width: 100%;"></label>
+    @if (user?.ProfilePic?.Length > 0)
+    {
+        <img id="profilePicture" class="mb-2" style="width:200px; height:200px; margin-right: 5px; object-fit:cover; border-radius:30px;"
+        src="@imageSource">
+
+        <!--DefaultUserProfilePic image designed by juicy_fish. Obtained from Freepik-->
+    }
+    <div class="ms-1 mb-4">
+        <InputFile OnChange="UploadProfileImage" />
+    </div>
+    
+    <span asp-validation-for="user.ProfilePic" class="text-danger"></span>
+</div>
+
+@code {
+    [Parameter]
+    public string? imageSource { get; set; }
+
+    private IBrowserFile? file;
+    private InputFile? inputFile;
+
+    [CascadingParameter]
+    private ApplicationUser user { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var claimsPrincipal = authState.User;
+        var userName = claimsPrincipal.Identity?.Name;
+        using var context = await AppDbFactory.CreateDbContextAsync();
+        user = await context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+
+        if (user is not null)
+        {
+            if (user.ProfilePic is not null)
+            {
+                imageSource = string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(user.ProfilePic));
+            }
+            else
+            {
+                imageSource = "C:/Users/brian/OneDrive/Documents/Summer 2024/SWENG 455/PennStateSoft/PennStateSoft/wwwroot/DefaultUserProfilePicSmall.jpg";
+                user.ProfilePic = File.ReadAllBytes(imageSource);
+
+                using var userContext = await AppDbFactory.CreateDbContextAsync();
+                userContext.Attach(user!).State = EntityState.Modified;
+
+                try
+                {
+                    await userContext.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!UserExists(user!.Id))
+                    {
+                        NavigationManager.NavigateTo("/Account/NotFound");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+        }  
+    }
+
+    private async Task UploadProfileImage(InputFileChangeEventArgs args)
+    {
+        file = args.File;
+
+        var imageTmp = await file.RequestImageFileAsync("jpg", 200, 200);
+
+        imageSource = await UploadMedia(imageTmp);
+        NavigationManager.Refresh(true);
+    }
+    public async Task<string> UploadMedia(IBrowserFile file)
+    {
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+        await using var fs = new FileStream(path, FileMode.Create);
+
+        await file.OpenReadStream(file.Size).CopyToAsync(fs);
+
+        var bytes = new byte[file.Size];
+
+        fs.Position = 0;
+
+        await fs.ReadAsync(bytes);
+
+        fs.Close();
+
+        File.Delete(path);
+
+        user.ProfilePic = bytes;
+
+        using var context = await AppDbFactory.CreateDbContextAsync();
+        context.Attach(user!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!UserExists(user!.Id))
+            {
+                NavigationManager.NavigateTo("/Account/NotFound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return Convert.ToBase64String(bytes);
+    }
+    bool UserExists(string id)
+    {
+        using var context = AppDbFactory.CreateDbContext();
+        return context.Users.Any(e => e.Id == id);
+    }
+}

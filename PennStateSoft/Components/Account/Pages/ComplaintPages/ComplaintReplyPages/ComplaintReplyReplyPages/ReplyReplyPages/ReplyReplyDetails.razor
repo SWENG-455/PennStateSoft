@@ -21,22 +21,24 @@
     {
         <div id ="replyreply" class="m-3">
             <div class="m-3">
-                <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
+                <img src=@imageSource class="ms-1"
+                        style="width:30px; height:30px; margin-right: 5px; object-fit:cover; border-radius:30px;" />
                 @if (IsAdmin)
                 {
-                    <label class=" form-label m-2 me-5 text-black-50"> @ReplyReply.Username (Admin) </label>
+                    <label class=" form-label ms-2" style="color:#0070E0"> @ReplyReply.Username </label>
+                    <label class=" form-label m-2 me-5 text-black-50" style="color:#0070E0"> (Admin) </label>
                 }
                 else
                 {
-                    <label class=" form-label m-2 me-5 text-black-50"> @ReplyReply.Username </label>
+                    <label class=" form-label m-2 me-5 ms-2" style="color:#0070E0"> @ReplyReply.Username </label>
                 }
-                <label class="ms-5 form-label text-black-50">
+                <label class="form-label text-black-50" style="text-align:right; width:60%;">
                     @ReplyReply.Created.ToLongDateString() at
                     @ReplyReply.Created.ToShortTimeString()
                 </label>
                 @if (!EditClicked)
                 {
-                    <div class="m-1">
+                    <div class="m-1 ms-5">
                         <textarea class="text-black text-wrap" cols="100"
                                   style="border:none; background-color:whitesmoke;" disabled>
                             @Encoding.ASCII.GetString(ReplyReply!.Description!)
@@ -45,7 +47,7 @@
                 }
                 @if (!UserName!.Equals(ReplyReply.Username) && !EditClicked)
                 {
-                    <div>
+                    <div class="ms-5">
                         <CascadingValue Value="ReplyReply" IsFixed="true">
                             <CreateReplyReply OnSaveNewReplyCallback="OnSaveClicked" />
                         </CascadingValue>
@@ -53,7 +55,7 @@
                 }
                 @if (UserName!.Equals(ReplyReply.Username) && !EditClicked)
                 {
-                    <div>
+                    <div class="ms-5">
                         <button id="edit" type="button" class="btn btn-primary text-primary" style="border:none; background:inherit;"
                                 @onclick="OnEditClicked">
                             Edit
@@ -70,13 +72,13 @@
                 {
                     <form method="post" Model="@ReplyReply" @onsubmit="UpdateReplyReply" @formname="edit-replyreply">
                         <AntiforgeryToken />
-                        <div class="m-1">
+                        <div class="m-1 ms-5">
                             <textarea id="description" @bind="Description" @bind:event="oninput" class="text-black text-wrap" cols="100"
                                       style="border:none; background-color:Window;" autofocus>
                                 @Encoding.ASCII.GetString(ReplyReply!.Description!)
                                                 </textarea>
                         </div>
-                        <div class="m-1">
+                        <div class="m-1 ms-5">
                             <button type="submit" class="btn btn-primary">Save </button>
                             <button type="button" class="btn btn-secondary" @onclick="OnEditClicked">Cancel</button>
                         </div>
@@ -106,6 +108,9 @@
 
     [CascadingParameter]
     public ReplyReply? ReplyReply { get; set; } = default!;
+
+    [Parameter]
+    public string? imageSource { get; set; }
 
     private UIHelper UIhelper = new();
 
@@ -145,6 +150,10 @@
             //Check if the reply creator is an admin
             using var context = await AppDbFactory.CreateDbContextAsync();
             User = await context.Users.FirstOrDefaultAsync(u => u.UserName == ReplyReply.Username);
+            if (User?.ProfilePic is not null)
+            {
+                imageSource = string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(User.ProfilePic));
+            }
             var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
             var userRole = await context.UserRoles.FirstOrDefaultAsync(ur => ur.RoleId == adminRole.Id && ur.UserId == User.Id);
 

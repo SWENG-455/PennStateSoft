@@ -3,20 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PennStateSoft.Data;
 
 #nullable disable
 
-namespace PennStateSoft.Migrations
+namespace PennStateSoft.Migrations.UserComplaintsMigrations
 {
     [DbContext(typeof(UserComplaints))]
-    [Migration("20240917123538_ComplaintsDb")]
-    partial class ComplaintsDb
+    partial class UserComplaintsModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

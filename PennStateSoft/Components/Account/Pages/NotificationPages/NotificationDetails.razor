@@ -1,99 +1,104 @@
 ﻿@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppUsersDbFactory
 @inject NavigationManager NavigationManager
 
+@if (notification is null)
+{
+    <p>loading...</p>
+}
+else
+{
+    <div class="mt-2 mb-3 ms-2">
+        @{
+            TimeSinceCreated = DateTime.Now - notification.Created;
 
-<div class="mt-2 mb-3 ms-2">
-    @{
-        TimeSinceCreated = DateTime.Now - notification.Created;
-
-        if (TimeSinceCreated.Days > 0)
-        {
-            if (TimeSinceCreated.Days == 1)
+            if (TimeSinceCreated.Days > 0)
             {
-                NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " day ago ";
+                if (TimeSinceCreated.Days == 1)
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " day ago ";
+                }
+                else
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
+                }
+            }
+            else if (TimeSinceCreated.Hours > 0)
+            {
+                if (TimeSinceCreated.Hours == 1)
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hour ago ";
+                }
+                else
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
+                }
+            }
+            else if (TimeSinceCreated.Minutes > 0)
+            {
+                if (TimeSinceCreated.Minutes == 1)
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minute ago ";
+                }
+                else
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
+                }
             }
             else
             {
-                NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
+                if (TimeSinceCreated.Seconds == 1)
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " second ago ";
+                }
+                else
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
+                }
             }
         }
-        else if (TimeSinceCreated.Hours > 0)
+        @if (!notification.Read)
         {
-            if (TimeSinceCreated.Hours == 1)
-            {
-                NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hour ago ";
-            }
-            else
-            {
-                NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
-            }
-        }
-        else if (TimeSinceCreated.Minutes > 0)
-        {
-            if (TimeSinceCreated.Minutes == 1)
-            {
-                NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minute ago ";
-            }
-            else
-            {
-                NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
-            }
+            <i class="icon"></i>
+            <InputCheckbox @bind-Value="notification.Selected" @onclick="OnSelectClick"
+                           class="checkbox darker-border-checkbox form-check-input me-4 ms-0"
+                           style="position:relative; left:-30px;">
+            </InputCheckbox>
+            <strong style="position:relative; left:-30px;">
+                @notification.Author
+            </strong>
+            <span class="weak" style="position:relative; left:-30px;">@notification.Message</span>
+
+            <strong style="position:relative; left:-30px;">
+                <span><a href="@(notification.Link)" @onclick="ReadNotification">@notification.LinkTo</a></span>
+            </strong>
+            <span class="weak" style="position:relative; left:-30px;">@NotificationDuration</span>
+            <button type="submit" class="btn btn-sm ms-3" style="float:right; left:-30px;"
+                    disabled="@(notification is null)" @onclick="DeleteNotification">
+                🗙
+            </button>
         }
         else
         {
-            if (TimeSinceCreated.Seconds == 1)
-            {
-                NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " second ago ";
-            }
-            else
-            {
-                NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
-            }
-        }
-    }
-    @if (!notification.Read)
-    {
-        <i class="icon"></i>
-        <InputCheckbox @bind-Value="notification.Selected" @onclick="OnSelectClick"
-                       class="checkbox darker-border-checkbox form-check-input me-4 ms-0"
-                       style="position:relative; left:-30px;">
-        </InputCheckbox>
-        <strong style="position:relative; left:-30px;">
+            <InputCheckbox @bind-Value="@notification!.Selected" @onclick="OnSelectClick"
+                           class="checkbox darker-border-checkbox form-check-input me-4 ms-0"
+                           style="position:relative;">
+            </InputCheckbox>
+
             @notification.Author
-        </strong>
-        <span class="weak" style="position:relative; left:-30px;">@notification.Message</span>
-        
-        <strong style="position:relative; left:-30px;">
+            <span class="weak">@notification.Message</span>
+
             <span><a href="@(notification.Link)" @onclick="ReadNotification">@notification.LinkTo</a></span>
-        </strong>
-        <span class="weak" style="position:relative; left:-30px;">@NotificationDuration</span>
-        <button type="submit" class="btn btn-sm ms-3" style="float:right; left:-30px;"
-            disabled="@(notification is null)" @onclick="DeleteNotification">
-            🗙
-        </button>
-    }
-    else
-    {
-        <InputCheckbox @bind-Value="@notification!.Selected" @onclick="OnSelectClick"
-                       class="checkbox darker-border-checkbox form-check-input me-4 ms-0"
-                       style="position:relative;">
-        </InputCheckbox>
 
-        @notification.Author
-        <span class="weak">@notification.Message</span>
+            <span class="weak">@NotificationDuration</span>
 
-        <span><a href="@(notification.Link)" @onclick="ReadNotification">@notification.LinkTo</a></span>
+            <button type="submit" class="btn btn-sm ms-3" style="float:right;"
+                    disabled="@(notification is null)" @onclick="DeleteNotification">
+                🗙
+            </button>
+        }
 
-        <span class="weak">@NotificationDuration</span>
-
-        <button type="submit" class="btn btn-sm ms-3" style="float:right;"
-                disabled="@(notification is null)" @onclick="DeleteNotification">
-            🗙
-        </button>
-    }
-    
-</div>
-
+    </div>
+}
 
 @code {
     [Parameter]
@@ -101,6 +106,9 @@
 
     [Parameter]
     public EventCallback<SaveChangesEventArgs> OnSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> EventCallback { get; set; }
 
     [CascadingParameter]
     public Notification notification { get; set; } = default!;
@@ -115,6 +123,9 @@
 
     [CascadingParameter]
     public List<Notification>? SelectedNotifications { get; set; } = default!;
+
+    [Parameter]
+    public ApplicationUser User { get; set; }
 
     private string? NotificationDuration;
 
@@ -161,8 +172,9 @@
         {
             context.Notifications.Remove(notification!);
             await context.SaveChangesAsync();
+            notifications.Remove(notification);
+            await OnDeleteCallback.InvokeAsync();
         }
-        await OnDeleteCallback.InvokeAsync();
     }
     public async void OnSelectClick()
     {
@@ -189,6 +201,16 @@
     {
         notification.Read = true;
         await UpdateNotification(notification);
+        //await RevalidateNotifications();
+        await EventCallback.InvokeAsync();
+    }
+    private async Task RevalidateNotifications()
+    {
+        if (User is not null)
+        {
+            using var context = await AppUsersDbFactory.CreateDbContextAsync();
+            notifications = context.Notifications.Where(n => n.Read == false).ToList();
+        }
     }
     bool NotificationExists(int id)
     {

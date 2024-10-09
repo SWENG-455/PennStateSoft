@@ -12,15 +12,15 @@ using PennStateSoft.Data;
 namespace PennStateSoft.Migrations.Meeting
 {
     [DbContext(typeof(MeetingContext))]
-    [Migration("20240731061640_MeetingsDb")]
-    partial class MeetingsDb
+    [Migration("20241006103709_Meeting")]
+    partial class Meeting
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.7")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

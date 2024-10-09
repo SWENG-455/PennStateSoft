@@ -94,49 +94,99 @@ main {
         right: 0.75rem;
         top: 0.5rem;
     }
-.icon1 {
-    display: inline-block;
-    width: 1.6em;
-    height: 1.6em;
-    margin-top: -8px;
-    background-image: url("AdminAccountIcon.svg");
-    background-size: contain;
-    background-repeat: no-repeat;
-    vertical-align: middle;
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
-.icon2 {
-    display: inline-block;
-    width: 1.6em;
-    height: 1.6em;
-    margin-top: -8px;
-    background-image: url("NotificationsIcon.svg");
-    background-size: contain;
-    background-repeat: no-repeat;
-    vertical-align: middle;
+
+main {
+    flex: 1;
 }
-.icon3 {
-    display: inline-block;
-    width: 1.6em;
-    height: 1.6em;
-    margin-top: -8px;
-    background-image: url("UnreadNotificationsIcon.svg");
-    background-size: contain;
-    background-repeat: no-repeat;
-    vertical-align: middle;
+
+.sidebar {
+    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
 }
-.showHover1::after {
-    content: attr(data-hover);
-    position: absolute;
-    top: 0;
-    left: -35px;
-    background: Window;
-    color: midnightblue;
+
+.top-row {
+    background-image: linear-gradient(180deg, rgb(192,192,192) 0%, #e9e9e9 70%);
+    border-bottom: 8px solid #053ba2;
+    justify-content: flex-end;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
 }
-.showHover2::after {
-    content: attr(data-hover);
-    position: absolute;
-    top: 0;
-    left: -5px;
-    background: Window;
-    color: midnightblue;
+
+    .top-row ::deep a, .top-row ::deep .btn-link {
+        white-space: nowrap;
+        margin-left: 1.5rem;
+        text-decoration: none;
+    }
+
+        .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        .top-row ::deep a:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+@media (max-width: 640.98px) {
+    .top-row {
+        justify-content: space-between;
+    }
+
+        .top-row ::deep a, .top-row ::deep .btn-link {
+            margin-left: 0;
+        }
 }
+
+@media (min-width: 641px) {
+    .page {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+        .top-row.auth ::deep a:first-child {
+            flex: 1;
+            text-align: right;
+            width: 0;
+        }
+
+    .top-row, article {
+        padding-left: 2rem !important;
+        padding-right: 1.5rem !important;
+    }
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }

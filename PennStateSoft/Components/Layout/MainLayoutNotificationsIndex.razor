@@ -13,19 +13,17 @@
     {
         @if (ExistingUnreadNotifications)
         {
-            <p3>
-                <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
-                    <TemplateColumn Context="notification">
-                        <CascadingValue Value="notification">
-                            <CascadingValue Value="notifications">
-                                <CascadingValue Value="User" IsFixed="true">
-                                    <HomePageNotificationDetails/>
-                                </CascadingValue>
+            <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
+                <TemplateColumn Context="notification">
+                    <CascadingValue Value="notification">
+                        <CascadingValue Value="notifications">
+                            <CascadingValue Value="User" IsFixed="true">
+                                <MainLayoutNotificationDetails eventCallback="RevalidateNotifications" />
                             </CascadingValue>
                         </CascadingValue>
-                    </TemplateColumn>
-                </QuickGrid>
-            </p3>
+                    </CascadingValue>
+                </TemplateColumn>
+            </QuickGrid>
         }
         else
         {
@@ -84,17 +82,17 @@
         if (notifications is not null)
         {
             notifications = notifications.OrderByDescending(n => n.Created).ToList();
-            notifications = notifications.Take(2).ToList();
+            //notifications = notifications.Take(2).ToList();
 
             if (notifications is null || notifications.Count <= 0)
             {
                 ExistingUnreadNotifications = false;
             }
-            var Result = GridItemsProviderResult.From<Notification>(items: notifications, totalItemCount: notifications.Count);
+            var Result = GridItemsProviderResult.From<Notification>(items: notifications!, totalItemCount: notifications.Count);
             NotificationsProvider = request => ValueTask.FromResult(Result);
         }
     }
-    
+
     public async Task UpdateNotification(Notification notification)
     {
         using var context = AppDbFactory.CreateDbContext();
@@ -121,6 +119,17 @@
     {
         using var context = AppDbFactory.CreateDbContext();
         return context.Notifications.Any(e => e.Id == id);
+    }
+    private void RevalidateNotifications()
+    {
+        using var context = AppDbFactory.CreateDbContext();
+        if (User is not null)
+        {
+            notifications = context.Notifications.
+                Where(n => n.Author != User.UserName && (n.Recipient == User.UserName)).ToList();
+            notifications = notifications.Where(n => n.Read == false).ToList();
+        }
+        UpdateGridProvider();
     }
 
     private void UpdateGridProvider()

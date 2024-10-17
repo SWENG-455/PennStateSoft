@@ -41,3 +41,21 @@ span.weak {
     top: -15px;
     bottom: 5px;
 }
+.icon1 {
+    display: inline-block;
+    width: 1.2em;
+    height: 1.2em;
+    background-image: url("newComplaintIcon2.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+.icon2 {
+    display: inline-block;
+    width: 1.2em;
+    height: 1.2em;
+    background-image: url("newMeetingIcon2.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}

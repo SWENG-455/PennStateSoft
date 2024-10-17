@@ -35,8 +35,8 @@
                     <div class="forms-control border border-light border-start-0 border-end-0 border-bottom-0
                border-top-0" cols="80">
                         <div>
-                            <label for="username" class="form-label" style="color:#0070E0"> Username: </label>
-                            <label class=" form-label m-2 me-5 text-black-50"> @complaint.Username </label>
+                            <img src=@imageSource style="width:30px; height:30px; margin-right: 5px; object-fit:cover; border-radius:30px;" />
+                            <label class=" form-label m-2 me-5" style="color:#0070E0"> @complaint.Username</label>
                             <label class="ms-5 form-label text-black-50"> @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() </label>
                         </div>
                         <div class="mt-3 mb-4">
@@ -78,6 +78,11 @@ else
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
+    [Parameter]
+    public string? imageSource { get; set; }
+
+    private IBrowserFile? file { get; set; }
+
     private ApplicationRoleManager? RoleManager;
     private IdentityRole? Role;
     private Notification? notification;
@@ -92,12 +97,15 @@ else
         }
         else
         {
+            using var userContext = await AppUsersDbFactory.CreateDbContextAsync();
+            var complaintAuthor = await userContext.Users.FirstOrDefaultAsync(u => u.UserName == complaint.Username);
             var authenticationState = await AuthStateProvider.GetAuthenticationStateAsync();
             claimsPrincipal = authenticationState.User;
 
             if (claimsPrincipal is not null)
             {
                 user = await UserManager.GetUserAsync(claimsPrincipal);
+                imageSource = string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(complaintAuthor.ProfilePic));
 
             }
             if (user is not null)

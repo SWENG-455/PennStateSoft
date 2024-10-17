@@ -1,6 +1,7 @@
 ﻿@inject IDbContextFactory<ApplicationDbContext> AppDbFactory
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
 @inject BrowserService Service
 @rendermode InteractiveServer
 
@@ -41,7 +42,7 @@
 <div class="nav-item">
     @if (ClickedNotifications)
     {
-        <div class="popover" style="position:absolute; min-width:380px; left:70%; top:88%;"
+        <div class="popover" style="position:fixed; min-width:380px;  left: @width; top: @height;"
              @onmouseenter="OnMouseHover" @onmouseleave="OnMouseHover">
             <div class="popover-header">
                 <strong>
@@ -78,16 +79,23 @@
     public bool MouseHovering { get; set; } = false;
     [Parameter]
     public ApplicationDbContext? dbContext { get; set; }
+    [Parameter]
+    public BrowserDimension? Dimension { get; set; }
+    [Parameter]
+    public string? width { get; set; }
+    [Parameter]
+    public string? height { get; set; }
 
-    public int Height { get; set; }
-    public int Width { get; set; }
+    public double Height { get; set; }
+    public double Width { get; set; }
+
 
     public List<Notification>? notifications;
     ClaimsPrincipal? claimsPrincipal;
     private ApplicationUser? User { get; set; }
 
     protected override async Task OnInitializedAsync()
-    {
+    {  
         var AuthState = await AuthStateProvider.GetAuthenticationStateAsync();
         claimsPrincipal = AuthState.User;
 
@@ -112,9 +120,13 @@
 
     public async Task GetDimensions()
     {
-        var dimension = await Service.GetDimensions();
-        Height = dimension.Height;
-        Width = dimension.Width;
+        Dimension = await Service.GetDimensions();
+        var widthPixels = Convert.ToDouble("480px".Replace("px", ""));
+        var heightPixels = Convert.ToDouble("45px".Replace("px", ""));
+        Height = heightPixels;
+        height = Height.ToString() + "px";
+        Width = (double)(Dimension.Width) - widthPixels;
+        width = Width.ToString() + "px";
     }
 
     public void ShowButton1Info(MouseEventArgs args)

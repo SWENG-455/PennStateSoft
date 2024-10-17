@@ -1,4 +1,4 @@
-﻿.page {
+﻿span.page {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -233,6 +233,12 @@ span {
     font-size: 0.8em;
     margin-left: 3px;
 }
+    span.weak {
+        color: grey;
+        padding: 4px;
+        top: -15px;
+        bottom: 5px;
+    }
 
 .item2 {
     grid-column: 1;
@@ -387,10 +393,10 @@ span {
     color: white;
 }
 
-.calendar .day.selected {
-    background-image: linear-gradient(#79a3eb, #0242c3);
-    color: white;
-}
+    .calendar .day.selected {
+        background-image: linear-gradient(#b3e1f6, #106ba8);
+        color: white;
+    }
 
 .calendar td {
     padding: 3px;

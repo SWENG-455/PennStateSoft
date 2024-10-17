@@ -51,11 +51,10 @@
     color: white;
 
 }
-.calendar .day.selected {
-    background-image: linear-gradient(#79a3eb, #0242c3);
-    color: white;
-
-}
+    .calendar .day.selected {
+        background-image: linear-gradient(#8bcaf3, #1d404d);
+        color: white;
+    }
 
 .card2 .header {
     display: flex;

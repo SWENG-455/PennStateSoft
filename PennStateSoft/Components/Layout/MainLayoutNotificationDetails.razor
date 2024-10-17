@@ -7,16 +7,17 @@
 }
 else
 {
-    <div class="mb-3">
+    <div class="mb-3 ms-3">
         <strong>
             @notification.Author
         </strong>
+
         @notification.Message
-        <span @onclick="@(()=>NotificationClicked(notification))">
-            <strong>
-                <a class="text-wrap" href="@(notification.Link)">@notification.LinkTo</a>
-            </strong>
-        </span>
+
+        <a class="text-wrap" href="@(notification.Link)"
+           @onclick="@(()=>NotificationClicked(notification))"> <strong>@notification.LinkTo</strong>
+       </a>
+
         @{
             TimeSinceCreated = DateTime.Now - notification.Created;
 

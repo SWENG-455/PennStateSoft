@@ -51,8 +51,8 @@
                                     <div class="grid-container">
                                         <div class="grid-item item1">
                                             <div class="mainList">
-                                                <h3 class="header-with-line">Upcoming Meetings</h3>
-                                                @if (upcomingMeetings != null)
+                                                <h3 class="header-with-line">@MeetingsCardTitle</h3>
+                                                @if (upcomingMeetings != null && upcomingMeetings.Count() > 0)
                                                 {
                                                     @foreach (var meeting in upcomingMeetings)
                                                     {
@@ -63,6 +63,9 @@
                                                                 <span>@GetMeetingRoom(meeting.RoomId).Name</span></span>
                                                         </article>
                                                     }
+                                                }
+                                                else{
+                                                    <span class="weak">No meetings today</span>
                                                 }
                                             </div>
                                         </div>
@@ -86,12 +89,13 @@
                                         <Calendar>
                                             <DayTemplate Context="day">
                                                 @{
+                                                    DateTime selectedDate = day.Date;
                                                     string currentDay = day.Date == DateTime.Now.Date ? "today" : "";
                                                     string selectedDay = SelectedDay == day.Day ? "selected" : "";
                                                 }
                                                 @if (day.IsInThisMonth)
                                                 {
-                                                    <div class="ms-2 day shadow-effect @selectedDay @currentDay" @onclick="@(()=>OnDayClicked(day.Day))">@day.Day</div>
+                                                    <div class="ms-2 day shadow-effect @selectedDay @currentDay" @onclick="@(()=>OnDayClicked(day.Day, selectedDate))">@day.Day</div>
                                                 }
                                             </DayTemplate>
                                         </Calendar>
@@ -189,6 +193,8 @@
     private bool IsAdmin = false;
     private int SelectedDay = 0;
     private ApplicationUser? User;
+    [Parameter]
+    public string? MeetingsCardTitle { get; set; }
 
     [Parameter]
     public string? Month { get; set; }
@@ -200,6 +206,7 @@
 
         if (claimsPrincipal.Identity.IsAuthenticated)
         {
+            MeetingsCardTitle = "Upcoming Meetings";
             await LoadUpcomingMeetings();
         }
     }
@@ -217,14 +224,15 @@
         upcomingMeetings = new List<Meeting>();
         var someMeetings = new List<Meeting>();
         var members = context.Members.Where(m => m.UserId == User.Id);
-        if (members is not null)
-        {
-            foreach (var member in members)
+            /*
+            if (members is not null)
             {
+            foreach (var member in members)
+                {
                 someMeetings = context.Meeting.Where(m => m.Id == member.MeetingId).ToList();
-            }
         }
-        
+        }
+        */
 
         if (userRoles is not null && userRoles.Count() > 0)
         {
@@ -270,7 +278,7 @@
                 }
             }
         }
-        
+
 
         DateOnly today = DateOnly.FromDateTime(DateTime.Now);
         if (IsAdmin)
@@ -290,9 +298,89 @@
             .ToList();
         }
     }
-    private void OnDayClicked(int index)
+    private async Task LoadSelectedDaysMeetings(int index, DateTime selectedDate)
+    {
+        using var context = MeetingDbFactory.CreateDbContext();
+        var allMeetings = await context.Meeting.ToListAsync();
+        Rooms = await context.Room.ToListAsync();
+
+        User = await UserManager.GetUserAsync(claimsPrincipal!);
+        using var AppContext = await AppDbFactory.CreateDbContextAsync();
+        var userRoles = AppContext.UserRoles.Where(ur => ur.UserId == User!.Id).ToList();
+        Roles = new List<IdentityRole>();
+        var selectedMeetings = new List<Meeting>();
+        //var members = context.Members.Where(m => m.UserId == User!.Id);
+
+        MeetingsCardTitle = selectedDate.ToLongDateString();
+
+        if (userRoles is not null && userRoles.Count() > 0)
+        {
+            foreach (var userRole in userRoles)
+            {
+                var role = await AppContext.Roles.FirstOrDefaultAsync(r => r.Id == userRole.RoleId);
+                if (!role.Name.Contains("Client"))
+                {
+                    Roles.Add(role);
+                }
+            }
+            foreach (var role in Roles)
+            {
+                if (role.Name.Equals("Admin"))
+                {
+                    IsAdmin = true;
+                    break;
+                }
+                else
+                {
+                    //Get meetings where user is either a creator or an invitee
+                    int meetingId = -1, _index;
+                    if (role.Name.Contains("Creator"))
+                    {
+                        _index = role.Name.LastIndexOf("r");
+                        meetingId = Convert.ToInt32(role.Name.Substring(_index + 1));
+                    }
+                    else if (role.Name.Contains("Invitee"))
+                    {
+                        _index = role.Name.LastIndexOf("e");
+                        meetingId = Convert.ToInt32(role.Name.Substring(_index + 1));
+                    }
+
+                    var meeting = allMeetings.FirstOrDefault(m => m.Id == meetingId);
+
+                    if (meeting is not null)
+                    {
+                        if (!selectedMeetings.Contains(meeting))
+                        {
+                            selectedMeetings.Add(meeting);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (IsAdmin)
+        {
+            upcomingMeetings = allMeetings
+            .Where(m => m.Date.Day == index)
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Time)
+            .ToList();
+        }
+        else
+        {
+            upcomingMeetings = selectedMeetings
+            .Where(m => m.Date.Day == index)
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Time)
+            .ToList();
+        }
+
+    }
+    private async Task OnDayClicked(int index, DateTime selectedDate)
     {
         SelectedDay = index;
+        await LoadSelectedDaysMeetings(index, selectedDate);
+        StateHasChanged();
     }
     private Room GetMeetingRoom(int roomId)
     {

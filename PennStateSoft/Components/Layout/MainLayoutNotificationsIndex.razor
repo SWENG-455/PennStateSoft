@@ -13,12 +13,20 @@
     {
         @if (ExistingUnreadNotifications)
         {
-            <QuickGrid Class="table" ItemsProvider="@NotificationsProvider">
+            <QuickGrid ItemsProvider="@NotificationsProvider">
                 <TemplateColumn Context="notification">
                     <CascadingValue Value="notification">
                         <CascadingValue Value="notifications">
                             <CascadingValue Value="User" IsFixed="true">
+                                <span class="weak" >
+                                    @{
+                                        string title = notification!.Link!.Substring(notification.Link.IndexOf('t') + 2);
+                                        int index = title.IndexOf('/');
+                                    }
+                                    @title.Substring(0, index)
+                                </span>
                                 <MainLayoutNotificationDetails eventCallback="RevalidateNotifications" />
+                                <hr style="top:-5px;"/>
                             </CascadingValue>
                         </CascadingValue>
                     </CascadingValue>

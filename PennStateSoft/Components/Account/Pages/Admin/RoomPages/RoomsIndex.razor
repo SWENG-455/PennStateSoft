@@ -3,6 +3,7 @@
 @inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject BrowserService Service
 @rendermode InteractiveServer
 
 @attribute [Authorize(Roles = "Admin")]
@@ -15,7 +16,8 @@
     <button class="btn icon1" type="button"
             style="text-align:justify;" @onclick="OnMouseClicked" @onmouseenter="ShowButtonInfo" @onmouseleave="HideButtonInfo">
     </button>
-    <div class="showHover text-nowrap" data-hover="@ButtonInfo" style="position:absolute; left:-0.5%;">
+    <!--Finish implementing standard "Create Room" button tooltip position across various screen sizes-->
+    <div class="showHover text-nowrap" data-hover="@ButtonInfo" style="position:fixed; left:@width;">
     </div>
 </div>
 <div class="ms-5" style="width:55%;">
@@ -65,6 +67,18 @@
     [Parameter]
     public string ButtonInfo { get; set; } = "";
 
+    [Parameter]
+    public BrowserDimension? Dimension { get; set; }
+
+    [Parameter]
+    public string? width { get; set; }
+
+    [Parameter]
+    public string? height { get; set; }
+
+    public double Height { get; set; }
+    public double Width { get; set; }
+
     protected override void OnInitialized()
     {
         using var context = MeetingDbFactory.CreateDbContext();
@@ -73,6 +87,19 @@
         var rows = response.AsEnumerable<Room>().ToList<Room>();
         var result = GridItemsProviderResult.From<Room>(items: rows, totalItemCount: rows.Count);
         RoomProvider = req => ValueTask.FromResult(result);
+    }
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        await GetDimensions();
+    }
+
+    public async Task GetDimensions()
+    {
+        Dimension = await Service.GetDimensions();
+        var widthPixels = Convert.ToDouble("270px".Replace("px", ""));
+        Width = (double)(Dimension.Width)  / 7;
+        width = Width.ToString() + "px";
     }
     private void ShowButtonInfo()
     {

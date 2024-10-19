@@ -2,21 +2,22 @@
 @inject NavigationManager NavigationManager
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthStateProvider
+@inject BrowserService Service
+@inject IJSRuntime JS
 @rendermode InteractiveServer
 
 <div class="form-floating m-2">
     <label asp-for="User.ProfilePicture" style="width: 100%;"></label>
     @if (user?.ProfilePic?.Length > 0)
     {
-        <img id="profilePicture" class="mb-2" style="width:200px; height:200px; margin-right: 5px; object-fit:cover; border-radius:30px;"
-        src="@imageSource">
-
+        <button type="button" style="border:none; background-color:Window;" @onclick="OpenFileDialog">
+            <img id="profilePicture" class="mb-2" style="width:200px; height:200px; margin-right: 5px; object-fit:cover; border-radius:30px;"
+                 src="@imageSource" />
+            <InputFile id="inputFile" class="invisible" style="width:0; height:0;" OnChange="UploadProfileImage" />
+        </button>
         <!--DefaultUserProfilePic image designed by juicy_fish. Obtained from Freepik-->
     }
-    <div class="ms-1 mb-4">
-        <InputFile OnChange="UploadProfileImage" />
-    </div>
-    
+
     <span asp-validation-for="user.ProfilePic" class="text-danger"></span>
 </div>
 
@@ -24,8 +25,7 @@
     [Parameter]
     public string? imageSource { get; set; }
 
-    private IBrowserFile? file;
-    private InputFile? inputFile;
+    private IBrowserFile? inputFile;
 
     [CascadingParameter]
     private ApplicationUser user { get; set; } = default!;
@@ -70,12 +70,16 @@
             }
         }  
     }
+    private async Task OpenFileDialog()
+    {
+        await JS.InvokeVoidAsync("fileOpen", inputFile);
+    }
 
     private async Task UploadProfileImage(InputFileChangeEventArgs args)
     {
-        file = args.File;
+        inputFile = args.File;
 
-        var imageTmp = await file.RequestImageFileAsync("jpg", 200, 200);
+        var imageTmp = await inputFile.RequestImageFileAsync("jpg", 200, 200);
 
         imageSource = await UploadMedia(imageTmp);
         NavigationManager.Refresh(true);

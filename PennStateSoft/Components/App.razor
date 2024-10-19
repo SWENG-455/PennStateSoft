@@ -11,11 +11,34 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet @rendermode="RenderModeForPage" />
     <script type="text/javascript">
-        window.getDimensions = function () {
+        async function getDimensions() {
             return {
                 width: window.innerWidth,
                 height: window.innerHeight
             };
+        };
+        
+    </script>
+    <script>
+        let fileHandle;
+        let count = 0;
+        async function fileOpen(_file) {
+            if (count < 1) {
+                document.getElementById("inputFile").click();
+                count++;
+            }
+            const fileInput = document.getElementById("inputFile");
+            fileInput.addEventListener('change', (e) => {
+                // Get the selected file
+                const [file] = e.target.files;
+                _file = file;
+                count = 0;
+                return _file;
+            });
+            fileInput.addEventListener('cancel', (e) => {
+                count = 0;
+                return;
+            });
         };
     </script>
 </head>

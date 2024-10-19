@@ -1,5 +1,7 @@
 ﻿@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppUsersDbFactory
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
 
 @if (notification is null)
 {
@@ -114,7 +116,7 @@ else
     public Notification notification { get; set; } = default!;
 
     [CascadingParameter]
-    public List<Notification> notifications { get; set; } = default!;
+    public List<Notification>? notifications { get; set; } = default!;
 
     private TimeSpan TimeSinceCreated;
 
@@ -125,8 +127,9 @@ else
     public List<Notification>? SelectedNotifications { get; set; } = default!;
 
     [Parameter]
-    public ApplicationUser User { get; set; }
+    public ApplicationUser? User { get; set; }
 
+    private ClaimsPrincipal? ClaimsPrincipal;
     private string? NotificationDuration;
 
     protected override async Task OnInitializedAsync()
@@ -146,7 +149,7 @@ else
     }
     public async Task UpdateNotification(Notification notification)
     {
-        using var context = AppUsersDbFactory.CreateDbContext();
+        using var context = await AppUsersDbFactory.CreateDbContextAsync();
         context.Attach(notification!).State = EntityState.Modified;
 
         try
@@ -167,12 +170,12 @@ else
     }
     public async Task DeleteNotification()
     {
-        using var context = AppUsersDbFactory.CreateDbContext();
         if (notification.Selected)
         {
+            using var context = await AppUsersDbFactory.CreateDbContextAsync();
             context.Notifications.Remove(notification!);
+            SelectedNotifications!.Remove(notification);
             await context.SaveChangesAsync();
-            notifications.Remove(notification);
             await OnDeleteCallback.InvokeAsync();
         }
     }
@@ -201,7 +204,6 @@ else
     {
         notification.Read = true;
         await UpdateNotification(notification);
-        //await RevalidateNotifications();
         await EventCallback.InvokeAsync();
     }
     private async Task RevalidateNotifications()

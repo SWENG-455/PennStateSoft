@@ -65,11 +65,11 @@
                     <TemplateColumn Context="notification">
                         <CascadingValue Value="notifications">
                             <CascadingValue Value="notification" IsFixed=true>
-                                <CascadingValue Value="SelectedNotifications">
-                                    <CascadingValue Value="SelectAllNotifications">
+                                <CascadingValue Value="SelectAllNotifications">
+                                    <CascadingValue Value="SelectedNotifications">
                                         <NotificationDetails OnDeleteCallback="UpdateGridProvider" 
                                                              OnSelected="UpdateGridProvider" 
-                                                                             EventCallback="UpdateGridProvider"/>
+                                                             EventCallback="UpdateGridProvider"/>
                                     </CascadingValue>
                                 </CascadingValue>
                             </CascadingValue>
@@ -185,6 +185,17 @@
 
     private void UpdateGridProvider()
     {
+        using var context = AppDbFactory.CreateDbContext();
+        var updated_notifications = context.Notifications.
+                    Where(n => n.Author != User!.UserName &&
+                        (n.Recipient == User.UserName)).ToList();
+
+        if (notifications.Count() != updated_notifications.Count())
+        {
+            notifications = updated_notifications;
+            notifications = notifications.OrderByDescending(n => n.Created).ToList();
+        }
+
         UpdateGridProvider(notifications!);
     }
     private void UpdateGridProvider(List<Notification> notifications)

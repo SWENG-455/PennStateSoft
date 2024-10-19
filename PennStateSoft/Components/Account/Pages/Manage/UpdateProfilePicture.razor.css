@@ -1,0 +1,58 @@
+﻿.label {
+    display: inline-block;
+    padding: 0.5em;
+    transition: border 300ms ease;
+    cursor: pointer;
+    text-align: center;
+    left: 10px;
+    top: 10px;
+    width: 1.4em;
+    height: 1.4em;
+    background-image: url("UploadProfilePicIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+    .label ::file-selector-button {
+        display: inline-block;
+        padding: 0.5em;
+        transition: border 300ms ease;
+        cursor: pointer;
+        text-align: center;
+        left: 10px;
+        top: 10px;
+        width: 1.4em;
+        height: 1.4em;
+        background-image: url("UploadProfilePicIcon.svg");
+        background-size: contain;
+        background-repeat: no-repeat;
+        vertical-align: middle;
+    }
+
+.i {
+    display: inline-block;
+    font-size: 42px;
+    padding-bottom: 16px;
+}
+
+.title {
+    transition: 200ms color;
+}
+
+.label:hover {
+    border: 2px solid;
+}
+.hidden{
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+.icon1 {
+    display: inline-block;
+    width: 1.4em;
+    height: 1.4em;
+    background-image: url("UploadProfilePicIcon.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}

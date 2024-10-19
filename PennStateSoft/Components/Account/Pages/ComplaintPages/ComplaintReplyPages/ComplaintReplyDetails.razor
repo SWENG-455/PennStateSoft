@@ -261,7 +261,7 @@
     public async Task DeleteComplaintReply()
     {
         await RemoveRole(ComplaintReply!);
-        using var context = ComplaintsDbFactory.CreateDbContext();
+        using var context = await ComplaintsDbFactory.CreateDbContextAsync();
         context.ComplaintReply.Remove(ComplaintReply!);
         context.Attach(complaint!).State = EntityState.Modified;
         await context.SaveChangesAsync();

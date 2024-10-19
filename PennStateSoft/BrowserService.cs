@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.JSInterop;
 using System.Threading.Tasks;
 
 namespace PennStateSoft
@@ -15,6 +16,10 @@ namespace PennStateSoft
         public async Task<BrowserDimension> GetDimensions()
         {
             return await _js.InvokeAsync<BrowserDimension>("getDimensions");
+        }
+        public async Task<IBrowserFile> GetImageFile()
+        {
+            return await _js.InvokeAsync<IBrowserFile>("getImageFile");
         }
 
     }

@@ -91,7 +91,13 @@
     protected override async void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
+        var height = Height;
+        var width = Width;
         await GetDimensions();
+        if (width != Width || height != Height)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     public async Task GetDimensions()

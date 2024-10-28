@@ -18,8 +18,8 @@
 
 @if (UserName == complaint?.Username)
 {
-     <div style="align-content:baseline; background-color:whitesmoke; width:75%">
-         <div class="ms-5 mt-3">
+    <div style="align-content:baseline; background-color:whitesmoke; width:75%">
+        <div class="ms-5 mt-3">
             <div>
                 @if (complaint is null)
                 {
@@ -28,8 +28,7 @@
                 }
                 else
                 {
-                    <h3 class="link-danger">Mark as resolved?</h3>
-                    <hr class="link-danger" />
+                    <h3 class="link-danger mb-4">Mark as resolved?</h3>
                     <h4 class="mt-4">@complaint.Subject</h4>
                     <hr />
                     <div class="forms-control border border-light border-start-0 border-end-0 border-bottom-0
@@ -43,7 +42,7 @@
                             <textarea class="text-black text-wrap" style="border:none; background-color:whitesmoke" cols="100"
                                       rows="@uIHelper.Rows" disabled>
                                 @Encoding.ASCII.GetString(complaint.Description!)
-                                </textarea>
+                                                </textarea>
                         </div>
                     </div>
                     <EditForm method="post" Model="complaint" OnValidSubmit="DeleteComplaint" FormName="close-complaint" Enhance>
@@ -54,12 +53,12 @@
                     </EditForm>
                 }
             </div>
-         </div>
-     </div>
+        </div>
+    </div>
 }
 else
 {
-    <NotFound/>
+    <NotFound />
 }
 
 
@@ -135,7 +134,7 @@ else
                 result = await RoleManager.DeleteAsync(Role!);
 
                 var complaintReplyReplies = context.ReplyReply.Where(rr => rr.ComplaintReplyReplyId == complaintReply.Id).ToList();
-                
+
                 if (complaintReplyReplies is not null)
                 {
                     foreach (var complaintReplyReply in complaintReplyReplies)

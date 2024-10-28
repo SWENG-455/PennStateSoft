@@ -1,46 +1,26 @@
 {
-  "mssql1": {
-    "serviceCon{: null,
+  "dependencies": {
+    "secrets1": {
+      "type": "secrets",
+      "connectionId": null
+    },
     "mssql1": {
-      "serviceConnectorResourceId": "",
-      "secretStore": "LocalSecretsFile",
       "type": "mssql.local",
       "connectionId": "ConnectionStrings:DefaultConnection",
       "dynamicId": null
     },
     "mssql2": {
-      "serviceConnectorResourceId": "",
-      "secretStore": "LocalSecretsFile",
       "type": "mssql.local",
-      "connectionId": "ConnectionStrings:UserComplaints",
+      "connectionId": "ConnectionStrings:NotificationContext",
       "dynamicId": null
     },
     "mssql3": {
-      "serviceConnectorResourceId": "",
-      "secretStore": "LocalSecretsFile",
       "type": "mssql.local",
-      "connectionId": "ConnectionStrings:MeetingsContext",
-      "dynamicId": null
-    }
-  }
-}nectorResourceId": "",
-      "secretStore": "LocalSecretsFile",
-      "type": "mssql.local",
-      "connectionId": "ConnectionStrings:DefaultConnection",
-      "dynamicId": null
+      "connectionId": "ConnectionStrings:MeetingContext"
     },
-    "mssql2": {
-      "serviceConnectorResourceId": "",
-      "secretStore": "LocalSecretsFile",
+    "mssql4": {
       "type": "mssql.local",
       "connectionId": "ConnectionStrings:UserComplaints",
-      "dynamicId": null
-    },
-    "mssql3": {
-      "serviceConnectorResourceId": "",
-      "secretStore": "LocalSecretsFile",
-      "type": "mssql.local",
-      "connectionId": "ConnectionStrings:MeetingsContext",
       "dynamicId": null
     }
   }

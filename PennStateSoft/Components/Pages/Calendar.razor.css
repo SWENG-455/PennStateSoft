@@ -1,13 +1,12 @@
 ﻿.shadow-effect {
     transition: 0.3s;
-    
 }
 
-.shadow-effect:hover {
-    -webkit-box-shadow: 0px 4px 15px -6px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0px 4px 15px -6px rgba(0,0,0,0.75);
-    box-shadow: 0px 4px 15px -6px rgba(0,0,0,0.75);
- }
+    .shadow-effect:hover {
+        -webkit-box-shadow: 0px 4px 15px -6px rgba(0,0,0,0.75);
+        -moz-box-shadow: 0px 4px 15px -6px rgba(0,0,0,0.75);
+        box-shadow: 0px 4px 15px -6px rgba(0,0,0,0.75);
+    }
 
 .calendar {
     margin: 7px;
@@ -15,6 +14,7 @@
     border-collapse: collapse;
     text-align: center;
 }
+
     .calendar td {
         padding-left: 1px;
         padding-right: 1px;
@@ -23,38 +23,38 @@
         vertical-align: top;
     }
 
-.calendar .prev_day {
-    text-align: center;
-    padding: 3px;
-    border-radius: 4px;
-    background-color: #fafafa;
-    color: darkgrey;
-}
-
-.calendar .day {
-    width: 50px;
-    height: 50px;
-    min-width: 50px;
-    padding: 3px;
-    border-radius: 4px;
-    background-color: #f8f8f8;
-    cursor:pointer;
-}
-
-.calendar .day.header {
-    font-weight: bold;
-    background-color: transparent;
-}
-
-.calendar .day.today {
-    background-image: linear-gradient(#186dff, #183369);
-    color: white;
-
-}
-    .calendar .day.selected {
-        background-image: linear-gradient(#8bcaf3, #1d404d);
-        color: white;
+    .calendar .prev_day {
+        text-align: center;
+        padding: 3px;
+        border-radius: 4px;
+        background-color: #fafafa;
+        color: darkgrey;
     }
+
+    .calendar .day {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        padding: 3px;
+        border-radius: 4px;
+        background-color: #f8f8f8;
+        cursor: pointer;
+    }
+
+        .calendar .day.header {
+            font-weight: bold;
+            background-color: transparent;
+        }
+
+        .calendar .day.today {
+            background-image: linear-gradient(#186dff, #183369);
+            color: white;
+        }
+
+        .calendar .day.selected {
+            background-image: linear-gradient(#8bcaf3, #1d404d);
+            color: white;
+        }
 
 .card2 .header {
     display: flex;
@@ -66,18 +66,17 @@
     font-size: 1.1em;
 }
 
- .card2 .header .month {
-     font-size: 1.25em;
-     font-weight: bold;
+    .card2 .header .month {
+        font-size: 1.25em;
+        font-weight: bold;
+    }
 
- }
-.card2 .header .year {
-    font-size: 1em;
-    color: #666;
+    .card2 .header .year {
+        font-size: 1em;
+        color: #666;
+    }
 
-}
-
-.container {
+.Container {
     text-align: center;
     margin-bottom: 10px;
 }
@@ -97,6 +96,26 @@
         font-weight: bold;
     }
 
-.row {
+.Row {
     text-align: left;
+}
+
+.icon1 {
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    background-image: url("left-arrow.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+
+.icon2 {
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    background-image: url("right-arrow.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
 }

@@ -17,7 +17,8 @@
     {
         <p><em>Loading...</em></p>
     }
-    else {
+    else
+    {
         @if (userName == complaint.Username || IsAdmin)
         {
             <div style="align-content:baseline; background-color:whitesmoke; width:85%">
@@ -29,15 +30,15 @@
                         <div class="m-1">
                             <img src=@imageSource style="width:30px; height:30px; margin-right: 5px; object-fit:cover; border-radius:30px;" />
                             <label class=" form-label m-2 me-5" style="color:#0070E0"> @complaint.Username</label>
-                            <label class="form-label text-black-50" style="text-align:right; width:40%;"> 
-                                @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString() 
-                             </label>
+                            <label class="form-label text-black-50" style="text-align:right; width:40%;">
+                                @complaint.Created.ToLongDateString() at @complaint.Created.ToShortTimeString()
+                            </label>
                         </div>
                         <div class="m-1 ms-5">
-                            <textarea class="text-black text-wrap" style="border:none; background-color:whitesmoke" cols="100"
+                            <textarea class="text-black text-wrap" style="border:none; background-color:whitesmoke;" cols="100"
                                       rows="@UIhelper.Rows" disabled>
                                 @Encoding.ASCII.GetString(complaint.Description!)
-                                </textarea>
+                                                </textarea>
                         </div>
                     </div>
                     <div class="ms-5">
@@ -105,7 +106,7 @@
         }
         else
         {
-            <NotFound/>
+            <NotFound />
         }
     }
 </div>
@@ -161,8 +162,8 @@
             Description = Encoding.ASCII.GetString(complaint.Description!);
             UIhelper.CalculateSize(Description);
         }
-    }   
-    
+    }
+
     private void OnReplied(SaveChangesEventArgs saveChangesEventArgs)
     {
         //NavigationManager.Refresh(true);

@@ -17,7 +17,7 @@
             style="text-align:justify;" @onclick="OnMouseClicked" @onmouseenter="ShowButtonInfo" @onmouseleave="HideButtonInfo">
     </button>
     <!--Finish implementing standard "Create Room" button tooltip position across various screen sizes-->
-    <div class="showHover text-nowrap" data-hover="@ButtonInfo" style="position:fixed; left:@width;">
+    <div class="showHover text-nowrap" style="position:fixed; left: @width;" data-hover="@ButtonInfo">
     </div>
 </div>
 <div class="ms-5" style="width:55%;">
@@ -97,8 +97,7 @@
     public async Task GetDimensions()
     {
         Dimension = await Service.GetDimensions();
-        var widthPixels = Convert.ToDouble("270px".Replace("px", ""));
-        Width = (double)(Dimension.Width)  / 7;
+        Width = (double)(Dimension.Width) / 2.2;
         width = Width.ToString() + "px";
     }
     private void ShowButtonInfo()

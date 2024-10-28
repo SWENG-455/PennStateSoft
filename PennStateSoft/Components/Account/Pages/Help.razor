@@ -1,17 +1,47 @@
 ﻿@page "/Account/Help"
+@rendermode InteractiveServer
 
-<h3>Frequently Asked Questions</h3>
-<ul class="mt-3">
-    <div class="col">
-        <div class="row mt-2">
-            <a class="m-2" href="Account/Lockout">I am locked out my account. What can I do to recover it?</a>
+<PageTitle>Help</PageTitle>
+
+<h3 class="mt-5 mb-3" style="text-align:center;">Frequently Asked Questions</h3>
+<div class="card mt-3" style="align-content:center;">
+    <button id="help1" class="btn-label card row mt-2" type="button" @onclick="@(()=>onHelpClicked("help1"))">
+        <p class="m-2">I am locked out my account. What can I do to recover it?</p>
+    </button>
+    @if (help_1_Clicked)
+    {
+        <div class="card m-1" style="align-content:center;">
+            <Lockout />
         </div>
-        <div class="row mt-2">
-            <a class="m-2" href="Account/EmailVerificationFAQ">I selected "Email verification link" but nothing happpened. Why is that?</a>
+    }
+    <button id="help2" class="btn-label card row mt-2" type="button" @onclick="@(()=>onHelpClicked("help2"))">
+        <p class="m-2">I selected "Email verification link" but nothing happpened. Why is that?</p>
+    </button>
+    @if (help_2_Clicked)
+    {
+        <div class="card m-1">
+            <EmailVerificationFAQ />
         </div>
-    </div>
-</ul>
+    }
+</div>
 
 
 @code {
+    [Parameter]
+    public bool help_1_Clicked { get; set; }
+    [Parameter]
+    public bool help_2_Clicked { get; set; }
+
+    private void onHelpClicked(string button)
+    {
+        switch (button)
+        {
+            case "help1":
+                help_1_Clicked = !help_1_Clicked;
+                break;
+            case "help2":
+                help_2_Clicked = !help_2_Clicked;
+                break;
+        }
+    }
 }

@@ -107,13 +107,14 @@
         var response = context.Complaint.Where(complaint => complaint.Username == user.UserName);
         complaints = response.ToList();
 
-        if (await UserManager.IsInRoleAsync(user, "Admin")){
+        if (await UserManager.IsInRoleAsync(user, "Admin"))
+        {
             response = context.Complaint;
             complaints = response.ToList();
         }
 
         var rows = response.AsEnumerable<Complaint>().OrderByDescending(c => c.Created).ToList<Complaint>();
-        var result = GridItemsProviderResult.From<Complaint>(items: rows, totalItemCount:rows.Count);
+        var result = GridItemsProviderResult.From<Complaint>(items: rows, totalItemCount: rows.Count);
         complaintProvider = req => ValueTask.FromResult(result);
     }
 

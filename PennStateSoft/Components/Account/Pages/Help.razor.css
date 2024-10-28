@@ -1,0 +1,25 @@
+﻿.card {
+    background-color: whitesmoke;
+    padding: 5px;
+    margin-top: 8px;
+    width: stretch;
+}
+.btn-label {
+    display: inline-block;
+    align-items: center;
+    text-decoration: none;
+    background-color: Window;
+    cursor: pointer;
+}
+
+    .btn-label:focus,
+    .btn-label:hover {
+        background: lightgray;
+        text-decoration: inherit;
+        transition-duration: 0s, 0.15s;
+        color: Window;
+    }
+        .btn-label:hover .btn-label {
+            background-color: lightgray;
+            text-decoration-color: gray;
+        }

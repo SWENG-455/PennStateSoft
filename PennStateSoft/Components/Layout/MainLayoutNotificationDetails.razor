@@ -15,8 +15,9 @@ else
         @notification.Message
 
         <a class="text-wrap" href="@(notification.Link)"
-           @onclick="@(()=>NotificationClicked(notification))"> <strong>@notification.LinkTo</strong>
-       </a>
+           @onclick="@(()=>NotificationClicked(notification))">
+            <strong>@notification.LinkTo</strong>
+        </a>
 
         @{
             TimeSinceCreated = DateTime.Now - notification.Created;
@@ -66,7 +67,7 @@ else
                 }
             }
         }
-        <span class="weak text-wrap">@NotificationDuration</span>
+        <p class="weak text-wrap">@NotificationDuration</p>
 
     </div>
 }

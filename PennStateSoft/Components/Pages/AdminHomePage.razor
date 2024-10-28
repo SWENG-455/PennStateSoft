@@ -1,0 +1,321 @@
+﻿@inject IDbContextFactory<PennStateSoft.Data.MeetingContext> MeetingDbFactory
+@inject IDbContextFactory<PennStateSoft.Data.ApplicationDbContext> AppDbFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize(Roles = "Admin")]
+
+<body>
+    <div class="container">
+        <div class="card1">
+            <UserGreeting></UserGreeting>
+            <div class="wrapper">
+                <div class="grid-container1">
+                    <div class="grid-item1 firstItem">
+                        <div class="card2">
+                            <h2>
+                                Meetings:
+                                <b><a href="Account/Meetings" target="_blank">View all › </a></b>
+                            </h2>
+                            <div class="grid-container">
+                                <div class="grid-item item1">
+                                    <div class="mainList">
+                                        <h3 class="header-with-line">@MeetingsCardTitle</h3>
+                                        @if (upcomingMeetings != null && upcomingMeetings.Count() > 0)
+                                        {
+                                            @foreach (var meeting in upcomingMeetings)
+                                            {
+                                                <article class="meeting">
+                                                    <img src="/test3.svg" alt="Meeting Icon" class="meetingImage">
+                                                    <a href="Account/Meetings/Details?id=@meeting.Id" class="meetingName me-1">@meeting.Name</a>
+                                                    <span class="meetingInfo">
+                                                        @meeting.Date.ToShortDateString() @meeting.Time.ToShortTimeString()
+                                                        <span>@GetMeetingRoom(meeting.RoomId).Name</span>
+                                                    </span>
+                                                </article>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="weak">@NoMeetingsDefaultText</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid-item1 secondItem">
+                        <div class="grid-container">
+                            <div class="card3">
+                                <Calendar>
+                                    <DayTemplate Context="day">
+                                        @{
+                                            DateTime selectedDate = day.Date;
+                                            string currentDay = day.Date == DateTime.Now.Date ? "today" : "";
+                                            string selectedDay = SelectedDay == day.Date ? "selected" : "";
+                                            string color = selectedDay == "selected" ? "white" : "darkgrey";
+                                            @if (selectedDay == "selected" && currentDay == "today")
+                                            {
+                                                color = "white";
+                                            }
+                                        }
+                                        @if (day.IsInThisMonth)
+                                        {
+                                            <div class="ms-3 day shadow-effect @selectedDay @currentDay" @onclick="@(()=>OnDayClicked(selectedDate))">@day.Day</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="ms-3 day @selectedDay" style=" background-color: none; color:@color;"
+                                                 @onclick="@(()=>OnDayClicked(selectedDate))">
+                                                @day.Day
+                                            </div>
+                                        }
+                                    </DayTemplate>
+                                </Calendar>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid-item1 thirdItem">
+                        <div class="grid-container2">
+                            <div class="grid-item3 itemCardAdmin">
+                                <div class="card3">
+                                    <div class="row">
+                                        <strong>
+                                            <p3>
+                                                Notifications:
+                                                <a href="/Account/Notifications">View all › </a>
+                                            </p3>
+                                        </strong>
+                                    </div>
+                                    <div class="grid-container">
+                                        @if (User is not null)
+                                        {
+                                            <div1 style="font-size:small;">
+                                                <CascadingValue Value="@User" IsFixed=true>
+                                                    <NotificationsIndexPreview />
+                                                </CascadingValue>
+                                            </div1>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+@code
+{
+    private List<Meeting>? upcomingMeetings;
+    private List<Room>? Rooms { get; set; }
+    private List<IdentityRole>? Roles { get; set; }
+    private ClaimsPrincipal? claimsPrincipal;
+    private bool IsAdmin = false;
+    private ApplicationUser? User;
+    [Parameter]
+    public string? MeetingsCardTitle { get; set; }
+
+    [Parameter]
+    public string? NoMeetingsDefaultText { get; set; }
+
+    [Parameter]
+    public string? Month { get; set; }
+
+    [Parameter]
+    public DateTime SelectedDay { get; set; }
+
+    private DateTime dateToday = DateTime.Now.Date;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        claimsPrincipal = authState.User;
+
+        if (claimsPrincipal.Identity.IsAuthenticated)
+        {
+            MeetingsCardTitle = "Upcoming Meetings";
+            NoMeetingsDefaultText = "No upcoming meetings";
+            await LoadUpcomingMeetings();
+        }
+    }
+
+    private async Task LoadUpcomingMeetings()
+    {
+        using var context = MeetingDbFactory.CreateDbContext();
+        var allMeetings = await context.Meeting.ToListAsync();
+        Rooms = await context.Room.ToListAsync();
+
+        User = await UserManager.GetUserAsync(claimsPrincipal);
+        using var AppContext = await AppDbFactory.CreateDbContextAsync();
+        var userRoles = AppContext.UserRoles.Where(ur => ur.UserId == User!.Id).ToList();
+        Roles = new List<IdentityRole>();
+        upcomingMeetings = new List<Meeting>();
+        var someMeetings = new List<Meeting>();
+        var members = context.Members.Where(m => m.UserId == User.Id);
+
+        if (userRoles is not null && userRoles.Count() > 0)
+        {
+            foreach (var userRole in userRoles)
+            {
+                var role = await AppContext.Roles.FirstOrDefaultAsync(r => r.Id == userRole.RoleId);
+                if (!role.Name.Contains("Client"))
+                {
+                    Roles.Add(role);
+                }
+            }
+            foreach (var role in Roles)
+            {
+                if (role.Name.Equals("Admin"))
+                {
+                    IsAdmin = true;
+                    break;
+                }
+                else
+                {
+                    //Get meetings where user is either a creator or an invitee
+                    int meetingId = -1, index;
+                    if (role.Name.Contains("Creator"))
+                    {
+                        index = role.Name.LastIndexOf("r");
+                        meetingId = Convert.ToInt32(role.Name.Substring(index + 1));
+                    }
+                    else if (role.Name.Contains("Invitee"))
+                    {
+                        index = role.Name.LastIndexOf("e");
+                        meetingId = Convert.ToInt32(role.Name.Substring(index + 1));
+                    }
+
+                    var meeting = allMeetings.FirstOrDefault(m => m.Id == meetingId);
+
+                    if (meeting is not null)
+                    {
+                        if (!upcomingMeetings.Contains(meeting))
+                        {
+                            upcomingMeetings.Add(meeting);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+        if (IsAdmin)
+        {
+            upcomingMeetings = allMeetings
+            .Where(m => m.Date >= today)
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Time)
+            .ToList();
+        }
+        else
+        {
+            upcomingMeetings = upcomingMeetings
+            .Where(m => m.Date >= today)
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Time)
+            .ToList();
+        }
+    }
+    private async Task LoadSelectedDaysMeetings(DateTime selectedDate)
+    {
+        if (selectedDate.Date == dateToday)
+        {
+            NoMeetingsDefaultText = "No meetings today";
+        }
+        else
+        {
+            NoMeetingsDefaultText = "No meetings on this day";
+        }
+
+        using var context = MeetingDbFactory.CreateDbContext();
+        var allMeetings = await context.Meeting.ToListAsync();
+        Rooms = await context.Room.ToListAsync();
+
+        User = await UserManager.GetUserAsync(claimsPrincipal!);
+        using var AppContext = await AppDbFactory.CreateDbContextAsync();
+        var userRoles = AppContext.UserRoles.Where(ur => ur.UserId == User!.Id).ToList();
+        Roles = new List<IdentityRole>();
+        var selectedMeetings = new List<Meeting>();
+        //var members = context.Members.Where(m => m.UserId == User!.Id);
+
+        MeetingsCardTitle = selectedDate.ToLongDateString();
+
+        if (userRoles is not null && userRoles.Count() > 0)
+        {
+            foreach (var userRole in userRoles)
+            {
+                var role = await AppContext.Roles.FirstOrDefaultAsync(r => r.Id == userRole.RoleId);
+                if (!role.Name.Contains("Client"))
+                {
+                    Roles.Add(role);
+                }
+            }
+            foreach (var role in Roles)
+            {
+                if (role.Name.Equals("Admin"))
+                {
+                    IsAdmin = true;
+                    break;
+                }
+                else
+                {
+                    //Get meetings where user is either a creator or an invitee
+                    int meetingId = -1, _index;
+                    if (role.Name.Contains("Creator"))
+                    {
+                        _index = role.Name.LastIndexOf("r");
+                        meetingId = Convert.ToInt32(role.Name.Substring(_index + 1));
+                    }
+                    else if (role.Name.Contains("Invitee"))
+                    {
+                        _index = role.Name.LastIndexOf("e");
+                        meetingId = Convert.ToInt32(role.Name.Substring(_index + 1));
+                    }
+
+                    var meeting = allMeetings.FirstOrDefault(m => m.Id == meetingId);
+
+                    if (meeting is not null)
+                    {
+                        if (!selectedMeetings.Contains(meeting))
+                        {
+                            selectedMeetings.Add(meeting);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (IsAdmin)
+        {
+            upcomingMeetings = allMeetings
+            .Where(m => m.Date == DateOnly.FromDateTime(selectedDate))
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Time)
+            .ToList();
+        }
+        else
+        {
+            upcomingMeetings = selectedMeetings
+            .Where(m => m.Date == DateOnly.FromDateTime(selectedDate))
+            .OrderBy(m => m.Date)
+            .ThenBy(m => m.Time)
+            .ToList();
+        }
+
+    }
+    private async Task OnDayClicked(DateTime selectedDate)
+    {
+        SelectedDay = selectedDate;
+        await LoadSelectedDaysMeetings(selectedDate);
+        StateHasChanged();
+    }
+    private Room GetMeetingRoom(int roomId)
+    {
+        return Rooms!.FirstOrDefault(r => r.Id == roomId)!;
+    }
+}

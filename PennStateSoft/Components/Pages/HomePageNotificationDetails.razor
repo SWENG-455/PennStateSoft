@@ -17,56 +17,56 @@ else
                 <a class="text-wrap" href="@(notification.Link)">@notification.LinkTo</a>
             </strong>
         </span>
-            @{
-                TimeSinceCreated = DateTime.Now - notification.Created;
+        @{
+            TimeSinceCreated = DateTime.Now - notification.Created;
 
-                if (TimeSinceCreated.Days > 0)
+            if (TimeSinceCreated.Days > 0)
+            {
+                if (TimeSinceCreated.Days == 1)
                 {
-                    if (TimeSinceCreated.Days == 1)
-                    {
-                        NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " day ago ";
-                    }
-                    else
-                    {
-                        NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
-                    } 
-                }
-                else if (TimeSinceCreated.Hours > 0)
-                {
-                    if (TimeSinceCreated.Hours == 1)
-                    {
-                    NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hour ago ";
-                    }
-                    else
-                    {
-                    NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
-                    }
-                }
-                else if (TimeSinceCreated.Minutes > 0)
-                {
-                    if (TimeSinceCreated.Minutes == 1)
-                    {
-                    NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minute ago ";
-                    }
-                    else
-                    {
-                    NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
-                    }
+                    NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " day ago ";
                 }
                 else
                 {
-                    if (TimeSinceCreated.Seconds == 1)
-                    {
-                    NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " second ago ";
-                    }
-                    else
-                    {
-                    NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
-                    }
+                    NotificationDuration = " " + TimeSinceCreated.Days.ToString() + " days ago ";
                 }
             }
+            else if (TimeSinceCreated.Hours > 0)
+            {
+                if (TimeSinceCreated.Hours == 1)
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hour ago ";
+                }
+                else
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Hours.ToString() + " hours ago ";
+                }
+            }
+            else if (TimeSinceCreated.Minutes > 0)
+            {
+                if (TimeSinceCreated.Minutes == 1)
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minute ago ";
+                }
+                else
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Minutes.ToString() + " minutes ago ";
+                }
+            }
+            else
+            {
+                if (TimeSinceCreated.Seconds == 1)
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " second ago ";
+                }
+                else
+                {
+                    NotificationDuration = " " + TimeSinceCreated.Seconds.ToString() + " seconds ago ";
+                }
+            }
+        }
         <span class="weak text-wrap">@NotificationDuration</span>
-        
+
     </div>
 }
 

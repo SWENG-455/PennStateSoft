@@ -19,7 +19,7 @@
                         <CascadingValue Value="notification">
                             <CascadingValue Value="notifications">
                                 <CascadingValue Value="User" IsFixed="true">
-                                    <HomePageNotificationDetails/>
+                                    <HomePageNotificationDetails />
                                 </CascadingValue>
                             </CascadingValue>
                         </CascadingValue>
@@ -84,7 +84,7 @@
         if (notifications is not null)
         {
             notifications = notifications.OrderByDescending(n => n.Created).ToList();
-            notifications = notifications.Take(2).ToList();
+            notifications = notifications.Take(1).ToList();
 
             if (notifications is null || notifications.Count <= 0)
             {
@@ -94,7 +94,7 @@
             NotificationsProvider = request => ValueTask.FromResult(Result);
         }
     }
-    
+
     public async Task UpdateNotification(Notification notification)
     {
         using var context = AppDbFactory.CreateDbContext();

@@ -20,29 +20,29 @@
                 <i class="mt-1 icon2"></i>
             </NotAuthorized>
             <Authorized>
-            @if (dbContext is not null)
-            {
-                notifications = dbContext.Notifications.Where(n => n.Author != User!.UserName && 
-                (n.Recipient == User.UserName) && (n.Read == false)).ToList();
-            }
-            @if (notifications is not null && notifications.Count() > 0)
-            {
-                <i class="mt-1 icon3"></i>
-            }
-            else
-            {
-                <i class="mt-1 icon2"></i>
-            }
+                @if (dbContext is not null)
+                {
+                    notifications = dbContext.Notifications.Where(n => n.Author != User!.UserName &&
+                    (n.Recipient == User.UserName) && (n.Read == false)).ToList();
+                }
+                @if (notifications is not null && notifications.Count() > 0)
+                {
+                    <i class="mt-1 icon3"></i>
+                }
+                else
+                {
+                    <i class="mt-1 icon2"></i>
+                }
             </Authorized>
         </AuthorizeView>
 
     </button>
     <div class="showHover2 text-nowrap" data-hover="@Button2Info" style="position:relative;"></div>
 </div>
-<div class="nav-item">
+<div class="nav-item ">
     @if (ClickedNotifications)
     {
-        <div class="popover" style="position:fixed; min-width:380px;  left: @width; top: @height;"
+        <div class="popover" style="position:fixed; min-width:380px; left: @width; top: @height;"
              @onmouseenter="OnMouseHover" @onmouseleave="OnMouseHover">
             <div class="popover-header">
                 <strong>
@@ -50,14 +50,14 @@
                 </strong>
                 <a href="/Account/Notifications" style="float:right;">View all › </a>
             </div>
-            <div class="popover-body">
+            <div class="popover-body overflow-scroll" style="max-height:650px;">
                 @if (User is not null)
                 {
-                    <div1 style="font-size:small;">
+                    <div class="" style="font-size:small;">
                         <CascadingValue Value="@User" IsFixed=true>
                             <MainLayoutNotificationsIndex />
                         </CascadingValue>
-                    </div1>
+                    </div>
                 }
                 else
                 {
@@ -89,13 +89,12 @@
     public double Height { get; set; }
     public double Width { get; set; }
 
-
     public List<Notification>? notifications;
     ClaimsPrincipal? claimsPrincipal;
     private ApplicationUser? User { get; set; }
 
     protected override async Task OnInitializedAsync()
-    {  
+    {
         var AuthState = await AuthStateProvider.GetAuthenticationStateAsync();
         claimsPrincipal = AuthState.User;
 
@@ -116,6 +115,10 @@
     {
         base.OnAfterRender(firstRender);
         await GetDimensions();
+        if (ClickedNotifications)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     public async Task GetDimensions()
@@ -156,18 +159,23 @@
         ClickedNotifications = !ClickedNotifications;
     }
 
-    private void NotificationsCancel()
+    private async Task NotificationsCancel()
     {
-        if (!MouseHovering)
+        await Task.Factory.StartNew(new Action(CheckIfMouseIsHover));
+    }
+    private void CheckIfMouseIsHover()
+    {
+        while (MouseHovering)
         {
-            ClickedNotifications = false;
+            //Do nothing
         }
+        ClickedNotifications = false;
     }
 
-    private void OnMouseHover()
+    private async Task OnMouseHover()
     {
         MouseHovering = !MouseHovering;
-        NotificationsCancel();
+        await InvokeAsync(StateHasChanged);
     }
 }
 
